@@ -23,7 +23,7 @@
   function row(i, sel, orgView) {
     var t = i.tree;
     return '<li class="up-row" data-id="' + MT.esc(t.id) + '"><label class="sel-box inl"><input type="checkbox" data-sel="' + MT.esc(t.id) + '"' + (sel[t.id] ? ' checked' : '') + ' aria-label="Select ' + MT.esc(t.code) + '"></label>' +
-      '<a class="tree-thumb" href="#/trees/' + encodeURIComponent(t.id) + '">' + (t.cover ? '<img src="' + MT.esc(t.cover) + '" alt="" width="48" height="48">' : ui.treeArt(t.health, 48).s) + '</a>' +
+      '<a class="tree-thumb" aria-label="Open ' + MT.esc(MT.trees.nameOf(t)) + ' ' + MT.esc(t.code) + '" href="#/trees/' + encodeURIComponent(t.id) + '">' + (t.cover ? '<img src="' + MT.esc(t.cover) + '" alt="" width="48" height="48">' : ui.treeArt(t.health, 48).s) + '</a>' +
       '<div class="up-main"><a href="#/trees/' + encodeURIComponent(t.id) + '"><strong>' + MT.esc(MT.trees.nameOf(t)) + '</strong></a><small class="mono">' + MT.esc(t.code) + '</small>' + (orgView ? '<small class="muted">' + MT.esc(t.ownerName || '') + '</small>' : '') + '</div>' +
       '<span class="hchip"><i class="hdot hdot-' + t.health + '"></i>' + MT.esc(ui.healthLabel[t.health]) + '</span><span class="badge badge-' + MT.cadence.tone(i.s) + '">' + MT.esc(MT.cadence.label(i.s)) + '</span>' +
       '<button type="button" class="btn btn-soft btn-sm" data-post="' + MT.esc(t.id) + '">Post update</button></li>';

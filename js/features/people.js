@@ -63,7 +63,7 @@
       MT.$('#pp-sub', host).textContent = MT.fmt.num(rows.length) + ' of ' + MT.fmt.num(S.people.length) + ' people';
       var n = Object.keys(S.sel).length; MT.$('#pp-bulk', host).hidden = !n; MT.$('#pp-n', host).textContent = n + ' selected';
       if (!rows.length) { body.innerHTML = ui.empty(S.people.length ? { title: 'No one matches', text: 'Try clearing a filter.' } : { title: 'No people yet', text: me.role === 'super_admin' ? 'Members appear here as organisations add them.' : 'Add your first student — they get a user ID and an easy password.' }).s; return; }
-      body.innerHTML = '<table class="table"><thead><tr><th><input type="checkbox" id="pp-chk-all" aria-label="Select all shown"></th><th>Name</th><th>User ID</th><th>Role</th>' + (showOrg ? '<th>Organisation</th>' : '') + '<th>Class</th><th>Status</th><th></th></tr></thead><tbody>' +
+      body.innerHTML = '<table class="table"><thead><tr><th><input type="checkbox" id="pp-chk-all" aria-label="Select all shown"></th><th>Name</th><th>User ID</th><th>Role</th>' + (showOrg ? '<th>Organisation</th>' : '') + '<th>Class</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody>' +
         rows.slice(0, S.shown).map(function (u) {
           var o = S.orgs[u.orgId];
           return '<tr data-uid="' + MT.esc(u.id) + '"><td><input type="checkbox" data-sel="' + MT.esc(u.id) + '"' + (S.sel[u.id] ? ' checked' : '') + ' aria-label="Select ' + MT.esc(u.name) + '"></td><td><strong>' + MT.esc(u.name) + '</strong></td><td><button type="button" class="link-btn mono" data-copy="' + MT.esc(u.userId) + '" title="Copy ID">' + MT.esc(u.userId) + '</button></td><td>' + MT.esc(MT.ROLE_LABEL[u.role] || u.role) + '</td>' +

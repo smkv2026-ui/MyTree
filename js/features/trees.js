@@ -80,7 +80,7 @@
     }
     function card(t) {
       var chk = S.selecting ? '<label class="sel-box"><input type="checkbox" data-sel="' + MT.esc(t.id) + '"' + (S.sel[t.id] ? ' checked' : '') + ' aria-label="Select ' + MT.esc(t.code) + '"></label>' : '';
-      return '<article class="tree-card card-lift" data-id="' + MT.esc(t.id) + '">' + chk + '<a class="tc-img" href="#/trees/' + encodeURIComponent(t.id) + '">' + thumbHtml(t, 240).s + '</a><div class="tc-body"><a class="tc-name" href="#/trees/' + encodeURIComponent(t.id) + '">' + MT.esc(MT.trees.nameOf(t)) + '</a>' +
+      return '<article class="tree-card card-lift" data-id="' + MT.esc(t.id) + '">' + chk + '<a class="tc-img" aria-label="Open ' + MT.esc(MT.trees.nameOf(t)) + ' ' + MT.esc(t.code) + '" href="#/trees/' + encodeURIComponent(t.id) + '">' + thumbHtml(t, 240).s + '</a><div class="tc-body"><a class="tc-name" href="#/trees/' + encodeURIComponent(t.id) + '">' + MT.esc(MT.trees.nameOf(t)) + '</a>' +
         '<small class="mono">' + MT.esc(t.code) + '</small><div class="tc-meta">' + healthChip(t.status === 'dead' ? 'dead' : t.health).s + '<small>' + MT.fmt.date(t.plantedOn, { day: 'numeric', month: 'short', year: '2-digit' }) + '</small></div>' +
         (isOrg && S.scope === 'org' ? '<small class="muted">' + MT.esc(t.ownerName || '') + '</small>' : '') + '</div></article>';
     }

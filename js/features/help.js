@@ -15,12 +15,12 @@
   function render() {
     var site = MT.site || {}, signed = !!MT.auth.role();
     return h`<div class="${signed ? 'page' : 'wrap narrow'} help-page" data-reveal>
-      <div class="page-head"><h2>Help centre</h2><p class="muted">Guides for every role. Type to search.</p></div>
+      <div class="page-head">${signed ? h`<h2>Help centre</h2>` : h`<h1>Help centre</h1>`}<p class="muted">Guides for every role. Type to search.</p></div>
       <div class="search-wrap"><label class="sr-only" for="help-q">Search help</label><input id="help-q" type="search" placeholder="Search — e.g. password, update, QR, Excel" autocomplete="off"></div>
       <div id="help-topics" class="chips help-topics"></div>
       <div id="help-list" class="help-list" aria-live="polite"></div>
-      <section class="card help-faq"><div class="card-head"><h3>Quick answers</h3></div>${D.faq.map(function (f) { return h`<details><summary>${f[0]}</summary><p>${f[1]}</p></details>`; })}</section>
-      <section class="card help-contact"><div class="card-head"><h3>Still stuck?</h3></div><p>Write to <a href="mailto:${site.contactEmail}">${site.contactEmail}</a> or call ${site.contactPhone}. Please mention your user ID — never your password.</p>${signed ? h`<div class="btn-row"><button class="btn btn-soft" id="help-tour">${ui.icon('map')} Replay the welcome tour</button></div>` : ''}</section>
+      <section class="card help-faq"><div class="card-head"><h2 class="as-h3">Quick answers</h2></div>${D.faq.map(function (f) { return h`<details><summary>${f[0]}</summary><p>${f[1]}</p></details>`; })}</section>
+      <section class="card help-contact"><div class="card-head"><h2 class="as-h3">Still stuck?</h2></div><p>Write to <a href="mailto:${site.contactEmail}">${site.contactEmail}</a> or call ${site.contactPhone}. Please mention your user ID — never your password.</p>${signed ? h`<div class="btn-row"><button class="btn btn-soft" id="help-tour">${ui.icon('map')} Replay the welcome tour</button></div>` : ''}</section>
     </div>`;
   }
 

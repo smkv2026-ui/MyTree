@@ -32,6 +32,7 @@
         if (t !== 'auto') r.setAttribute('data-theme', t);
         r.setAttribute('data-fs', String(g('mt.fs', 100)));
         if (g('mt.contrast', false)) r.setAttribute('data-contrast', 'high');
+        if (g('mt.motion', false)) r.setAttribute('data-motion', 'reduce');
       } catch (e) {}
     })();
   </script>

@@ -58,7 +58,7 @@
       panel.innerHTML = '<h3>What are you planting?</h3><div class="form-grid">' +
         '<div class="field field-wide"><label for="sp-q">Search species</label><input id="sp-q" type="search" placeholder="Neem, mango, Azadirachta indica…" autocomplete="off"><p class="field-hint">' + MT.species.list.length + ' Indian and common species. Can’t find yours? Choose “Other”.</p></div>' +
         '<div class="chips field-wide" id="sp-chips" role="group" aria-label="Filter species"></div>' +
-        '<ul class="sp-list field-wide" id="sp-list" role="listbox" aria-label="Species"></ul>' +
+        '<ul class="sp-list field-wide" id="sp-list" aria-label="Species"></ul>' +
         '<div class="field field-wide" id="sp-detail"></div>' +
         '<div class="field"><label for="sp-count">How many saplings?</label><div class="qty"><button type="button" class="icon-btn" data-qty="-1" aria-label="Fewer">−</button><input id="sp-count" type="number" min="1" max="' + MT.trees.MAX_PER_POST + '" value="' + S.count + '" inputmode="numeric"><button type="button" class="icon-btn" data-qty="1" aria-label="More">+</button></div><p class="field-hint">Each sapling gets its own ID and QR; they share one plot. For more than ' + MT.trees.MAX_PER_POST + ', use Bulk upload.</p></div>' +
         ownerPicker() + '</div>';
@@ -76,8 +76,8 @@
       function draw() {
         var arr = matches();
         list.innerHTML = arr.map(function (s) {
-          return '<li role="option" aria-selected="' + (S.speciesId === s.id) + '"><button type="button" class="sp-item' + (S.speciesId === s.id ? ' sel' : '') + '" data-id="' + MT.esc(s.id) + '"><span class="sp-name">' + MT.esc(s.common) + '</span><em>' + MT.esc(s.scientific) + '</em><span class="sp-tags"><span class="tag ' + (s.native ? 'tag-ok' : '') + '">' + (s.native ? 'Native' : 'Introduced') + '</span><span class="tag">' + MT.esc(s.category) + '</span></span></button></li>';
-        }).join('') + '<li role="option"><button type="button" class="sp-item' + (S.speciesId === 'other' ? ' sel' : '') + '" data-id="other"><span class="sp-name">Other (not listed)</span><em>Type its name below</em></button></li>';
+          return '<li><button type="button" aria-pressed="' + (S.speciesId === s.id) + '" class="sp-item' + (S.speciesId === s.id ? ' sel' : '') + '" data-id="' + MT.esc(s.id) + '"><span class="sp-name">' + MT.esc(s.common) + '</span><em>' + MT.esc(s.scientific) + '</em><span class="sp-tags"><span class="tag ' + (s.native ? 'tag-ok' : '') + '">' + (s.native ? 'Native' : 'Introduced') + '</span><span class="tag">' + MT.esc(s.category) + '</span></span></button></li>';
+        }).join('') + '<li><button type="button" aria-pressed="' + (S.speciesId === 'other') + '" class="sp-item' + (S.speciesId === 'other' ? ' sel' : '') + '" data-id="other"><span class="sp-name">Other (not listed)</span><em>Type its name below</em></button></li>';
         if (!arr.length) list.insertAdjacentHTML('afterbegin', '<li class="sp-none">No match — try another spelling, or pick “Other”.</li>');
         detail();
       }
@@ -91,7 +91,7 @@
       var debounced = MT.debounce(draw, 120); q.addEventListener('input', debounced);
       MT.loader.load('fuse').then(function () { fuse = new Fuse(MT.species.list, { keys: ['common', 'scientific'], threshold: 0.35, ignoreLocation: true }); if (q.value) draw(); }).catch(function () {});
       MT.$('#sp-chips', panel).addEventListener('click', function (e) { var b = e.target.closest('[data-cat]'); if (!b) return; cat = b.dataset.cat; MT.$$('#sp-chips .chip', panel).forEach(function (x) { var on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); }); draw(); });
-      list.addEventListener('click', function (e) { var b = e.target.closest('[data-id]'); if (!b) return; S.speciesId = b.dataset.id; MT.$$('.sp-item', list).forEach(function (x) { x.classList.toggle('sel', x === b); x.parentNode.setAttribute('aria-selected', x === b); }); detail(); var d = MT.$('#sp-detail', panel); d.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); setErr(''); });
+      list.addEventListener('click', function (e) { var b = e.target.closest('[data-id]'); if (!b) return; S.speciesId = b.dataset.id; MT.$$('.sp-item', list).forEach(function (x) { x.classList.toggle('sel', x === b); x.setAttribute('aria-pressed', x === b); }); detail(); var d = MT.$('#sp-detail', panel); d.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); setErr(''); });
       var ci = MT.$('#sp-count', panel);
       ci.addEventListener('input', function () { S.count = Math.max(1, Math.min(MT.trees.MAX_PER_POST, parseInt(ci.value, 10) || 1)); });
       ci.addEventListener('blur', function () { ci.value = S.count; });

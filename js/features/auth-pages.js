@@ -63,7 +63,7 @@
     return h`<div class="auth-card auth-card-wide" data-reveal>
       <h1 class="auth-title">Join MyTree</h1><p class="auth-sub">Who is planting? Pick the one that fits you best.</p>
       <div class="type-grid">${Object.keys(TYPES).map(function (k) { var t = TYPES[k];
-        return h`<a class="type-card card-lift" href="#/register/${k}"><span class="role-ic">${ui.icon(t.icon)}</span><h3>${t.title}</h3><p>${t.blurb}</p><span class="type-go">Continue ${ui.icon('arrow-right')}</span></a>`; })}</div>
+        return h`<a class="type-card card-lift" href="#/register/${k}"><span class="role-ic">${ui.icon(t.icon)}</span><h2 class="as-h3">${t.title}</h2><p>${t.blurb}</p><span class="type-go">Continue ${ui.icon('arrow-right')}</span></a>`; })}</div>
       <p class="auth-links"><span>Already have an account? <a href="#/login">Sign in</a></span></p></div>`;
   }
 

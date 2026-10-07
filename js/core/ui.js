@@ -253,6 +253,7 @@
     return MT.loader.load('confetti').then(function () {
       var colors = ['#2e9e5b', '#d9f3e3', '#c9a227', '#f4ecd8', '#0f3d2e'];
       window.confetti(Object.assign({ particleCount: 110, spread: 75, origin: { y: 0.65 }, colors: colors, disableForReducedMotion: true }, o));
+      [].forEach.call(document.querySelectorAll('body > canvas'), function (c) { c.setAttribute('aria-hidden', 'true'); c.setAttribute('role', 'presentation'); });
     }).catch(function () { /* decorative only */ });
   };
 

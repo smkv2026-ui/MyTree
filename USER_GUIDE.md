@@ -66,3 +66,4 @@ Your teacher gives you a **user ID** and **password** (for example `Maple-River-
 * **Help centre** (`Help`): searchable guides. **Welcome tour**: replay from Help or Quick search (Ctrl K).
 * **Language**: English, हिन्दी, मराठी (navigation and common labels).
 * **Install as an app**: Quick search → “Install the app”, or your browser's menu → Install / Add to Home Screen. Works offline for pages you have opened.
+* **Accessibility menu** (the sliders icon): text size, high contrast, dark / light theme and **Reduce motion**.

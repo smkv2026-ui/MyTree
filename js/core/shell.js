@@ -42,6 +42,7 @@
       if (t === 'auto') el.removeAttribute('data-theme'); else el.setAttribute('data-theme', t);
       el.setAttribute('data-fs', String(MT.storage.get('mt.fs', 100)));
       if (MT.storage.get('mt.contrast', false)) el.setAttribute('data-contrast', 'high'); else el.removeAttribute('data-contrast');
+      if (MT.storage.get('mt.motion', false)) el.setAttribute('data-motion', 'reduce'); else el.removeAttribute('data-motion');
       var m = document.querySelector('meta[name=theme-color]');
       MT.store.set('themeTick', Date.now());
       if (m) m.setAttribute('content', (t === 'dark' || (t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) ? '#0b2b20' : '#0f3d2e');
@@ -102,7 +103,8 @@
       '<div class="seg" role="group" aria-label="' + MT.t('common.theme') + '">' + ['auto', 'light', 'dark'].map(function (x) { return '<button type="button" data-theme-set="' + x + '" aria-pressed="' + (t === x) + '">' + x[0].toUpperCase() + x.slice(1) + '</button>'; }).join('') + '</div>' +
       '<label class="pop-row">' + MT.t('common.language') + '<select data-lang-set>' + MT.LANGS.map(function (l) { return '<option value="' + l.code + '"' + (l.code === MT.lang ? ' selected' : '') + '>' + l.label + '</option>'; }).join('') + '</select></label>' +
       '<div class="pop-row">' + MT.t('common.textsize') + '<div class="seg" role="group">' + [[100, 'A'], [112, 'A+'], [125, 'A++']].map(function (x) { return '<button type="button" data-fs-set="' + x[0] + '" aria-pressed="' + (fs === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div></div>' +
-      '<label class="pop-row check"><input type="checkbox" data-contrast-set' + (MT.storage.get('mt.contrast', false) ? ' checked' : '') + '><span>' + MT.t('common.contrast') + '</span></label>';
+      '<label class="pop-row check"><input type="checkbox" data-contrast-set' + (MT.storage.get('mt.contrast', false) ? ' checked' : '') + '><span>' + MT.t('common.contrast') + '</span></label>' +
+      '<label class="pop-row check"><input type="checkbox" data-motion-set' + (MT.storage.get('mt.motion', false) ? ' checked' : '') + '><span>Reduce motion</span></label>';
   }
 
   /* ---------- Layout builders ---------- */
@@ -120,13 +122,13 @@
     var s = MT.site;
     return '<footer class="pub-footer"><div class="wrap footer-grid">' +
       '<div><a href="#/" class="brand brand-light">' + ui.logo(34).s + '<span class="brand-name">MyTree</span></a><p class="footer-tag">' + MT.esc(MT.TAGLINE) + '</p></div>' +
-      '<div><h4>Get started</h4><ul><li><a href="#/register">Create an account</a></li><li><a href="#/login">Sign in</a></li><li><a href="#/help">Help centre</a></li></ul></div>' +
-      '<div><h4>Contact</h4><ul><li><a href="mailto:' + MT.esc(s.contactEmail) + '">' + MT.esc(s.contactEmail) + '</a></li><li>' + MT.esc(s.contactPhone) + '</li><li>' + MT.esc(s.address) + '</li></ul></div>' +
-      '<div><h4>Good to know</h4><ul><li>Minors are never publicly identifiable by default.</li><li>Impact numbers are estimates and labelled as such.</li></ul></div>' +
+      '<div><h3>Get started</h3><ul><li><a href="#/register">Create an account</a></li><li><a href="#/login">Sign in</a></li><li><a href="#/help">Help centre</a></li></ul></div>' +
+      '<div><h3>Contact</h3><ul><li><a href="mailto:' + MT.esc(s.contactEmail) + '">' + MT.esc(s.contactEmail) + '</a></li><li>' + MT.esc(s.contactPhone) + '</li><li>' + MT.esc(s.address) + '</li></ul></div>' +
+      '<div><h3>Good to know</h3><ul><li>Minors are never publicly identifiable by default.</li><li>Impact numbers are estimates and labelled as such.</li></ul></div>' +
       '</div><div class="wrap footer-bottom"><span>© ' + new Date().getFullYear() + ' MyTree · Maitree — friendship with nature.</span><span>Made with care for trees and the people who plant them.</span></div></footer>';
   }
   function authLayout() {
-    return ribbon() + '<div class="auth-split"><aside class="auth-art" aria-hidden="true">' +
+    return ribbon() + '<div class="auth-split"><aside class="auth-art" aria-hidden="true" inert>' +
       '<a href="#/" class="brand brand-light">' + ui.logo(38).s + '<span class="brand-name">MyTree</span></a>' +
       '<div class="auth-art-body"><h2>Maitree —<br>friendship with nature.</h2><p>Every tree you plant gets a name, a place on the map and a story that grows with it.</p></div>' +
       '<svg class="auth-tree" viewBox="0 0 200 200"><path d="M100 190V110" stroke="#c8a27a" stroke-width="8" stroke-linecap="round"/><circle cx="100" cy="86" r="52" fill="#2e9e5b"/><circle cx="70" cy="104" r="34" fill="#58c488"/><circle cx="132" cy="100" r="32" fill="#3ec27a"/><circle cx="104" cy="62" r="24" fill="#79d3a0"/></svg></aside>' +
@@ -154,12 +156,12 @@
       '<div class="side-scrim" data-act="close-drawer"></div>' +
       '<div class="shell-main"><header class="topbar"><button type="button" class="icon-btn only-mobile" data-act="drawer" aria-label="Open menu"><i data-lucide="menu" class="ic"></i></button>' +
       '<h1 class="topbar-title" id="topbar-title"></h1>' +
-      '<button type="button" class="search-btn" data-act="palette" aria-label="Search (Ctrl+K)"><i data-lucide="search" class="ic"></i><span>' + MT.t('common.search') + '</span><kbd>Ctrl K</kbd></button>' +
+      '<button type="button" class="search-btn" data-act="palette" aria-label="' + MT.t('common.search') + ' Ctrl K"><i data-lucide="search" class="ic"></i><span>' + MT.t('common.search') + '</span><kbd>Ctrl K</kbd></button>' +
       '<div class="topbar-actions">' +
-      pop('notif', '<button type="button" class="icon-btn" data-pop-btn="notif" aria-haspopup="true" aria-expanded="false" aria-controls="pop-notif" aria-label="' + MT.t('common.notifications') + '"><i data-lucide="bell" class="ic"></i><span class="dot-badge" id="bell-badge" hidden></span></button>', '<h3 class="pop-title">' + MT.t('common.notifications') + '</h3><div id="notif-list"></div><a class="pop-item" href="#/notifications">View all notifications</a>', 'pop-wide') +
+      pop('notif', '<button type="button" class="icon-btn" data-pop-btn="notif" aria-haspopup="true" aria-expanded="false" aria-controls="pop-notif" aria-label="' + MT.t('common.notifications') + '"><i data-lucide="bell" class="ic"></i><span class="dot-badge" id="bell-badge" aria-hidden="true" hidden></span></button>', '<h3 class="pop-title">' + MT.t('common.notifications') + '</h3><div id="notif-list"></div><a class="pop-item" href="#/notifications">View all notifications</a>', 'pop-wide') +
       pop('settings', '<button type="button" class="icon-btn" data-pop-btn="settings" aria-haspopup="true" aria-expanded="false" aria-controls="pop-settings" aria-label="Appearance and accessibility"><i data-lucide="settings-2" class="ic"></i></button>', settingsBody()) +
-      pop('user', '<button type="button" class="icon-btn avatar-btn" data-pop-btn="user" aria-haspopup="true" aria-expanded="false" aria-controls="pop-user" aria-label="Account menu">' + ui.avatar(p.name, 34).s + '</button>', userMenu) +
-      '</div></header><div id="announce"></div><main id="main" tabindex="-1" class="app-main"></main></div>' +
+      pop('user', '<button type="button" class="icon-btn avatar-btn" data-pop-btn="user" aria-haspopup="true" aria-expanded="false" aria-controls="pop-user" aria-label="' + MT.esc(String(p.name || '?').split(/\s+/).slice(0, 2).map(function (x) { return x[0]; }).join('').toUpperCase()) + ' — Account menu">' + ui.avatar(p.name, 34).s + '</button>', userMenu) +
+      '</div></header><div id="announce" role="region" aria-label="Announcements"></div><main id="main" tabindex="-1" class="app-main"></main></div>' +
       tabs + '</div>';
   }
   function navItem(n) {
@@ -212,7 +214,7 @@
     refreshBadges: function () {
       if (!MT.auth.isSignedIn()) return;
       MT.notify.collect().then(function (items) {
-        var b = document.getElementById('bell-badge'); if (b) { b.hidden = !items.length; b.textContent = items.length > 9 ? '9+' : String(items.length); }
+        var b = document.getElementById('bell-badge'); if (b) { b.hidden = !items.length; b.textContent = items.length > 9 ? '9+' : String(items.length); var nb = b.parentNode; if (nb) nb.setAttribute('aria-label', MT.t('common.notifications') + (items.length ? ', ' + b.textContent + ' unread' : '')); }
         var l = document.getElementById('notif-list');
         if (l) l.innerHTML = items.length ? items.map(function (n) {
           return '<a class="notif" data-nid="' + MT.esc(n.nid || '') + '" href="#' + MT.esc(n.href || '/dashboard') + '"><i data-lucide="' + MT.esc(n.icon || 'bell') + '" class="ic"></i><span><strong>' + MT.esc(n.title) + '</strong><small>' + MT.esc(n.text || '') + '</small></span></a>';
@@ -331,6 +333,7 @@
   });
   document.addEventListener('change', function (e) {
     if (e.target.matches('[data-lang-set]')) MT.setLang(e.target.value);
+    if (e.target.matches('[data-motion-set]')) { MT.storage.set('mt.motion', e.target.checked); prefs.apply(); }
     if (e.target.matches('[data-contrast-set]')) { MT.storage.set('mt.contrast', e.target.checked); prefs.apply(); }
   });
   document.addEventListener('keydown', function (e) {

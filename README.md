@@ -15,11 +15,11 @@ A complete tree-plantation tracking portal that is **just static files**: HTML, 
 | 3 | Growth updates, timeline, chart, before/after, journey, cadence & notifications, .ics | ✅ done |
 | 4 | Students, sub-accounts, post-on-behalf, credentials PDF/CSV, password re-issue, forced password change | ✅ done |
 | 5 | Bulk Excel/CSV import with validation | ✅ done |
-| 6 | Command centre, counters, maps, reports, green cover, audit viewer | next |
-| 7 | Gamification, certificates, public pages, PWA/offline, tours, i18n | |
-| 8 | Polish, accessibility, performance, docs, QA | |
+| 6 | Command centre, counters, maps, reports, green cover, audit viewer, health, species/settings, sample data | ✅ done |
+| 7 | Badges, leaderboards, challenges, certificates, gift cards, public tree pages, PWA/offline, tours, help centre, translations | ✅ done |
+| 8 | Polish: accessibility (axe-clean), lazy bundles, rules hardening, reduce-motion, final docs | ✅ done |
 
-Nav items for features that are not built yet show a **Soon** pill and open a friendly placeholder, so the app is always runnable.
+All planned features are built. (During development, unbuilt features showed a **Soon** pill; the placeholder mechanism remains in `dashboard.js` but no route uses it any more.)
 
 ## Runtime modes
 
@@ -37,9 +37,10 @@ index.html            shell + ordered <script defer> tags (classic scripts, not 
 css/                  tokens → base → components → layout → pages
 js/firebase-config.js ← the only file you edit
 js/core/              util → sri → loader → store → (data/i18n) i18n → db → db-demo → db-firebase → auth → ui → stats → geocode → photostore → router → shell
-js/data/              i18n, site contact details, species (107 species + impact factors), India cities
+js/data/              i18n, phrases (hi/mr UI strings), help articles, site contact details, species (107 species + impact factors), India cities, imagery providers
 js/demo/seed.js       deterministic demo-data generator
-js/features/          landing, auth-pages, dashboard, admin, maps, share, trees-core, planting, trees, mapview   updates-core, growth, updates-page, accounts-core, credentials, people   (bulk, … in later phases)
+js/features/          landing, auth-pages, dashboard, admin (approvals), maps, share, trees-core, planting, trees, mapview, updates-core, growth, updates-page, accounts-core, credentials, people, charts, admin-centre, admin-tools, pwa
+                      lazy bundles (js/core/lazy.js, loaded on first use): bulk-core+bulk, reports, imagery+greencover, gamify+certificates, help-data+help+tours, phrases
 js/boot.js            picks the mode, installs adapters, starts the router (always last)
 firestore.rules  firestore.indexes.json  firebase.json
 tools/gen-sri.mjs     optional SRI hash generator

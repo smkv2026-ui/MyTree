@@ -88,7 +88,11 @@ Tick each box in **Demo mode** (`index.html`) and again in **Live mode**. Phase 
 - [ ] Language switch (हिन्दी / मराठी) translates navigation and common UI phrases in place; unknown phrases stay English.
 - [ ] PWA (served over https/http, not file://): manifest valid, service worker registers, app opens offline (shell), offline banner appears, "Install app" in Quick search / banner.
 
-## Later phases (to be filled in as they ship)
-- [ ] Admin dashboard counters, rebuild stats, reports export, impact report PDF
-- [ ] Green-cover swipe comparison, photo ExG estimate, simulated label in demo
-- [ ] PWA install, offline post then sync
+## Phase 8 — Polish
+- [ ] axe-core finds **0 violations** (WCAG 2.0/2.1 A + AA + best-practice) on landing, login, register, help and, signed in, dashboard, plant, trees, updates, people, map, bulk, badges, admin, approvals, reports, settings, green — in light **and** dark themes.
+- [ ] Appearance menu: **Reduce motion** removes all animation/transitions immediately (the OS setting is honoured too).
+- [ ] First visit transfers less JavaScript: Bulk, Reports, Green cover, Badges/Certificates, Help/Tour and translations load on first use (Network tab).
+- [ ] Keyboard only: every page reachable and operable; focus ring always visible; dialogs close with Esc; the tour works with → ← Esc.
+- [ ] Phone width (≈ 390 px): no horizontal scroll, bottom tabs, comfortable touch targets.
+- [ ] Rules: `cd tests && npm test` → all 72 checks pass.
+- [ ] Live: sign up → approve → plant → update → bulk import → *Rebuild statistics* reports **0** differences.

@@ -313,6 +313,15 @@ async function t(name, fn) { try { await fn(); pass++; console.log('  ✓ ' + na
     await assertFails(as('s1').doc('challenges/c4').set(ch({ target: 0 }))); await assertSucceeds(as('st1').collection('challenges').where('ancestorOrgIds', 'array-contains', 'MT-SCH-000001').get()); await assertFails(as('s2').doc('challenges/c1').get());
   });
 
+  console.log('\nStats hardening (phase 8)'); await seed();
+  await t('stats: a user can bump counters by a small amount but not rewrite them', async () => {
+    await assertSucceeds(as('ind1').doc('stats/global').set({ trees: 6, kind: 'global' }, { merge: true })); await assertFails(as('ind1').doc('stats/global').set({ trees: 9999 }, { merge: true }));
+    await assertFails(as('ind1').doc('stats/global').set({ trees: -1000 }, { merge: true })); await assertSucceeds(as('sa').doc('stats/global').set({ trees: 9999 }, { merge: true }));
+  });
+  await t('stats: only numbers in counter fields; unknown fields refused', async () => {
+    await assertFails(as('ind1').doc('stats/global').set({ trees: 'many' }, { merge: true })); await assertFails(as('ind1').doc('stats/global').set({ hacked: 1 }, { merge: true }));
+  });
+
   console.log(`\n${pass} passed, ${fail} failed`);
   await env.cleanup(); process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(2); });

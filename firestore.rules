@@ -169,17 +169,27 @@ service cloud.firestore {
 
     // ---------- stats (denormalised counters) ----------
     function statsKeysOk() {
-      // Only numeric counters and display fields; phase 6 tightens writes by coupling them to tree writes with getAfter().
+      // Only numeric counters and display fields; per-write change is bounded by statsDeltaOk().
       return request.resource.data.keys().hasOnly(['users', 'individuals', 'students', 'orgsPending', 'orgsApproved', 'orgs_school', 'orgs_foundation', 'orgs_institution',
         'trees', 'treesAlive', 'treesDead', 'sumPlantedDayAlive', 'h_thriving', 'h_healthy', 'h_needs_care', 'h_struggling', 'h_dead', 'updatesThisMonth', 'updates',
         'members', 'kind', 'name', 'type', 'city', 'state', 'lat', 'lng', 'photos', 'photoBytes', 'bytes', 'orgId', 'label']);
+    }
+    // A signed-in user can only nudge counters by a bounded amount per write (a bulk import is ≤ 300 trees / 500 rows), so a tampered client cannot rewrite the
+    // portal totals in one call. Exact coupling to the tree writes is impossible within the 20 look-ups per batch limit; the Super Admin's "Rebuild statistics" heals any drift.
+    function prevVal(k) { return resource == null ? 0 : resource.data.get(k, 0); }
+    function dltN(k) { return request.resource.data.get(k, 0) - prevVal(k); }
+    function inBound(k, n) { return dltN(k) <= n && dltN(k) + n >= 0; }
+    // (Rules cap the work per request, so only the twelve counters that matter for the portal totals are bounded; health / org-type / byte counters are display-only.)
+    function statsDeltaOk() {
+      return isSuper() || (inBound('users', 500) && inBound('individuals', 500) && inBound('students', 500) && inBound('trees', 500) && inBound('treesAlive', 500) && inBound('treesDead', 500)
+        && inBound('updates', 500) && inBound('members', 500) && inBound('orgsApproved', 5) && inBound('photos', 500) && inBound('photoBytes', 100000000) && inBound('sumPlantedDayAlive', 10000000));
     }
     match /stats/{id} {
       // user_* counters feed leaderboards: visible to the owner, managers and members of the same organisation (display label = first name + initial)
       allow get: if id == 'global' || id.matches('city_.*') || (isActive() && (!id.matches('user_.*') || id == 'user_' + me().userId || isManager() || (resource.data.orgId != '' && resource.data.orgId == me().orgId)));
       allow list: if resource.data.kind == 'city' || (isActive() && (resource.data.kind != 'user' || isManager() || (resource.data.orgId != '' && resource.data.orgId == me().orgId)));
       // `species` is a free-form map of speciesId → count of live trees
-      allow create, update: if signedIn() && (isActive() || id == 'global') && ((id == 'species' && isActive()) || statsKeysOk());
+      allow create, update: if signedIn() && (isActive() || id == 'global') && ((id == 'species' && isActive()) || (statsKeysOk() && statsDeltaOk()));
       allow delete: if isSuper();
     }
 

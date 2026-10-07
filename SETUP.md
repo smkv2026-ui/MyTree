@@ -90,7 +90,15 @@ You are now signed in to the **Command centre**. Schools, institutions and found
 * **Restrict the API key to your domain.** Google Cloud console → *APIs & Services → Credentials* → open the *Browser key* → *Application restrictions: Websites* → add `https://your-site/*`. (Keep the Identity Toolkit and Firestore APIs enabled.)
 * **App Check** (blocks other websites/bots from using your project): Firebase console → *App Check* → register the web app with **reCAPTCHA v3**, run in *monitor* mode for a few days, then enforce. Then paste the reCAPTCHA **site key** into `js/firebase-config.js` as `window.MT_APPCHECK_SITE_KEY = "...";` — MyTree loads and activates App Check automatically when that value is present.
 * **Budget alert:** Firebase *Usage and billing* → set an alert. The Spark plan never charges you; it simply pauses when a free quota is used up.
-* **Backups:** the Spark plan has no scheduled backups. Use *Export* from the Super Admin tools (coming in phase 6) or upgrade to Blaze if you need managed backups.
+* **Backups:** the Spark plan has no scheduled backups. Use **Admin → Reports** to export trees, organisations, people and updates to Excel/CSV regularly, or upgrade to Blaze if you need managed backups.
+
+## After publishing — things worth knowing
+* **Indexes:** a handful of screens (audit log, challenges, reports) use composite indexes listed in `firestore.indexes.json`. Deploy them once with `firebase deploy --only firestore:indexes`, or click the link Firebase prints in the console the first time a screen asks for one.
+* **Installable app / offline:** works automatically on **https** (Firebase Hosting, GitHub Pages, Netlify…). When you change any file and redeploy, edit `VERSION` at the top of `sw.js` (e.g. `mytree-v3`) so visitors' browsers fetch the new files.
+* **Numbers look wrong?** *Admin → Settings → Tools → Rebuild statistics* recomputes every counter from the real data (safe to run any time; it is the cure for drift).
+* **Sample data:** *Admin → Settings → Tools → Sample data* adds (and later removes) a small demo set of schools, students and trees to your live project so you can explore before real users arrive.
+* **Satellite imagery for green cover** is optional. Without a provider, MyTree shows ground and photo estimates only and says so. Providers are configured in `js/data/imagery.js`.
+* **Change contact details / names** shown in the footer and Help centre in `js/data/site.js`; edit Help articles in `js/data/help.js`; add translations in `js/data/phrases.js`.
 
 ## Free-tier limits to know (Spark plan, approximate)
 | Service | Daily/monthly free | What it means |
