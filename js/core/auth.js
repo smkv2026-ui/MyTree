@@ -130,6 +130,7 @@
         };
         var b = MT.db.batch();
         b.set('users', uid, profile);
+        b.set('userIds', userId, { uid: uid, orgId: '', ancestorOrgIds: [] }); // binds the human ID to this auth uid (rules enforce uniqueness)
         b.set('stats', 'global', { users: MT.db.inc(1), individuals: MT.db.inc(1) }, { merge: true });
         return b.commit();
       }).then(function () { registering = false; return auth.refresh(); })
@@ -161,6 +162,7 @@
         var b = MT.db.batch();
         b.set('orgs', orgId, org);
         b.set('users', uid, profile);
+        b.set('userIds', orgId, { uid: uid, orgId: orgId, ancestorOrgIds: [orgId] });
         b.set('stats', 'global', { orgsPending: MT.db.inc(1) }, { merge: true });
         return b.commit();
       }).then(function () { registering = false; return auth.refresh().then(function () { return orgId; }); })
@@ -186,6 +188,7 @@
         var b = MT.db.batch();
         b.set('meta', 'setup', { createdAt: now, superAdminUid: uid, version: MT.version });
         b.set('users', uid, profile);
+        b.set('userIds', profile.userId, { uid: uid, orgId: '', ancestorOrgIds: [] });
         b.set('stats', 'global', { users: MT.db.inc(1) }, { merge: true });
         return b.commit();
       }).then(function () { registering = false; return auth.refresh(); })

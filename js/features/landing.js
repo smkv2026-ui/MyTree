@@ -114,7 +114,7 @@
 
       ${raw(section('who', 'sec-who', '<div class="sec-head" data-reveal><p class="eyebrow">Who it’s for</p><h2>One platform, four ways to plant</h2></div><div class="role-grid">' +
         roleCards.map(function (c, i) {
-          return '<article class="role-card card-lift" data-reveal data-reveal-delay="' + i * 80 + '"><span class="role-ic"><i data-lucide="' + c[1] + '" class="ic"></i></span><h3>' + c[2] + '</h3><p>' + MT.esc(c[3]) + '</p><ul>' + c[4].map(function (b) { return '<li>' + MT.esc(b) + '</li>'; }).join('') + '</ul><a class="btn btn-soft" href="#/register/' + c[0] + '">Register as ' + c[2].toLowerCase() + '</a></article>';
+          return '<article class="role-card card-lift" data-reveal data-reveal-delay="' + i * 80 + '"><span class="role-ic"><i data-lucide="' + c[1] + '" class="ic"></i></span><h3>' + c[2] + '</h3><p>' + MT.esc(c[3]) + '</p><ul>' + c[4].map(function (b) { return '<li>' + MT.esc(b) + '</li>'; }).join('') + '</ul><a class="btn btn-soft" href="#/register/' + c[0] + '">Join as ' + c[2].toLowerCase() + '</a></article>';
         }).join('') + '</div>'))}
 
       <section class="sec sec-stories" id="stories"><div class="wrap">

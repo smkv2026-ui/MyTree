@@ -1,7 +1,7 @@
 /* MyTree pages: landing, auth, dashboard, admin. */
 
 /* ---------- Landing hero ---------- */
-.hero { position: relative; min-height: calc(100svh - 72px); display: grid; align-items: center; margin-top: -72px; padding-top: 72px; overflow: hidden; background: radial-gradient(70% 60% at 85% 20%, color-mix(in srgb, var(--leaf) 22%, transparent), transparent 70%), radial-gradient(60% 50% at 0% 100%, color-mix(in srgb, var(--gold) 18%, transparent), transparent 70%), linear-gradient(180deg, var(--hero-1), var(--hero-2) 70%, var(--hero-3)); }
+.hero { position: relative; min-height: calc(100svh - 72px - var(--ribbon-h)); display: grid; align-items: center; margin-top: -72px; padding-top: 72px; overflow: hidden; background: radial-gradient(70% 60% at 85% 20%, color-mix(in srgb, var(--leaf) 22%, transparent), transparent 70%), radial-gradient(60% 50% at 0% 100%, color-mix(in srgb, var(--gold) 18%, transparent), transparent 70%), linear-gradient(180deg, var(--hero-1), var(--hero-2) 70%, var(--hero-3)); }
 .hero-bg { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .leaf-float { position: absolute; transform: rotate(var(--rot)); animation: drift var(--dur) ease-in-out var(--delay) infinite; will-change: transform; }
 @keyframes drift { 0%, 100% { translate: 0 0; rotate: 0deg; } 50% { translate: 14px -22px; rotate: 18deg; } }
@@ -15,7 +15,7 @@
 .hl { transform-box: fill-box; transform-origin: center; transform: scale(0); animation: leafIn .9s var(--d) cubic-bezier(.3, 1.6, .5, 1) forwards, leafSway 5s calc(var(--d) + 1s) ease-in-out infinite alternate; } @keyframes leafIn { to { transform: scale(1); } } @keyframes leafSway { to { transform: scale(1.04) translateY(-2px); } }
 .mound, .mound2 { transform-box: fill-box; transform-origin: bottom; animation: rise .9s ease-out both; } @keyframes rise { from { transform: scaleY(0); } }
 .scroll-cue { position: absolute; bottom: 1.2rem; left: 50%; translate: -50% 0; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--text-2); animation: bob 2s infinite; }
-@media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; text-align: center; } .hero-copy { order: 1; } .lead { margin-inline: auto; } .hero-cta, .hero-note { justify-content: center; } .hero-art { order: 0; max-width: 340px; margin-inline: auto; } .eyebrow { justify-content: center; } }
+@media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; text-align: center; padding-block: var(--sp-3); } .hero-copy { order: 1; } .lead { margin-inline: auto; } .hero-cta, .hero-note { justify-content: center; } .hero-art { order: 0; max-width: 220px; margin-inline: auto; } .eyebrow { justify-content: center; } }
 
 /* ---------- Impact strip ---------- */
 .impact { margin-top: calc(-1 * var(--sp-5)); position: relative; z-index: 2; padding-bottom: var(--sp-6); }

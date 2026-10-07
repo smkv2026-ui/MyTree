@@ -51,7 +51,13 @@
       db.ready = Promise.resolve().then(function () {
         fb = window.firebase;
         if (!fb.apps.length) fb.initializeApp(window.MT_FIREBASE_CONFIG);
+        if (window.MT_APPCHECK_SITE_KEY && fb.appCheck) { try { fb.appCheck().activate(window.MT_APPCHECK_SITE_KEY, true); } catch (e) { MT.log('app check', e); } }
         fs = fb.firestore(); FV = fb.firestore.FieldValue; authSvc = fb.auth();
+        // Local development against the Firebase Emulator Suite: set window.MT_EMULATOR = {host:'127.0.0.1', auth:9099, firestore:8080}.
+        if (window.MT_EMULATOR) {
+          var E = window.MT_EMULATOR; authSvc.useEmulator('http://' + E.host + ':' + E.auth); fs.useEmulator(E.host, E.firestore);
+          return;
+        }
         // Offline persistence so posts made offline sync later. Fails harmlessly with several tabs on old browsers.
         return fs.enablePersistence({ synchronizeTabs: true }).catch(function (e) { MT.log('persistence off', e && e.code); });
       });

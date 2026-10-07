@@ -1,0 +1,204 @@
+rules_version = '2';
+
+// =====================================================================================
+// MyTree security rules  (phase 1 of 8 — extended in later phases; anything not listed is DENIED)
+//
+// Model
+//   users/{authUid}        profile: userId, role, orgId, ancestorOrgIds[] (includes own org), active, status …
+//   userIds/{userId}       binds a human ID to ONE auth uid (created once) → nobody can impersonate another userId
+//   orgs/{orgId}           organisations (ancestorOrgIds includes the org itself)
+//   loginAliases/{userId}  PUBLIC {authEmail, active} for admin-created accounts (ID + password login)
+//   counters/{key}         {n} +1 per transaction (ID generation)
+//   stats/{id}             denormalised counters; `global` and `city_*` are public (no personal data)
+//   meta/setup             created exactly once, together with the first super admin
+// "manager"  = active super_admin / foundation / school / institution.
+// "manages(x)" = super admin, or a manager whose orgId appears in x.ancestorOrgIds.
+// =====================================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function signedIn() { return request.auth != null; }
+    function hasProfile() { return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)); }
+    function me() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function isActive() { return hasProfile() && me().active == true; }
+    function isSuper() { return isActive() && me().role == 'super_admin'; }
+    function isManager() { return isActive() && me().role in ['super_admin', 'foundation', 'school', 'institution']; }
+    function manages(ancestors) { return isSuper() || (isManager() && me().orgId in ancestors); }
+    function inMyOrg(orgId) { return hasProfile() && me().orgId == orgId; }
+    function str(v, max) { return v is string && v.size() <= max; }
+    function optStr(d, k, max) { return !(k in d) || str(d[k], max); }
+    function changedOnly(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
+    function ts() { return request.time.toMillis(); }
+
+    // A human ID may only be used if its counter has reached that number (stops pre-claiming future IDs).
+    function idNumber(id) { return int(id[id.size() - 6:id.size()]); }
+    function counterN(key) { return get(/databases/$(database)/documents/counters/$(key)).data.n; }
+
+    // ---------- meta/setup : first-run super admin ----------
+    match /meta/setup {
+      allow get: if true;
+      allow create: if signedIn()
+        && request.resource.data.superAdminUid == request.auth.uid
+        && existsAfter(/databases/$(database)/documents/users/$(request.auth.uid))
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin';
+      allow update, delete: if false;
+    }
+
+    // ---------- counters ----------
+    match /counters/{key} {
+      allow get: if signedIn();
+      allow create: if signedIn() && request.resource.data.keys().hasOnly(['n']) && request.resource.data.n == 1;
+      allow update: if signedIn() && request.resource.data.keys().hasOnly(['n']) && request.resource.data.n == resource.data.n + 1;
+      allow delete: if false;
+    }
+
+    // ---------- userIds : one-time binding of human ID → auth uid ----------
+    match /userIds/{userId} {
+      allow get: if isManager() && manages(resource.data.ancestorOrgIds);
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'orgId', 'ancestorOrgIds'])
+        && str(userId, 40)
+        && existsAfter(/databases/$(database)/documents/users/$(request.resource.data.uid))
+        && getAfter(/databases/$(database)/documents/users/$(request.resource.data.uid)).data.userId == userId
+        && (request.resource.data.uid == request.auth.uid || isManager());
+      // password re-issue: a manager re-points the ID at the new auth uid
+      allow update: if isManager() && manages(resource.data.ancestorOrgIds) && changedOnly(['uid']);
+      allow delete: if false;
+    }
+
+    // ---------- loginAliases : public minimal map for ID + password login ----------
+    match /loginAliases/{userId} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isManager()
+        && request.resource.data.keys().hasOnly(['authEmail', 'active'])
+        && str(request.resource.data.authEmail, 120) && request.resource.data.active is bool
+        && manages(getAfter(/databases/$(database)/documents/userIds/$(userId)).data.ancestorOrgIds);
+      allow update: if isManager()
+        && request.resource.data.keys().hasOnly(['authEmail', 'active'])
+        && manages(get(/databases/$(database)/documents/userIds/$(userId)).data.ancestorOrgIds);
+      allow delete: if isSuper();
+    }
+
+    // ---------- users ----------
+    function validUserCommon(d) {
+      return d.role in ['super_admin', 'foundation', 'school', 'institution', 'student', 'individual']
+        && str(d.userId, 40) && str(d.name, 120) && d.ancestorOrgIds is list && d.ancestorOrgIds.size() <= 8
+        && d.active is bool && str(d.status, 20) && optStr(d, 'email', 120) && optStr(d, 'authEmail', 120)
+        && optStr(d, 'phone', 30) && optStr(d, 'grade', 60) && optStr(d, 'roll', 30);
+    }
+    function boundId(d, uid) {
+      return getAfter(/databases/$(database)/documents/userIds/$(d.userId)).data.uid == uid;
+    }
+    function selfIndividual(d, uid) {
+      return d.role == 'individual' && d.active == true && d.status == 'active' && d.orgId == '' && d.ancestorOrgIds.size() == 0
+        && d.userId.matches('MT-IND-[0-9]{6}') && idNumber(d.userId) <= counterN('IND');
+    }
+    function selfOrgAdmin(d, uid) {
+      let org = getAfter(/databases/$(database)/documents/orgs/$(d.orgId)).data;
+      return d.role in ['foundation', 'school', 'institution'] && d.active == false && d.status == 'pending'
+        && d.orgId == d.userId && d.ancestorOrgIds == [d.orgId]
+        && org.status == 'pending' && org.type == d.role && org.createdBy == uid;
+    }
+    function selfSuperAdmin(d, uid) {
+      return d.role == 'super_admin' && d.active == true && d.orgId == '' && d.ancestorOrgIds.size() == 0
+        && !exists(/databases/$(database)/documents/meta/setup)
+        && existsAfter(/databases/$(database)/documents/meta/setup)
+        && getAfter(/databases/$(database)/documents/meta/setup).data.superAdminUid == uid;
+    }
+    // A manager creating an account beneath themselves (students, sub-foundations, school/institution admins)
+    function managerCreates(d) {
+      return d.active == true && d.status == 'active' && (
+        isSuper()
+        || (me().role in ['school', 'institution'] && d.role == 'student' && d.orgId == me().orgId && me().orgId in d.ancestorOrgIds)
+        || (me().role == 'foundation' && d.role in ['student', 'foundation', 'school', 'institution'] && d.orgId != me().orgId && me().orgId in d.ancestorOrgIds));
+    }
+
+    match /users/{uid} {
+      allow get: if signedIn() && (uid == request.auth.uid || manages(resource.data.ancestorOrgIds));
+      allow list: if isManager() && manages(resource.data.ancestorOrgIds);
+      allow create: if signedIn() && validUserCommon(request.resource.data) && boundId(request.resource.data, uid) && (
+        (uid == request.auth.uid && (selfIndividual(request.resource.data, uid) || selfOrgAdmin(request.resource.data, uid) || selfSuperAdmin(request.resource.data, uid)))
+        || managerCreates(request.resource.data));
+      allow update: if signedIn() && request.resource.data.userId == resource.data.userId && (
+        // own profile: harmless fields only
+        (uid == request.auth.uid && changedOnly(['name', 'phone', 'lang', 'avatar', 'mustChangePassword', 'publicOk']) && request.resource.data.get('mustChangePassword', false) == false)
+        // managers: operational fields, never role/org/ancestors/userId
+        || (uid != request.auth.uid && manages(resource.data.ancestorOrgIds) && !isSuper()
+            && changedOnly(['name', 'phone', 'email', 'grade', 'roll', 'active', 'status', 'mustChangePassword', 'supersededBy', 'publicOk', 'guardian', 'lang']))
+        || (uid != request.auth.uid && isSuper()));
+      allow delete: if isSuper();
+    }
+
+    // ---------- orgs ----------
+    function validOrgCommon(d) {
+      return d.type in ['foundation', 'school', 'institution'] && str(d.name, 160) && d.ancestorOrgIds is list && d.ancestorOrgIds.size() <= 8
+        && optStr(d, 'regNo', 60) && optStr(d, 'address', 300) && optStr(d, 'city', 80) && optStr(d, 'state', 80) && optStr(d, 'country', 60)
+        && optStr(d, 'contactName', 120) && optStr(d, 'phone', 30) && optStr(d, 'email', 120)
+        && (!('logo' in d) || (d.logo is string && d.logo.size() <= 60000));
+    }
+    function orgPrefix(type) { return type == 'foundation' ? 'FND' : (type == 'school' ? 'SCH' : 'INS'); }
+    function selfRegOrg(orgId, d) {
+      return request.auth.uid == d.createdBy && d.status == 'pending' && d.parentOrgId == '' && d.ancestorOrgIds == [orgId]
+        && orgId.matches('MT-(FND|SCH|INS)-[0-9]{6}') && orgId[3:6] == orgPrefix(d.type) && idNumber(orgId) <= counterN(orgPrefix(d.type))
+        && existsAfter(/databases/$(database)/documents/users/$(request.auth.uid))
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId == orgId;
+    }
+    function managerCreatesOrg(orgId, d) {
+      return orgId.matches('MT-(FND|SCH|INS)-[0-9]{6}') && orgId[3:6] == orgPrefix(d.type) && idNumber(orgId) <= counterN(orgPrefix(d.type))
+        && d.status == 'approved' && d.parentOrgId != '' && d.ancestorOrgIds[d.ancestorOrgIds.size() - 1] == orgId
+        && (isSuper() || (me().role == 'foundation' && me().orgId in d.ancestorOrgIds && d.parentOrgId in d.ancestorOrgIds));
+    }
+    match /orgs/{orgId} {
+      allow get: if signedIn() && (inMyOrg(orgId) || manages(resource.data.ancestorOrgIds));
+      allow list: if isManager() && manages(resource.data.ancestorOrgIds);
+      allow create: if signedIn() && validOrgCommon(request.resource.data) && request.resource.data.createdBy is string && (
+        selfRegOrg(orgId, request.resource.data) || (isManager() && managerCreatesOrg(orgId, request.resource.data)));
+      allow update: if isSuper()
+        // parent organisation can suspend / reactivate children (never itself)
+        || (isManager() && me().orgId != orgId && manages(resource.data.ancestorOrgIds) && changedOnly(['status', 'statusAt', 'statusBy', 'statusReason']))
+        // an organisation edits its own contact details
+        || (isActive() && inMyOrg(orgId) && me().role in ['foundation', 'school', 'institution']
+            && changedOnly(['name', 'regNo', 'address', 'city', 'state', 'country', 'contactName', 'phone', 'email', 'logo']));
+      allow delete: if isSuper();
+    }
+
+    // ---------- stats (denormalised counters) ----------
+    function statsKeysOk() {
+      // Only numeric counters and display fields; phase 6 tightens writes by coupling them to tree writes with getAfter().
+      return request.resource.data.keys().hasOnly(['users', 'individuals', 'students', 'orgsPending', 'orgsApproved', 'orgs_school', 'orgs_foundation', 'orgs_institution',
+        'trees', 'treesAlive', 'treesDead', 'sumPlantedDayAlive', 'h_thriving', 'h_healthy', 'h_needs_care', 'h_struggling', 'h_dead', 'updatesThisMonth', 'updates',
+        'members', 'kind', 'name', 'state', 'lat', 'lng']);
+    }
+    match /stats/{id} {
+      allow get: if id == 'global' || id.matches('city_.*') || isActive();
+      allow list: if resource.data.kind == 'city' || isActive();
+      allow create, update: if signedIn() && statsKeysOk() && (isActive() || id == 'global');
+      allow delete: if isSuper();
+    }
+
+    // ---------- read-only views of data written by later phases ----------
+    match /trees/{code} {
+      allow get: if (isActive() && (resource.data.ownerId == me().userId || manages(resource.data.ancestorOrgIds))) || resource.data.get('public', false) == true;
+      allow list: if isActive() && (resource.data.ownerId == me().userId || manages(resource.data.ancestorOrgIds));
+    }
+    match /plots/{id} {
+      allow read: if isActive() && manages(resource.data.ancestorOrgIds);
+    }
+
+    // ---------- audit log ----------
+    match /auditLog/{id} {
+      allow read: if isManager() && manages(resource.data.get('ancestorOrgIds', []));
+      allow create: if isManager() && request.resource.data.actorUid == request.auth.uid && str(request.resource.data.action, 60) && str(request.resource.data.detail, 300)
+        && request.resource.data.ancestorOrgIds is list;
+      allow update, delete: if false;
+    }
+
+    // ---------- announcements ----------
+    match /announcements/{id} {
+      allow read: if isActive();
+      allow write: if isSuper();
+    }
+  }
+}

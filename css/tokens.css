@@ -31,6 +31,7 @@
   /* motion */
   --ease: cubic-bezier(.2, .7, .2, 1); --dur: .28s;
   --side-w: 264px; --side-w-collapsed: 76px; --top-h: 64px; --tab-h: 68px;
+  --ribbon-h: 0px;
   color-scheme: light;
 }
 :root[data-theme="dark"] {
@@ -62,3 +63,5 @@
 :root[data-contrast="high"][data-theme="dark"] { --text: #fff; --text-2: #fff; --muted: #f0f0f0; --border: #fff; --border-strong: #fff; --primary: #7dffb0; --on-primary: #000; --link: #9fd0ff; }
 :root[data-fs="112"] { font-size: 112.5%; }
 :root[data-fs="125"] { font-size: 125%; }
+
+:root[data-mode="demo"] { --ribbon-h: 34px; }

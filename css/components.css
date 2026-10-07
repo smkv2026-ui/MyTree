@@ -121,9 +121,11 @@ i.ic:empty::before { content: "•"; opacity: .5; } /* shown only if the icon li
 
 /* Misc */
 .offline-banner { position: fixed; z-index: 950; left: 0; right: 0; top: 0; background: var(--gold); color: #1d1600; text-align: center; padding: .5rem; font-weight: 700; font-size: var(--fs-sm); }
-.demo-ribbon { position: relative; z-index: 60; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .4rem .6rem; padding: .35rem 1rem; background: repeating-linear-gradient(135deg, #f0d77a 0 14px, #e9ca58 14px 28px); color: #2b2100; font-size: var(--fs-sm); text-align: center; }
+.demo-ribbon { position: sticky; top: 0; z-index: 90; height: var(--ribbon-h, 34px); display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .4rem .6rem; padding: .35rem 1rem; background: repeating-linear-gradient(135deg, #f0d77a 0 14px, #e9ca58 14px 28px); color: #2b2100; font-size: var(--fs-sm); text-align: center; }
 .demo-ribbon .link-btn { color: #2b2100; } .demo-dot { width: 9px; height: 9px; border-radius: 50%; background: #b3362b; animation: pulse 1.6s infinite; }
 @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(179, 54, 43, .5); } 50% { box-shadow: 0 0 0 7px rgba(179, 54, 43, 0); } }
 .announce { display: flex; align-items: center; gap: .7rem; margin: var(--sp-2) var(--gutter) 0; padding: .7rem 1rem; border-radius: var(--r-md); background: var(--info-soft); color: var(--info); font-size: var(--fs-sm); font-weight: 500; } .announce span { flex: 1; } .announce-warn { background: var(--warn-soft); color: var(--warn); }
 .boot, .boot-error { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 1rem; text-align: center; padding: 2rem; } .boot svg { animation: bob 1.6s ease-in-out infinite; } @keyframes bob { 50% { transform: translateY(-8px); } }
 .pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--leaf); display: inline-block; animation: pulse2 1.8s infinite; } @keyframes pulse2 { 0% { box-shadow: 0 0 0 0 rgba(46, 158, 91, .6); } 100% { box-shadow: 0 0 0 12px rgba(46, 158, 91, 0); } }
+
+@media (max-width: 640px) { .demo-txt { display: none; } }

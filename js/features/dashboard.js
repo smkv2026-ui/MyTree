@@ -39,8 +39,9 @@
     if (role === 'super_admin') { MT.router.go('/admin', { replace: true }); return ''; }
     var own = MT.db.list('trees', { where: [['ownerId', '==', p.userId]] });
     var orgStats = isOrg ? MT.db.get('stats', 'org_' + p.orgId) : Promise.resolve(null);
-    var kids = isOrg ? MT.db.list('orgs', { where: [['parentOrgId', '==', p.orgId]] }) : Promise.resolve([]);
-    var recentOrg = isOrg ? MT.db.list('trees', { where: [['ancestorOrgIds', 'array-contains', p.orgId]], limit: 400 }) : Promise.resolve([]);
+    // Firestore rules can only prove list access when the query is constrained by ancestorOrgIds; filter direct children client-side.
+    var kids = isOrg ? MT.db.list('orgs', { where: [['ancestorOrgIds', 'array-contains', p.orgId]] }).then(function (rows) { return rows.filter(function (o) { return o.parentOrgId === p.orgId; }); }) : Promise.resolve([]);
+    var recentOrg = isOrg ? MT.db.list('trees', { where: [['ancestorOrgIds', 'array-contains', p.orgId]], orderBy: ['createdAt', 'desc'], limit: 6 }) : Promise.resolve([]);
     return Promise.all([own, orgStats, kids, recentOrg]).then(function (r) {
       var mine = r[0], os = r[1] || {}, children = r[2], orgTrees = r[3];
       var alive = mine.filter(function (t) { return t.status !== 'dead'; }), now = Date.now();

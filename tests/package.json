@@ -1,0 +1,7 @@
+{
+  "name": "mytree-rules-tests",
+  "private": true,
+  "description": "Optional automated tests for firestore.rules (needs Node 18+ and Java for the emulator). Run: npm install && npm test",
+  "scripts": { "test": "firebase emulators:exec --only firestore --project demo-mytree \"node rules.test.js\"" },
+  "devDependencies": { "@firebase/rules-unit-testing": "^3.0.4", "firebase": "^10.12.2", "firebase-tools": "^13.0.0" }
+}

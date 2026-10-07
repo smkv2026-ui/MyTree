@@ -28,6 +28,7 @@
     chart:       { global: 'Chart', js: [CF + 'Chart.js/4.4.3/chart.umd.min.js', JD + 'chart.js@4.4.3/dist/chart.umd.js'] },
     'firebase-app':       { global: 'firebase', js: [FB + 'firebase-app-compat.js'] },
     'firebase-auth':      { global: 'firebase.auth', needs: ['firebase-app'], js: [FB + 'firebase-auth-compat.js'] },
+    'firebase-app-check': { global: 'firebase.appCheck', needs: ['firebase-app'], js: [FB + 'firebase-app-check-compat.js'] },
     'firebase-firestore': { global: 'firebase.firestore', needs: ['firebase-app'], js: [FB + 'firebase-firestore-compat.js'] }
   };
   /** Optional integrity hashes: { 'https://…url': 'sha384-…' }. Filled by tools/gen-sri.mjs. */

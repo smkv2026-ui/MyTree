@@ -21,6 +21,7 @@
   function selectAdapters() {
     if (MT.mode === 'live') return MT.loader.load('firebase-app').then(function () { return MT.loader.load('firebase-auth'); })
       .then(function () { return MT.loader.load('firebase-firestore'); })
+      .then(function () { return window.MT_APPCHECK_SITE_KEY ? MT.loader.load('firebase-app-check') : null; })
       .then(function () { MT.db = MT.dbFirebase; MT.authAdapter = MT.authFirebase; return MT.db.init(); });
     MT.db = MT.dbDemo; MT.authAdapter = MT.authDemo; return MT.db.init();
   }
