@@ -60,7 +60,7 @@
         var profile = { userId: orgId, role: type, orgId: orgId, ancestorOrgIds: anc, active: true, status: 'active', name: org.contactName, email: org.email, authEmail: aliasEmail(orgId, 1), phone: org.phone, createdAt: now, createdBy: me.userId, consentAt: 0, lang: 'en', reissueCount: 1, mustChangePassword: true };
         var b = MT.db.batch();
         b.set('orgs', orgId, org); b.set('users', uid, profile); b.set('userIds', orgId, { uid: uid, orgId: orgId, ancestorOrgIds: anc }); b.set('loginAliases', orgId, { authEmail: aliasEmail(orgId, 1), active: true });
-        var g = { users: MT.db.inc(1), orgsApproved: MT.db.inc(1) }; g['orgs_' + type] = MT.db.inc(1); b.set('stats', 'global', g, { merge: true });
+        var g = { users: MT.db.inc(1), orgsApproved: MT.db.inc(1) }; g['orgs_' + type] = MT.db.inc(1); b.set('stats', 'global', g, { merge: true }); b.set('stats', 'org_' + orgId, { kind: 'org', name: name, type: type, city: org.city || '' }, { merge: true });
         MT.audit.add(b, { action: 'org.create', targetType: 'org', targetId: orgId, detail: name + ' (' + type + ')', orgId: orgId, ancestorOrgIds: anc });
         return b.commit().then(function () { return { userId: orgId, password: pw, name: org.contactName, grade: '', roll: '', orgName: name, orgId: orgId, org: Object.assign({ id: orgId }, org) }; });
       });

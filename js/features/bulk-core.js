@@ -103,7 +103,7 @@
   function healthKey(v) { var s = str(v).toLowerCase().replace(/[\s_-]+/g, ' '); var m = HEALTH.filter(function (h) { return h[1].toLowerCase() === s || h[0].replace(/_/g, ' ') === s; })[0]; return m ? m[0] : null; }
 
   var B = (MT.bulk = {
-    TYPES: TYPES, HEALTH: HEALTH,
+    TYPES: TYPES, HEALTH: HEALTH, _resetSpecies: function () { spIndex = null; },
     typesFor: function (role) { return Object.keys(TYPES).filter(function (k) { return TYPES[k].roles.indexOf(role) > -1; }); },
     columns: cols,
 

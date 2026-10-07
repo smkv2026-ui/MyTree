@@ -39,6 +39,7 @@
     var ref = fs.collection(c);
     ((q && q.where) || []).forEach(function (w) { ref = ref.where(w[0] === 'id' ? firebase.firestore.FieldPath.documentId() : w[0], w[1], w[2]); });
     if (q && q.orderBy) ref = Array.isArray(q.orderBy) ? ref.orderBy(q.orderBy[0], q.orderBy[1] || 'asc') : ref.orderBy(q.orderBy);
+    if (q && q.after !== undefined && q.orderBy) ref = ref.startAfter(q.after);
     if (q && q.limit) ref = ref.limit(q.limit);
     return ref;
   }

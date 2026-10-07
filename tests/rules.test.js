@@ -265,6 +265,27 @@ async function t(name, fn) { try { await fn(); pass++; console.log('  ✓ ' + na
     const d = as('s1'), b = d.batch(); for (let i = 0; i < 300; i++) { const code = 'TREE-2026-' + String(500 + i).padStart(6, '0'); b.set(d.doc('trees/' + code), stuTree({ code, postedBy: 'MT-SCH-000001', onBehalfOf: 'MT-STU-SCH001-0001' })); } await assertSucceeds(b.commit());
   });
 
+  console.log('\nCommand centre & tools (phase 6)'); await seed();
+  await t('notifications: admin above sends, recipient reads/marks read, stranger cannot read', async () => {
+    const n = { toUserId: 'MT-STU-SCH001-0001', toAncestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'], title: 'Please update', text: 'hi', read: false, at: 1 };
+    await assertSucceeds(as('s1').doc('notifications/n1').set(n)); await assertFails(as('s2').doc('notifications/n2').set(n)); await assertFails(as('st1').doc('notifications/n3').set(n));
+    await assertSucceeds(as('st1').doc('notifications/n1').get()); await assertFails(as('st2').doc('notifications/n1').get());
+    await assertSucceeds(as('st1').doc('notifications/n1').update({ read: true })); await assertFails(as('st1').doc('notifications/n1').update({ title: 'x' }));
+  });
+  await t('species: everyone signed in reads, only super admin edits', async () => {
+    const sp = { common: 'Neem', co2: 31 };
+    await assertSucceeds(as('sa').doc('species/neem').set(sp)); await assertFails(as('s1').doc('species/neem').set(sp)); await assertSucceeds(as('st1').doc('species/neem').get()); await assertFails(anon().doc('species/neem').get());
+    await assertFails(as('sa').doc('species/x').set({ common: 'X', evil: 1 }));
+  });
+  await t('meta/sample is super admin only', async () => {
+    await assertSucceeds(as('sa').doc('meta/sample').set({ trees: [] })); await assertFails(as('s1').doc('meta/sample').get()); await assertFails(as('s1').doc('meta/sample').set({ trees: [] }));
+  });
+  await t('greenCoverReadings: owner scope; stranger blocked; bad method/pct refused', async () => {
+    const r = (o) => Object.assign({ method: 'ground', pct: 40, ownerId: 'MT-SCH-000001', ancestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'], plotId: 'P1', at: 1 }, o);
+    await assertSucceeds(as('s1').doc('greenCoverReadings/r1').set(r())); await assertFails(as('s1').doc('greenCoverReadings/r2').set(r({ pct: 140 }))); await assertFails(as('s1').doc('greenCoverReadings/r3').set(r({ method: 'magic' })));
+    await assertFails(as('s2').doc('greenCoverReadings/r4').set(r())); await assertSucceeds(as('f1').doc('greenCoverReadings/r1').get()); await assertFails(as('s2').doc('greenCoverReadings/r1').get());
+  });
+
   console.log(`\n${pass} passed, ${fail} failed`);
   await env.cleanup(); process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(2); });

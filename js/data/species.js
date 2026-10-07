@@ -158,5 +158,15 @@
     if (a <= 10) return s.co2 * (0.1 * a + 0.045 * a * a);
     return s.co2 * (5.5 + (a - 10));
   };
+  /** Merge edits/additions saved by the Super Admin (collection `species`, doc id = species id). */
+  MT.species.apply = function (docs) {
+    docs.forEach(function (d) {
+      var sp = { id: d.id, common: d.common, scientific: d.scientific || '', native: !!d.native, category: d.category || 'shade', co2: +d.co2 || 0, maxH: +d.maxH || 1, growth: +d.growth || 1, canopy: +d.canopy || 1, tip: d.tip || '', custom: true };
+      var i = list.findIndex(function (x) { return x.id === d.id; }); if (i > -1) list[i] = sp; else list.push(sp); byId[d.id] = sp;
+    });
+    spIndexReset();
+  };
+  function spIndexReset() { if (MT.bulk && MT.bulk._resetSpecies) MT.bulk._resetSpecies(); }
+  MT.species.load = function () { return MT.db.list('species', { limit: 500 }).then(MT.species.apply).catch(function () {}); };
   MT.species.ageYears = function (plantedOn, now) { return Math.max(0, ((now || Date.now()) - new Date(plantedOn).getTime()) / (365.25 * 86400000)); };
 })();

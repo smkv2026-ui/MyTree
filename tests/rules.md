@@ -60,4 +60,9 @@ Set up three profiles first (use the app itself): super admin, a school admin (a
 | 48 | Manager | create `importJobs` as self with own ancestors ✅; forged creator/ancestors, > 200 errors, unknown type ❌; update ❌; parent org can read ✅ | as shown |
 | 49 | School admin | 300-tree batch for one student (on behalf) ✅ | as shown |
 
+| 50 | Admin / recipient | `notifications`: manager above creates ✅; stranger/student ❌; recipient reads + marks read ✅, edits other fields ❌ | as shown |
+| 51 | Anyone | `species`: signed-in read ✅, only Super admin writes, unknown fields ❌ | as shown |
+| 52 | Anyone | `meta/sample` Super admin only | as shown |
+| 53 | Manager | `greenCoverReadings`: own scope ✅; pct > 100, unknown method, stranger ❌; parent reads ✅ | as shown |
+
 Later phases add rows for stats hardening, notifications, challenges and species edits.

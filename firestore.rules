@@ -44,6 +44,7 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin';
       allow update, delete: if false;
     }
+    match /meta/sample { allow read, write: if isSuper(); }
 
     // ---------- counters ----------
     match /counters/{key} {
@@ -66,7 +67,7 @@ service cloud.firestore {
         && (request.resource.data.uid == request.auth.uid || isManager());
       // password re-issue: a manager re-points the ID at the new auth uid
       allow update: if isManager() && manages(resource.data.ancestorOrgIds) && changedOnly(['uid']);
-      allow delete: if false;
+      allow delete: if isSuper();
     }
 
     // ---------- loginAliases : public minimal map for ID + password login ----------
@@ -171,12 +172,14 @@ service cloud.firestore {
       // Only numeric counters and display fields; phase 6 tightens writes by coupling them to tree writes with getAfter().
       return request.resource.data.keys().hasOnly(['users', 'individuals', 'students', 'orgsPending', 'orgsApproved', 'orgs_school', 'orgs_foundation', 'orgs_institution',
         'trees', 'treesAlive', 'treesDead', 'sumPlantedDayAlive', 'h_thriving', 'h_healthy', 'h_needs_care', 'h_struggling', 'h_dead', 'updatesThisMonth', 'updates',
-        'members', 'kind', 'name', 'state', 'lat', 'lng', 'photos', 'photoBytes', 'bytes']);
+        'members', 'kind', 'name', 'type', 'city', 'state', 'lat', 'lng', 'photos', 'photoBytes', 'bytes', 'orgId', 'label']);
     }
     match /stats/{id} {
-      allow get: if id == 'global' || id.matches('city_.*') || (isActive() && (!id.matches('user_.*') || id == 'user_' + me().userId || isManager()));
-      allow list: if resource.data.kind == 'city' || isActive();
-      allow create, update: if signedIn() && statsKeysOk() && (isActive() || id == 'global');
+      // user_* counters feed leaderboards: visible to the owner, managers and members of the same organisation (display label = first name + initial)
+      allow get: if id == 'global' || id.matches('city_.*') || (isActive() && (!id.matches('user_.*') || id == 'user_' + me().userId || isManager() || (resource.data.orgId != '' && resource.data.orgId == me().orgId)));
+      allow list: if resource.data.kind == 'city' || (isActive() && (resource.data.kind != 'user' || isManager() || (resource.data.orgId != '' && resource.data.orgId == me().orgId)));
+      // `species` is a free-form map of speciesId → count of live trees
+      allow create, update: if signedIn() && (isActive() || id == 'global') && ((id == 'species' && isActive()) || statsKeysOk());
       allow delete: if isSuper();
     }
 
@@ -279,6 +282,47 @@ service cloud.firestore {
       allow create: if isManager() && request.resource.data.actorUid == request.auth.uid && str(request.resource.data.action, 60) && str(request.resource.data.detail, 300)
         && request.resource.data.ancestorOrgIds is list;
       allow update, delete: if false;
+    }
+
+    // ---------- stored notifications (reminders sent by admins) ----------
+    match /notifications/{id} {
+      allow read: if isActive() && resource.data.toUserId == me().userId;
+      allow create: if isManager() && str(request.resource.data.title, 160) && optStr(request.resource.data, 'text', 400) && request.resource.data.toAncestorOrgIds is list && request.resource.data.read == false
+        && str(request.resource.data.toUserId, 40) && (isSuper() || manages(request.resource.data.toAncestorOrgIds));
+      allow update: if isActive() && resource.data.toUserId == me().userId && changedOnly(['read']);
+      allow delete: if isActive() && resource.data.toUserId == me().userId;
+    }
+
+    // ---------- species master list (edits by the Super Admin) ----------
+    match /species/{id} {
+      allow read: if isActive();
+      allow write: if isSuper() && request.resource.data.keys().hasOnly(['common', 'scientific', 'native', 'category', 'co2', 'maxH', 'growth', 'canopy', 'tip', 'updatedAt'])
+        && str(request.resource.data.common, 80) && optStr(request.resource.data, 'scientific', 120) && optStr(request.resource.data, 'tip', 400);
+      allow delete: if isSuper();
+    }
+
+    // ---------- green cover readings ----------
+    match /greenCoverReadings/{id} {
+      allow read: if isActive() && canSee(resource.data);
+      allow create: if isActive() && request.resource.data.method in ['photo-exg', 'ground', 'satellite', 'simulated'] && request.resource.data.pct is number && request.resource.data.pct >= 0 && request.resource.data.pct <= 100
+        && request.resource.data.ancestorOrgIds is list && (ownedBySelf(request.resource.data) || ownedViaManager(request.resource.data));
+      allow delete: if isActive() && canSee(resource.data);
+    }
+
+    // ---------- badges (self-awarded from the user's own counters; cosmetic only, no privileges attach to them) ----------
+    match /userBadges/{id} {
+      allow read: if isActive() && (resource.data.userId == me().userId || manages(resource.data.ancestorOrgIds));
+      allow create: if isActive() && request.resource.data.userId == me().userId && id == me().userId + '_' + request.resource.data.badgeId
+        && request.resource.data.badgeId is string && request.resource.data.badgeId.size() < 40 && request.resource.data.keys().hasOnly(['userId', 'badgeId', 'earnedAt', 'orgId', 'ancestorOrgIds'])
+        && request.resource.data.ancestorOrgIds == me().ancestorOrgIds;
+    }
+
+    // ---------- challenges set by an organisation for its members ----------
+    match /challenges/{id} {
+      allow read: if isActive() && (isSuper() || me().orgId in resource.data.ancestorOrgIds);
+      allow create: if isManager() && request.resource.data.orgId == me().orgId && request.resource.data.ancestorOrgIds == me().ancestorOrgIds && request.resource.data.createdBy == me().userId
+        && str(request.resource.data.title, 80) && request.resource.data.metric in ['trees', 'updates'] && request.resource.data.target is int && request.resource.data.target > 0 && request.resource.data.target <= 1000000;
+      allow delete: if isManager() && (isSuper() || resource.data.orgId == me().orgId);
     }
 
     // ---------- announcements ----------

@@ -218,6 +218,7 @@
         if (status === 'approved') { st['orgs_' + org.type] = MT.db.inc(1); st.orgsApproved = MT.db.inc(1); }
         if (org.status === 'approved' && (status === 'suspended' || status === 'rejected')) { st['orgs_' + org.type] = MT.db.inc(-1); st.orgsApproved = MT.db.inc(-1); }
         if (Object.keys(st).length) b.set('stats', 'global', st, { merge: true });
+        if (status === 'approved') b.set('stats', 'org_' + org.id, { kind: 'org', name: org.name, type: org.type, city: org.city || '' }, { merge: true });
         MT.audit.add(b, { action: 'org.' + status, targetType: 'org', targetId: org.id, detail: (org.name || '') + (opts.reason ? ' — ' + opts.reason : ''), orgId: org.id, ancestorOrgIds: org.ancestorOrgIds });
         return b.commit();
       });

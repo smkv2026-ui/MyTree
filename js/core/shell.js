@@ -21,13 +21,17 @@
     { id: 'bulk', icon: 'file-spreadsheet', href: '/bulk', roles: ALL, group: 'manage' },
     { id: 'admin', icon: 'gauge', href: '/admin', roles: ['super_admin'], group: 'admin' },
     { id: 'approvals', icon: 'badge-check', href: '/admin/approvals', roles: ['super_admin'], group: 'admin', badge: 'pendingCount' },
-    { id: 'reports', icon: 'bar-chart-3', href: '/admin/reports', roles: ['super_admin'], group: 'admin' },
-    { id: 'audit', icon: 'scroll-text', href: '/admin/audit', roles: ['super_admin'], group: 'admin' },
+    { id: 'health', icon: 'heart-pulse', href: '/admin/health', roles: ['super_admin'], group: 'admin' },
+    { id: 'reports', icon: 'bar-chart-3', href: '/admin/reports', roles: ['super_admin', 'foundation', 'school', 'institution'], group: 'admin' },
+    { id: 'audit', icon: 'scroll-text', href: '/admin/audit', roles: ['super_admin', 'foundation', 'school', 'institution'], group: 'admin' },
+    { id: 'settings', icon: 'sliders-horizontal', href: '/admin/settings', roles: ['super_admin'], group: 'admin' },
     { id: 'map', icon: 'map', href: '/map', roles: ALL, group: 'explore' },
+    { id: 'green', icon: 'satellite', href: '/green', roles: ALL, group: 'explore' },
     { id: 'leaderboard', icon: 'trophy', href: '/leaderboard', roles: NOT_SUPER, group: 'explore' },
     { id: 'help', icon: 'life-buoy', href: '/help', roles: ALL, group: 'explore' }
   ];
   var GROUPS = { main: '', manage: 'Manage', admin: 'Administration', explore: 'Explore' };
+  MT.GROUP_ADMIN_FOR = function (role) { return role === 'super_admin'; };
   function navFor(role) { return MT.NAV.filter(function (n) { return n.roles.indexOf(role) > -1; }); }
 
   /* ---------- Theme & accessibility prefs ---------- */
@@ -201,7 +205,7 @@
       var tt = document.getElementById('topbar-title'); if (tt) tt.textContent = title || '';
       var an = document.getElementById('sr-announcer'); if (an) an.textContent = (title || 'Page') + ' loaded';
       closePops(); document.getElementById('shell') && document.getElementById('shell').classList.remove('drawer-open');
-      if (mounted === 'app') shell.refreshBadges();
+      if (mounted === 'app') { shell.refreshBadges(); if (Date.now() - (shell._annAt || 0) > 60000) shell.loadAnnouncements(); }
       if (!shell._first) shell._first = true; else if (mainEl) mainEl.focus({ preventScroll: true });
     },
     /** Notification list + bell badge + nav count pills. */
@@ -211,13 +215,14 @@
         var b = document.getElementById('bell-badge'); if (b) { b.hidden = !items.length; b.textContent = items.length > 9 ? '9+' : String(items.length); }
         var l = document.getElementById('notif-list');
         if (l) l.innerHTML = items.length ? items.map(function (n) {
-          return '<a class="notif" href="#' + MT.esc(n.href || '/dashboard') + '"><i data-lucide="' + MT.esc(n.icon || 'bell') + '" class="ic"></i><span><strong>' + MT.esc(n.title) + '</strong><small>' + MT.esc(n.text || '') + '</small></span></a>';
+          return '<a class="notif" data-nid="' + MT.esc(n.nid || '') + '" href="#' + MT.esc(n.href || '/dashboard') + '"><i data-lucide="' + MT.esc(n.icon || 'bell') + '" class="ic"></i><span><strong>' + MT.esc(n.title) + '</strong><small>' + MT.esc(n.text || '') + '</small></span></a>';
         }).join('') : '<p class="muted pop-empty">You are all caught up. 🌿</p>';
         MT.$$('[data-badge]').forEach(function (el) { var n = MT.notify.counts[el.getAttribute('data-badge')] || 0; el.hidden = !n; el.textContent = n; });
         ui.icons();
       });
     },
     loadAnnouncements: function () {
+      shell._annAt = Date.now();
       MT.db.list('announcements', { where: [['active', '==', true]], limit: 3 }).then(function (rows) {
         var el = document.getElementById('announce'); if (!el) return;
         var seen = MT.storage.get('mt.seenAnn', []);
@@ -315,6 +320,7 @@
     else if (act === 'close-drawer') document.getElementById('shell').classList.remove('drawer-open');
     else if (act === 'pub-menu') { var n = document.getElementById('pub-nav'); var o = n.classList.toggle('open'); a.setAttribute('aria-expanded', String(o)); }
   });
+  document.addEventListener('click', function (e) { var n = e.target.closest('[data-nid]'); if (n && n.dataset.nid && MT.notify.markRead) MT.notify.markRead(n.dataset.nid); });
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-theme-set]'); if (t) { prefs.setTheme(t.getAttribute('data-theme-set')); MT.$$('[data-theme-set]').forEach(function (b) { b.setAttribute('aria-pressed', String(b === t)); }); }
     var f = e.target.closest('[data-fs-set]'); if (f) { MT.storage.set('mt.fs', +f.getAttribute('data-fs-set')); prefs.apply(); MT.$$('[data-fs-set]').forEach(function (b) { b.setAttribute('aria-pressed', String(b === f)); }); }

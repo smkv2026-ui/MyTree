@@ -169,7 +169,8 @@
       trees.push(t);
       bump('global', 'trees'); bump('global', status === 'dead' ? 'treesDead' : 'treesAlive'); bump('global', 'h_' + health);
       if (status !== 'dead') bump('global', 'sumPlantedDayAlive', Math.floor(planted / DAY));
-      var keys = ['region_' + slug(city.state), 'city_' + slug(city.name), 'month_' + t.plantedOn.slice(0, 7)];
+      var keys = ['region_' + slug(city.state), 'city_' + slug(city.name), 'month_' + t.plantedOn.slice(0, 7), 'user_' + owner.userId];
+      if (status !== 'dead') bump('species', sp.id);
       (owner.ancestorOrgIds || []).forEach(function (a) { keys.push('org_' + a); });
       keys.forEach(function (k) {
         bump(k, 'trees'); bump(k, status === 'dead' ? 'treesDead' : 'treesAlive'); bump(k, 'h_' + health);
@@ -199,9 +200,11 @@
     var statDocs = Object.keys(stats).map(function (k) {
       var d = Object.assign({ id: k }, stats[k]);
       if (k.indexOf('city_') === 0) { var c = MT.geoData.cities.filter(function (x) { return 'city_' + slug(x.name) === k; })[0]; Object.assign(d, { kind: 'city', name: c.name, state: c.state, lat: c.lat, lng: c.lng }); }
-      if (k.indexOf('region_') === 0) d.kind = 'region';
-      if (k.indexOf('org_') === 0) d.kind = 'org';
+      if (k.indexOf('region_') === 0) { d.kind = 'region'; var cc = MT.geoData.cities.filter(function (x) { return 'region_' + slug(x.state) === k; })[0]; d.name = cc ? cc.state : k; }
+      if (k.indexOf('org_') === 0) { d.kind = 'org'; var oo = orgs.filter(function (x) { return 'org_' + x.id === k; })[0]; if (oo) { d.name = oo.name; d.type = oo.type; d.city = oo.city; } }
       if (k.indexOf('month_') === 0) d.kind = 'month';
+      if (k.indexOf('user_') === 0) { var uu = users.filter(function (x) { return 'user_' + x.userId === k; })[0]; d.kind = 'user'; d.orgId = uu.orgId || ''; d.label = MT.stats.shortName(uu.name); }
+      if (k === 'species') d.kind = 'species';
       return d;
     });
     db._bulk('users', users);

@@ -48,3 +48,11 @@ Your teacher gives you a **user ID** and **password** (for example `Maple-River-
 * On a brand-new live site you create the first Super Admin on the one-time setup screen.
 * **Approvals:** review each new organisation → *Approve*, *Reject* (with a reason) or later *Suspend* / *Reactivate*. Suspending an organisation also pauses its students and sub-accounts.
 * The full command centre, reports and audit log arrive in phase 6.
+
+### Super admin — command centre (Phase 6)
+* **Command centre** (`Admin`): live totals, filter by state → city or organisation, charts and map. Numbers are pre-computed counters, so the page is fast and costs almost no Firestore reads.
+* **Tree health**: see struggling, dead and overdue trees; send reminders to owners in one click.
+* **Reports**: choose trees, organisations, people or updates; filter and sort; export CSV, Excel or PDF. *Impact report* PDFs can be produced for one organisation or the whole portal.
+* **Audit log**: who did what and when.
+* **Settings**: announcements banner, species data (CO₂ per year, growth, canopy), *Rebuild statistics* (use if numbers ever look off), and *Sample data* (live mode) to explore with ready-made schools and trees; remove it with one click.
+* **Green cover**: each planting site can be measured three honest ways — on-ground estimate, photo analysis (share of green pixels, computed in your browser) and, if you configure a provider, satellite imagery. Without a provider it says so; nothing is made up.

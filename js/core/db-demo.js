@@ -58,7 +58,7 @@
   })();
 
   var data = {}, dirty = {}, ready = false;
-  var SEED_VERSION = 5;
+  var SEED_VERSION = 9;
 
   function col(name) { return data[name] || (data[name] = {}); }
   function withId(id, d) { var o = MT.clone(d); o.id = id; return o; }
@@ -121,6 +121,7 @@
         if (!q.where || H.matches(o, q.where)) out.push(o);
       });
       H.sort(out, q.orderBy);
+      if (q.after !== undefined && q.orderBy) { var f = Array.isArray(q.orderBy) ? q.orderBy[0] : q.orderBy, desc = Array.isArray(q.orderBy) && q.orderBy[1] === 'desc'; out = out.filter(function (o) { var v = H.getPath(o, f); return desc ? v < q.after : v > q.after; }); }
       if (q.limit) out = out.slice(0, q.limit);
       return Promise.resolve(out.map(function (o) { return MT.clone(o); }));
     },

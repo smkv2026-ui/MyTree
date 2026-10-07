@@ -69,6 +69,15 @@ Tick each box in **Demo mode** (`index.html`) and again in **Live mode**. Phase 
 - [ ] After a trees import, **Post updates for these trees** lists exactly the imported trees; drop photos named by tree ID to attach them.
 - [ ] CSV (comma and semicolon-free) and .xlsx both work; a .xls or wrong sheet shows a friendly message.
 
+## Phase 6 — Super admin
+- [ ] `#/admin` shows KPIs, state → city / organisation filters, circle map and 6+ charts; numbers come from `stats/*` counters (no scans). Charts that use a sample say so.
+- [ ] `#/admin/health`: struggling / dead / overdue lists; "Send reminders" creates notifications that appear in the owner's bell.
+- [ ] `#/admin/audit` lists actions (also visible, scoped, to foundations / schools).
+- [ ] `#/admin/reports`: pick dataset, filter, sort, paginate; CSV, Excel and PDF exports download. Impact PDF per organisation / whole portal.
+- [ ] `#/admin/settings`: announcements, species edit (persists, used by CO₂ maths), **Rebuild statistics** ("N counters recomputed"; run twice → no changes), **Sample data** (live only): load, remove.
+- [ ] `#/green` / `#/green/:plotId`: ground estimate, photo ExG estimate, swipe before/after; satellite provider shows "not configured"; *simulated* readings exist only in demo and are labelled.
+- [ ] Live: counters after sample load equal counters after rebuild (verified: 0 differences).
+
 ## Later phases (to be filled in as they ship)
 - [ ] Admin dashboard counters, rebuild stats, reports export, impact report PDF
 - [ ] Green-cover swipe comparison, photo ExG estimate, simulated label in demo

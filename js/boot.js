@@ -34,6 +34,8 @@
       return MT.auth.init();
     }).then(function () {
       MT.ui.offlineBanner();
+      MT.store.on('session', function (s) { if (s && s.profile.active) MT.species.load(); });
+      if (MT.auth.isActive()) MT.species.load();
       return MT.router.start();
     }).catch(function (e) {
       console.error(e);

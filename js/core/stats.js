@@ -12,6 +12,8 @@
   var slug = function (s) { return MT.geoData.slug(s); };
 
   var S = (MT.stats = {
+    /** Privacy-friendly display name for leaderboards: first name + last initial. */
+    shortName: function (n) { var p = String(n || '').trim().split(/\s+/); return p.length > 1 ? p[0] + ' ' + p[p.length - 1][0] + '.' : (p[0] || ''); },
     keysFor: function (t) {
       var k = ['global'];
       (t.ancestorOrgIds || []).forEach(function (a) { k.push('org_' + a); });
@@ -32,7 +34,7 @@
       if (key.indexOf('region_') === 0) return { kind: 'region', name: t.state };
       if (key.indexOf('org_') === 0) return { kind: 'org' };
       if (key.indexOf('month_') === 0) return { kind: 'month' };
-      if (key.indexOf('user_') === 0) return { kind: 'user' };
+      if (key.indexOf('user_') === 0) return { kind: 'user', orgId: t.orgId || '', label: S.shortName(t.ownerName) };
       return {};
     },
     /**
@@ -49,6 +51,8 @@
           Object.keys(f).forEach(function (x) { a.fields[x] = (a.fields[x] || 0) + f[x]; });
         });
       });
+      var sp = {}; entries.forEach(function (e) { if (e.tree.status !== 'dead') sp[e.tree.speciesId] = (sp[e.tree.speciesId] || 0) + e.sign; });
+      if (Object.keys(sp).length) { var sd = { kind: 'species' }; Object.keys(sp).forEach(function (k) { sd[k] = MT.db.inc(sp[k]); }); batch.set('stats', 'species', sd, { merge: true }); }
       Object.keys(agg).forEach(function (k) {
         var d = Object.assign({}, agg[k].meta);
         Object.keys(agg[k].fields).forEach(function (x) { d[x] = MT.db.inc(agg[k].fields[x]); });

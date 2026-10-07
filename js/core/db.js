@@ -7,6 +7,7 @@
  *   db.mode                              'demo' | 'live'
  *   db.get(col, id)                      → {id, ...data} | null
  *   db.list(col, {where:[[f,op,v]], orderBy:'f'|['f','desc'], limit})  → [{id,...}]
+ *   (query.after = last value of the orderBy field → next page; use with limit)
  *   db.count(col, query)                 → number
  *   db.set(col, id, data, {merge})       → void
  *   db.add(col, data)                    → new id

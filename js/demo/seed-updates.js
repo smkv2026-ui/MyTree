@@ -60,6 +60,12 @@
       t.updatesCount = n;
       if (ids.length) { t.coverPhotoId = ids[ids.length - 1]; t.cover = photos[photos.length - 1].thumb; t.photoSize = photos[photos.length - 1].size; }
     });
+    // SIMULATED green-cover readings (labelled as such everywhere in the UI; never used for headline numbers)
+    var gcr = []; (ctx.plots || []).forEach(function (pl, pi) {
+      var from = new Date(pl.baselineOn + 'T12:00:00').getTime(), steps = 7;
+      for (var i = 0; i <= steps; i++) { var at = from + (now - from) * i / steps; gcr.push({ id: 'g_' + pi + '_' + i, plotId: pl.id, method: 'simulated', pct: Math.round((12 + 30 * Math.pow(i / steps, 1.3) + (rnd() - 0.5) * 3) * 10) / 10, date: new Date(at).toISOString().slice(0, 10), photoId: '', ownerId: pl.ownerId, orgId: pl.orgId, ancestorOrgIds: pl.ancestorOrgIds, createdBy: 'seed', createdAt: at, simulated: true }); }
+    });
+    db._bulk('greenCoverReadings', gcr);
     db._bulk('treeUpdates', upd); db._bulk('photos', photos); db._bulk('photoData', pdata);
     stats.global.photos = photos.length; stats.global.photoBytes = photos.reduce(function (a, p) { return a + p.size; }, 0) * 2;
     var uk = Object.keys(stats); void uk;
