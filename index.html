@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>MyTree — Maitree, friendship with nature</title>
+  <meta name="description" content="MyTree helps individuals, schools, institutions and foundations plant, track and nurture trees — one sapling, one story at a time.">
+  <meta name="theme-color" content="#0f3d2e">
+  <meta property="og:title" content="MyTree — Maitree, friendship with nature">
+  <meta property="og:description" content="Plant a tree. Keep a friend. Track every tree with a map, photos and growth updates.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="dns-prefetch" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <script>
+    /* Apply saved theme / text size before first paint (no flash). */
+    (function () {
+      try {
+        var g = function (k, d) { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); };
+        var t = g('mt.theme', 'auto'), r = document.documentElement;
+        if (t !== 'auto') r.setAttribute('data-theme', t);
+        r.setAttribute('data-fs', String(g('mt.fs', 100)));
+        if (g('mt.contrast', false)) r.setAttribute('data-contrast', 'high');
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div id="app" class="layout">
+    <div class="boot" role="status" aria-live="polite">
+      <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#0f3d2e"/><path d="M32 55V35" stroke="#c8a27a" stroke-width="5" stroke-linecap="round"/><path d="M32 44C23 42 14 36 14 25 14 17 22 13 30 19" fill="none" stroke="#3ec27a" stroke-width="5" stroke-linecap="round"/><path d="M32 44C41 42 50 36 50 25 50 17 42 13 34 19" fill="none" stroke="#3ec27a" stroke-width="5" stroke-linecap="round"/><circle cx="29.500" cy="19.500" r="4.600" fill="#e3c25a"/><circle cx="34.500" cy="19.500" r="4.600" fill="#c9a227"/></svg>
+      <p>Growing your forest…</p>
+    </div>
+  </div>
+  <div id="sr-announcer" class="sr-only" aria-live="polite"></div>
+  <noscript><div class="boot-error"><h1>MyTree needs JavaScript</h1><p>Please enable JavaScript in your browser to use MyTree.</p></div></noscript>
+
+  <!-- Load order matters; see PLAN.md. All classic scripts so the app also runs from file:// (demo mode). -->
+  <script src="js/firebase-config.js" defer></script>
+  <script src="js/core/util.js" defer></script>
+  <script src="js/core/loader.js" defer></script>
+  <script src="js/core/store.js" defer></script>
+  <script src="js/data/i18n.js" defer></script>
+  <script src="js/core/i18n.js" defer></script>
+  <script src="js/data/site.js" defer></script>
+  <script src="js/core/db.js" defer></script>
+  <script src="js/core/db-demo.js" defer></script>
+  <script src="js/core/db-firebase.js" defer></script>
+  <script src="js/core/auth.js" defer></script>
+  <script src="js/core/ui.js" defer></script>
+  <script src="js/data/species.js" defer></script>
+  <script src="js/data/geo.js" defer></script>
+  <script src="js/demo/seed.js" defer></script>
+  <script src="js/core/router.js" defer></script>
+  <script src="js/core/shell.js" defer></script>
+  <script src="js/features/dashboard.js" defer></script>
+  <script src="js/features/landing.js" defer></script>
+  <script src="js/features/auth-pages.js" defer></script>
+  <script src="js/features/admin.js" defer></script>
+  <script src="js/boot.js" defer></script>
+</body>
+</html>

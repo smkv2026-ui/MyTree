@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="MyTree logo">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3ec27a"/><stop offset="1" stop-color="#1f7f4a"/></linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#0f3d2e"/>
+  <path d="M32 55V35" stroke="#c8a27a" stroke-width="5" stroke-linecap="round"/>
+  <path d="M32 44C23 42 14 36 14 25 14 17 22 13 30 19" fill="none" stroke="url(#g)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M32 44C41 42 50 36 50 25 50 17 42 13 34 19" fill="none" stroke="url(#g)" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="29.5" cy="19.5" r="4.6" fill="#e3c25a"/>
+  <circle cx="34.5" cy="19.5" r="4.6" fill="#c9a227" fill-opacity=".92"/>
+  <path d="M32 6c4 3.5 4 8 0 10-4-2-4-6.500 0-10z" fill="#d9f3e3"/>
+</svg>
