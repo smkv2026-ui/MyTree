@@ -58,7 +58,7 @@
   })();
 
   var data = {}, dirty = {}, ready = false;
-  var SEED_VERSION = 3;
+  var SEED_VERSION = 4;
 
   function col(name) { return data[name] || (data[name] = {}); }
   function withId(id, d) { var o = MT.clone(d); o.id = id; return o; }
@@ -165,9 +165,11 @@
       };
       return b;
     },
-    nextId: function (key) {
-      var t = col('counters'), n = ((t[key] && t[key].n) || 0) + 1;
-      t[key] = { n: n }; markDirty('counters'); return Promise.resolve(n);
+    /** Reserve `count` (default 1) consecutive numbers; resolves to the FIRST one of the block. */
+    nextId: function (key, count) {
+      count = count || 1;
+      var t = col('counters'), first = ((t[key] && t[key].n) || 0) + 1;
+      t[key] = { n: first + count - 1 }; markDirty('counters'); return Promise.resolve(first);
     },
     /** Test/ops helper: size of the demo data in bytes (approx.). */
     approxSize: function () { try { return JSON.stringify(data).length; } catch (e) { return 0; } }

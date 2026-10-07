@@ -134,11 +134,11 @@
       var lat = c.lat + (rnd() - 0.5) * 0.12, lng = c.lng + (rnd() - 0.5) * 0.12;
       siteByOrg[o.id] = { lat: lat, lng: lng };
       var h = 0.0007 + rnd() * 0.0006, w = h * 1.4;
-      var poly = [[lat - h, lng - w], [lat - h, lng + w], [lat + h, lng + w], [lat + h, lng - w]];
+      var poly = [{ lat: lat - h, lng: lng - w }, { lat: lat - h, lng: lng + w }, { lat: lat + h, lng: lng + w }, { lat: lat + h, lng: lng - w }]; // array of maps: Firestore forbids nested arrays
       var area = Math.round((2 * h * 111320) * (2 * w * 111320 * Math.cos(lat * Math.PI / 180)));
       plots.push({
         id: 'PLOT-' + o.id.slice(3), name: o.name + ' — campus plot', orgId: o.id, ancestorOrgIds: o.ancestorOrgIds, city: o.city, state: o.state,
-        polygon: poly, areaM2: area, baselineOn: new Date(now - 420 * DAY).toISOString().slice(0, 10), baselinePhotoIds: [], createdBy: 'u_' + o.id.toLowerCase(), createdAt: now - 420 * DAY, simulated: true
+        polygon: poly, areaM2: area, baselineOn: new Date(now - 420 * DAY).toISOString().slice(0, 10), baselinePhotoIds: [], ownerId: o.id, createdBy: 'u_' + o.id.toLowerCase(), createdAt: now - 420 * DAY, simulated: true
       });
     });
 

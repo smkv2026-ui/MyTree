@@ -1,6 +1,6 @@
 # Firestore rules — manual test matrix
 
-Automated: `cd tests && npm install && npm test` (needs Node 18+ and Java for the emulator) runs `rules.test.js` (34 checks).
+Automated: `cd tests && npm install && npm test` (needs Node 18+ and Java for the emulator) runs `rules.test.js` (44 checks).
 Manual: in the Firebase console → Firestore → **Rules → Rules playground**, simulate the requests below. ✅ = allowed, ❌ = denied.
 Set up three profiles first (use the app itself): super admin, a school admin (approved) with one student, and a second school admin.
 
@@ -37,4 +37,11 @@ Set up three profiles first (use the app itself): super admin, a school admin (a
 | 29 | Manager | append `auditLog` with own `actorUid` ✅; forged actor ❌; update/delete ❌ | as shown |
 | 30 | Student | read a classmate's private tree ❌; own tree ✅; public tree (anyone) ✅ | as shown |
 
-Later phases add rows for tree/update/photo writes, stats coupling and bulk imports.
+| 31 | Individual | create tree for self ✅; with another `ownerId` / forged `ancestorOrgIds` / wrong doc ID / `health:'great'` / `lat:123` ❌ | as shown |
+| 32 | Student | create private tree ✅; `public:true` ❌ | as shown |
+| 33 | School admin | create tree on behalf of own student (`postedBy`=admin, `onBehalfOf`=student) ✅; for another school's student ❌; without `onBehalfOf` ❌ | as shown |
+| 34 | Owner | move pin ✅; change `ownerId` ❌; classmate edit ❌; manager delete ✅; stranger delete ❌ | as shown |
+| 35 | Owner | create `photos` + `photoData` ✅; thumb > 45 KB or full > 900 KB ❌; classmate read ❌ | as shown |
+| 36 | Any signed-in | reserve counter block ≤ 500 ✅; 700 or going backwards ❌ | as shown |
+
+Later phases add rows for updates, stats coupling and bulk imports.

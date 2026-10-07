@@ -19,8 +19,21 @@ Tick each box in **Demo mode** (`index.html`) and again in **Live mode**. Phase 
 - [ ] 4K / ultrawide: layout stays centred and readable.
 - [ ] Offline banner appears when the network is switched off.
 
+## Phase 2 — Planting & trees
+- [ ] Species search (type "neem", "mango", a scientific name, a typo); filter chips; "Other" requires a name; count +/− and typing; 100 max.
+- [ ] Location: tap map, drag pin, search an address, **Use my current location** (allow and deny the permission), draw a plot polygon (area shown), clear it, switch Street/Satellite/Terrain, full-screen and Esc.
+- [ ] Pin more than the organisation's city radius away → warning but can continue.
+- [ ] Details: future date refused; photo from camera and gallery; size shown ≤ ~250 KB; a geotagged phone photo pre-fills location and date.
+- [ ] Plant 1 and 5 saplings: success screen with animation, confetti, QR (downloadable), share card image, WhatsApp link, Web Share on mobile; 5 saplings get consecutive IDs and one shared plot ID.
+- [ ] Planting the same species within 0.5 m asks for confirmation.
+- [ ] Admin plants **on behalf of** a student (search by name or ID); the Audit log row/stat shows who posted for whom (full viewer arrives in phase 6).
+- [ ] My Trees: grid/list/map toggle persists, filters (species, status, health, dates), sort, search, multi-select → set cadence, export CSV, delete with **Undo**; "Load older trees" past 500.
+- [ ] Tree page: photo loads full-size on demand, QR, location mini-map, move pin, delete, copy link.
+- [ ] `#/map`: clusters, health colours, popups, filters; panning loads new areas; super admin sees all, org admin sees subtree, student sees only own.
+- [ ] Storage note shows photo usage; (live) warning appears above 70% of 1 GiB.
+- [ ] Offline (live): plant while offline, reconnect, tree appears.
+
 ## Later phases (to be filled in as they ship)
-- [ ] Plant a tree (single and many saplings, GPS, drag pin, polygon, EXIF prefill, photo compression sizes)
 - [ ] Post update, cadence overdue badges, before/after slider, dead-tree → replanted link
 - [ ] Post on behalf (audit row shows "Posted by Admin … on behalf of Student …")
 - [ ] Student creation, credentials PDF/CSV, password re-issue (old password stops working, same ID keeps trees)

@@ -13,7 +13,7 @@
  *   db.update(col, id, patch)            → void   (dot-paths and sentinels allowed)
  *   db.delete(col, id)                   → void
  *   db.batch()                           → {set, update, delete, commit()}  (commit auto-chunks to ≤400 ops with retry)
- *   db.nextId(counterKey)                → integer (transactional increment of counters/{key}.n)
+ *   db.nextId(counterKey, count=1)       → first integer of a block of `count` reserved by one transaction on counters/{key}.n
  *   Sentinels: db.inc(n), db.union(...vals), db.remove(...vals), db.del()
  *
  * Operators for `where`: == != < <= > >= in array-contains array-contains-any
@@ -115,12 +115,12 @@
       return MT.db.nextId('STU_' + orgId).then(function (n) { return 'MT-STU-' + tag + '-' + MT.pad(n, 4); });
     },
     tree: function (year) { year = year || new Date().getFullYear(); return MT.db.nextId('TREE_' + year).then(function (n) { return 'TREE-' + year + '-' + MT.pad(n, 6); }); },
-    /** Reserve `count` tree codes at once. */
+    /** Reserve `count` tree codes with a single counter transaction. */
     trees: function (count, year) {
       year = year || new Date().getFullYear();
-      var out = [], p = Promise.resolve();
-      for (var i = 0; i < count; i++) p = p.then(function () { return MT.ids.tree(year); }).then(function (c) { out.push(c); });
-      return p.then(function () { return out; });
+      return MT.db.nextId('TREE_' + year, count).then(function (first) {
+        var out = []; for (var i = 0; i < count; i++) out.push('TREE-' + year + '-' + MT.pad(first + i, 6)); return out;
+      });
     }
   };
 })();

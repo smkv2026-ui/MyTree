@@ -24,7 +24,7 @@
 
   function treeRow(t) {
     var sp = MT.species.get(t.speciesId);
-    return h`<li class="tree-row"><span class="tree-thumb">${ui.treeArt(t.health, 44)}</span><div class="tree-row-main"><strong>${sp.common}</strong><small>${t.code} · planted ${MT.fmt.date(t.plantedOn)}</small></div><span class="hdot hdot-${t.health}" title="${ui.healthLabel[t.health]}"></span></li>`;
+    return h`<li class="tree-row"><span class="tree-thumb">${ui.treeArt(t.health, 44)}</span><div class="tree-row-main"><a href="#/trees/${t.code}"><strong>${t.customName || sp.common}</strong></a><small>${t.code} · planted ${MT.fmt.date(t.plantedOn)}</small></div><span class="hdot hdot-${t.health}" title="${ui.healthLabel[t.health]}"></span></li>`;
   }
 
   function actions(role) {

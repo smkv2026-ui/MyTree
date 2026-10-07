@@ -11,8 +11,8 @@ A complete tree-plantation tracking portal that is **just static files**: HTML, 
 | Phase | Scope | Status |
 |---|---|---|
 | 1 | Foundation: design system, landing, router, app shell, DB adapters (demo + Firebase), auth, role routing, 4-way registration, super-admin bootstrap, approval queue, security rules | ✅ done |
-| 2 | Planting stepper, map picker, photo store, My Trees | next |
-| 3 | Tree page, timeline, charts, before/after, cadence & notifications | |
+| 2 | Planting stepper, map picker, photo store, My Trees, tree page, map | ✅ done |
+| 3 | Growth timeline, charts, before/after, cadence & notifications | next |
 | 4 | Students, sub-accounts, post-on-behalf, credentials PDF, password re-issue | |
 | 5 | Bulk Excel/CSV import with validation | |
 | 6 | Command centre, counters, maps, reports, green cover, audit viewer | |
@@ -36,10 +36,10 @@ Both adapters implement one contract (`MT.db`, documented at the top of `js/core
 index.html            shell + ordered <script defer> tags (classic scripts, not modules → works from file://)
 css/                  tokens → base → components → layout → pages
 js/firebase-config.js ← the only file you edit
-js/core/              util → sri → loader → store → (data/i18n) i18n → db → db-demo → db-firebase → auth → ui → router → shell
+js/core/              util → sri → loader → store → (data/i18n) i18n → db → db-demo → db-firebase → auth → ui → stats → geocode → photostore → router → shell
 js/data/              i18n, site contact details, species (107 species + impact factors), India cities
 js/demo/seed.js       deterministic demo-data generator
-js/features/          landing, auth-pages, dashboard, admin   (planting, trees, updates, bulk, maps, … in later phases)
+js/features/          landing, auth-pages, dashboard, admin, maps, share, trees-core, planting, trees, mapview   (updates, bulk, … in later phases)
 js/boot.js            picks the mode, installs adapters, starts the router (always last)
 firestore.rules  firestore.indexes.json  firebase.json
 tools/gen-sri.mjs     optional SRI hash generator
@@ -68,18 +68,28 @@ Routes registered later replace earlier ones (that is how "Soon" placeholders ar
 9. **Offline.** Firestore persistence is enabled in live mode; a banner shows when the browser is offline. (Service worker / installable PWA arrives in phase 7.)
 10. **E-mail reminders are impossible without a server** (no Cloud Functions on the free plan). "Update due" is computed in the browser and shown in the notification centre; `.ics` calendar reminders are offered instead (phase 3).
 
+### Phase 2 additions
+11. **Photos are two documents.** `photos/{id}` holds metadata + a 320 px thumbnail (≤25 KB); `photoData/{id}` holds the full ≤250 KB image. Lists and timelines read only the first, so they never download full images, and each doc stays far below Firestore's 1 MiB limit. A 120 px "cover" (a few KB) also lives on the tree doc for grids and map popups. All of this sits behind `MT.photoStore` (`js/core/photostore.js`); to move to Cloudinary or Cloud Storage, re-implement its five methods (`prepare`, `store`, `thumb`/`full`, `remove`, `usage`) in that one file — the doc at the top of the file describes the contract.
+12. **Counters are written in the same batch as each tree** (`js/core/stats.js`): global, every ancestor org, state, city, month and per-user documents, plus `sumPlantedDayAlive` so CO₂ estimates need no tree reads. IDs for N saplings are reserved with **one** transaction (`nextId(key, N)`; rules allow blocks up to 500).
+13. **Maps load by viewport.** `MT.maps.viewportLoader` queries one geohash cell at a time (≤ ~9 cells per view), always scoped by `ownerId ==` or `ancestorOrgIds array-contains` so Firestore can prove the rule. Composite indexes are in `firestore.indexes.json` (create them with `firebase deploy --only firestore:indexes`, or click the link Firestore prints the first time).
+14. **Plots store polygons as arrays of `{lat,lng}` maps** because Firestore forbids nested arrays.
+15. **Posting on behalf** is verified by rules: the owner's real ancestors must match `userIds/{owner}`, so an admin cannot forge ownership. Each on-behalf action also appends to `auditLog`.
+16. Duplicate check (same species within 0.5 m, own trees) and geofence check (pin far from the organisation's city → flagged, never blocked) are client-side warnings.
+17. Nominatim search/reverse lookups are queued ≥1.1 s apart and cached in localStorage (see `js/core/geocode.js`).
+
 ## Libraries (all from CDNs, lazy-loaded)
 Pinned versions in `js/core/loader.js` with a primary (cdnjs / unpkg / gstatic) and a fallback (jsDelivr) URL each; a failed load shows a friendly message rather than a blank page. Landing hero art, counters, reveals and the carousel are pure CSS/JS and work even if every CDN is blocked; Lucide icons, GSAP parallax, Leaflet and confetti degrade gracefully.
 
 **SRI:** hashes cannot be baked in without downloading the files from the CDNs. Run `node tools/gen-sri.mjs` once on a machine with internet; it writes `js/core/sri.js` and the loader then adds `integrity` + `crossorigin` automatically. Until you do, libraries load without SRI.
 
 ## Security notes
-* The Firebase web config is public by design; **`firestore.rules` is the real protection** (34 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
+* The Firebase web config is public by design; **`firestore.rules` is the real protection** (44 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
 * All user text is rendered through `MT.html` (auto-escaping) or `textContent`; DOMPurify is loaded for rich text. No inline event handlers are used on user data.
 * Demo mode stores demo passwords in plain text *inside the browser only*; live mode never sees or stores passwords.
 * Optional hardening (API-key restriction, App Check via `MT_APPCHECK_SITE_KEY`) is described in `SETUP.md`.
 
 ## Known limitations (Phase 1)
 * Multi-chunk batches (> 400 operations) are atomic per chunk, not overall (Firestore limit).
+* A tree flagged `public:true` currently exposes its whole document to anyone with the link (owner name included); phase 7 replaces this with a sanitised public view. Student trees can never be public.
 * `stats/*` write rules only restrict *which fields* can be written; phase 6 couples them to tree writes with `getAfter()` as specified.
 * Satellite/green-cover, certificates, bulk import, PWA install etc. are scheduled for later phases (see table).

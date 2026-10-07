@@ -106,13 +106,15 @@
       };
       return b;
     },
-    nextId: function (key) {
+    /** Reserve `count` (default 1) consecutive numbers in ONE transaction; resolves to the FIRST of the block. */
+    nextId: function (key, count) {
+      count = count || 1;
       var ref = fs.collection('counters').doc(key);
       return fs.runTransaction(function (tx) {
         return tx.get(ref).then(function (s) {
-          var n = (s.exists ? s.data().n : 0) + 1;
-          tx.set(ref, { n: n });
-          return n;
+          var first = (s.exists ? s.data().n : 0) + 1;
+          tx.set(ref, { n: first + count - 1 });
+          return first;
         });
       });
     }

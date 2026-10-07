@@ -240,7 +240,7 @@
     if (!('IntersectionObserver' in window) || MT.prefersReducedMotion()) { els.forEach(function (e) { e.classList.add('in'); }); return; }
     if (!revealIO) revealIO = new IntersectionObserver(function (en) {
       en.forEach(function (x) { if (x.isIntersecting) { x.target.classList.add('in'); revealIO.unobserve(x.target); } });
-    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+    }, { threshold: 0, rootMargin: '0px 0px -6% 0px' });
     els.forEach(function (e, i) {
       var d = e.getAttribute('data-reveal-delay'); if (d) e.style.transitionDelay = d + 'ms';
       revealIO.observe(e);

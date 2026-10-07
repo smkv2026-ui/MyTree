@@ -142,6 +142,50 @@ async function t(name, fn) { try { await fn(); pass++; console.log('  ✓ ' + na
     await assertSucceeds(as('f1').doc('orgs/MT-SCH-000001').update({ status: 'suspended', statusAt: 1 })); await assertFails(as('f1').doc('orgs/MT-FND-000001').update({ status: 'suspended' }));
   });
 
+
+  console.log('\nTrees, photos, plots (phase 2)'); await seed();
+  const treeDoc = (o) => Object.assign({ code: 'TREE-2026-000100', speciesId: 'neem', ownerId: 'MT-IND-000001', ownerName: 'Ind One', postedBy: 'MT-IND-000001', onBehalfOf: '', orgId: '', ancestorOrgIds: [], lat: 18.5, lng: 73.8, geohash: 'te7ud2x1q', city: 'Pune', state: 'Maharashtra', plantedOn: '2026-05-01', status: 'alive', health: 'healthy', cadence: 'monthly', heightCm: 30, lastUpdateAt: 0, updatesCount: 0, plotId: '', public: false, dedication: '', notes: '', createdAt: 5 }, o || {});
+  const stuTree = (o) => treeDoc(Object.assign({ code: 'TREE-2026-000101', ownerId: 'MT-STU-SCH001-0001', ownerName: 'Stu One', postedBy: 'MT-STU-SCH001-0001', orgId: 'MT-SCH-000001', ancestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'] }, o || {}));
+  await t('individual plants for self', () => assertSucceeds(as('ind1').doc('trees/TREE-2026-000100').set(treeDoc())));
+  await t('cannot plant in someone else\'s name, with forged ancestors, or with a mismatched code', async () => {
+    await assertFails(as('ind1').doc('trees/TREE-2026-000100').set(treeDoc({ ownerId: 'MT-STU-SCH001-0001', postedBy: 'MT-IND-000001' })));
+    await assertFails(as('ind1').doc('trees/TREE-2026-000100').set(treeDoc({ ancestorOrgIds: ['MT-SCH-000001'] })));
+    await assertFails(as('ind1').doc('trees/TREE-2026-000099').set(treeDoc()));
+  });
+  await t('tree data is validated (bad health, out-of-range latitude, long notes)', async () => {
+    await assertFails(as('ind1').doc('trees/TREE-2026-000100').set(treeDoc({ health: 'great' }))); await assertFails(as('ind1').doc('trees/TREE-2026-000100').set(treeDoc({ lat: 123 })));
+    await assertFails(as('ind1').doc('trees/TREE-2026-000100').set(treeDoc({ notes: 'x'.repeat(600) })));
+  });
+  await t('student can plant privately but never publicly', async () => {
+    await assertSucceeds(as('st1').doc('trees/TREE-2026-000101').set(stuTree())); await assertFails(as('st1').doc('trees/TREE-2026-000102').set(stuTree({ code: 'TREE-2026-000102', public: true })));
+  });
+  await t('school admin plants on behalf of own student (recorded), not of another school\'s student', async () => {
+    await assertSucceeds(as('s1').doc('trees/TREE-2026-000103').set(stuTree({ code: 'TREE-2026-000103', postedBy: 'MT-SCH-000001', onBehalfOf: 'MT-STU-SCH001-0001' })));
+    await assertFails(as('s2').doc('trees/TREE-2026-000104').set(stuTree({ code: 'TREE-2026-000104', postedBy: 'MT-SCH-000002', onBehalfOf: 'MT-STU-SCH001-0001' })));
+    await assertFails(as('s1').doc('trees/TREE-2026-000105').set(stuTree({ code: 'TREE-2026-000105', postedBy: 'MT-SCH-000001', onBehalfOf: '' })));
+  });
+  await t('on-behalf with forged ancestors is refused (checked against userIds)', () => assertFails(as('s2').doc('trees/TREE-2026-000106').set(stuTree({ code: 'TREE-2026-000106', postedBy: 'MT-SCH-000002', onBehalfOf: 'MT-STU-SCH001-0001', ancestorOrgIds: ['MT-SCH-000002'] }))));
+  await t('owner moves pin; cannot change owner; classmate cannot edit; manager can delete', async () => {
+    await assertSucceeds(as('ind1').doc('trees/TREE-2026-000100').update({ lat: 18.6, geohash: 'te7ud2x1r' })); await assertFails(as('ind1').doc('trees/TREE-2026-000100').update({ ownerId: 'MT-STU-SCH001-0001' }));
+    await assertFails(as('st2').doc('trees/TREE-2026-000101').update({ notes: 'hax' })); await assertSucceeds(as('s1').doc('trees/TREE-2026-000101').delete()); await assertFails(as('ind1').doc('trees/TREE-2026-000101').delete());
+  });
+  await t('photos: owner stores metadata+full image; oversized rejected; classmate cannot read', async () => {
+    const base = { treeId: 'TREE-2026-000100', ownerId: 'MT-IND-000001', orgId: '', ancestorOrgIds: [], createdAt: 5 };
+    await assertSucceeds(as('ind1').doc('photos/p1').set(Object.assign({ thumb: 'data:image/jpeg;base64,AAAA', size: 1000, width: 10, height: 10 }, base)));
+    await assertSucceeds(as('ind1').doc('photoData/p1').set(Object.assign({ data: 'data:image/jpeg;base64,AAAA' }, base)));
+    await assertFails(as('ind1').doc('photos/p2').set(Object.assign({ thumb: 'x'.repeat(50000), size: 1000 }, base)));
+    await assertFails(as('ind1').doc('photoData/p2').set(Object.assign({ data: 'x'.repeat(950000) }, base)));
+    await assertFails(as('st1').doc('photos/p1').get()); await assertSucceeds(as('ind1').doc('photos/p1').get());
+  });
+  await t('counters: reserve a block of 3; refuse 600 or going backwards', async () => {
+    await assertSucceeds(as('ind1').doc('counters/TREE_2026').set({ n: 3 })); await assertSucceeds(as('ind1').doc('counters/TREE_2026').set({ n: 6 }));
+    await assertFails(as('ind1').doc('counters/TREE_2026').set({ n: 700 })); await assertFails(as('ind1').doc('counters/TREE_2026').set({ n: 2 }));
+  });
+  await t('plots: owner can create, other users cannot read', async () => {
+    const plot = { name: 'Plot', ownerId: 'MT-IND-000001', orgId: '', ancestorOrgIds: [], polygon: [{ lat: 1, lng: 1 }], createdAt: 5 };
+    await assertSucceeds(as('ind1').doc('plots/PLOT-1').set(plot)); await assertFails(as('st1').doc('plots/PLOT-1').get());
+  });
+
   console.log(`\n${pass} passed, ${fail} failed`);
   await env.cleanup(); process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(2); });

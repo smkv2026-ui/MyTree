@@ -48,8 +48,10 @@ service cloud.firestore {
     // ---------- counters ----------
     match /counters/{key} {
       allow get: if signedIn();
-      allow create: if signedIn() && request.resource.data.keys().hasOnly(['n']) && request.resource.data.n == 1;
-      allow update: if signedIn() && request.resource.data.keys().hasOnly(['n']) && request.resource.data.n == resource.data.n + 1;
+      // A block of up to 500 numbers may be reserved in one transaction (planting N saplings).
+      allow create: if signedIn() && request.resource.data.keys().hasOnly(['n']) && request.resource.data.n is int && request.resource.data.n >= 1 && request.resource.data.n <= 500;
+      allow update: if signedIn() && request.resource.data.keys().hasOnly(['n']) && request.resource.data.n is int
+        && request.resource.data.n > resource.data.n && request.resource.data.n <= resource.data.n + 500;
       allow delete: if false;
     }
 
@@ -169,22 +171,76 @@ service cloud.firestore {
       // Only numeric counters and display fields; phase 6 tightens writes by coupling them to tree writes with getAfter().
       return request.resource.data.keys().hasOnly(['users', 'individuals', 'students', 'orgsPending', 'orgsApproved', 'orgs_school', 'orgs_foundation', 'orgs_institution',
         'trees', 'treesAlive', 'treesDead', 'sumPlantedDayAlive', 'h_thriving', 'h_healthy', 'h_needs_care', 'h_struggling', 'h_dead', 'updatesThisMonth', 'updates',
-        'members', 'kind', 'name', 'state', 'lat', 'lng']);
+        'members', 'kind', 'name', 'state', 'lat', 'lng', 'photos', 'photoBytes', 'bytes']);
     }
     match /stats/{id} {
-      allow get: if id == 'global' || id.matches('city_.*') || isActive();
+      allow get: if id == 'global' || id.matches('city_.*') || (isActive() && (!id.matches('user_.*') || id == 'user_' + me().userId || isManager()));
       allow list: if resource.data.kind == 'city' || isActive();
       allow create, update: if signedIn() && statsKeysOk() && (isActive() || id == 'global');
       allow delete: if isSuper();
     }
 
-    // ---------- read-only views of data written by later phases ----------
-    match /trees/{code} {
-      allow get: if (isActive() && (resource.data.ownerId == me().userId || manages(resource.data.ancestorOrgIds))) || resource.data.get('public', false) == true;
-      allow list: if isActive() && (resource.data.ownerId == me().userId || manages(resource.data.ancestorOrgIds));
+    // ---------- ownership helpers shared by trees / plots / photos ----------
+    // "self": the record's owner is the signed-in user and its ancestors are exactly the user's own.
+    function ownedBySelf(d) { return d.ownerId == me().userId && d.ancestorOrgIds == me().ancestorOrgIds; }
+    // "via manager": a manager records something for a user beneath them; the owner's real ancestors are verified through userIds.
+    function ownedViaManager(d) {
+      return isManager() && (isSuper() || me().orgId in d.ancestorOrgIds)
+        && get(/databases/$(database)/documents/userIds/$(d.ownerId)).data.ancestorOrgIds == d.ancestorOrgIds;
     }
+    function canSee(d) { return d.ownerId == me().userId || manages(d.ancestorOrgIds); }
+
+    // ---------- trees ----------
+    function treeShape(d, id) {
+      return d.code == id && str(d.speciesId, 60) && optStr(d, 'customName', 60) && optStr(d, 'dedication', 200) && optStr(d, 'notes', 500)
+        && optStr(d, 'address', 300) && optStr(d, 'city', 80) && optStr(d, 'state', 80) && optStr(d, 'ownerName', 120) && str(d.geohash, 12)
+        && d.lat is number && d.lat >= -90 && d.lat <= 90 && d.lng is number && d.lng >= -180 && d.lng <= 180
+        && d.status in ['alive', 'dead'] && d.health in ['thriving', 'healthy', 'needs_care', 'struggling', 'dead'] && d.cadence in ['weekly', 'monthly', 'yearly']
+        && d.public is bool && d.plantedOn is string && d.plantedOn.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && d.ancestorOrgIds is list && d.ancestorOrgIds.size() <= 8 && str(d.ownerId, 40) && str(d.postedBy, 40)
+        && (!('cover' in d) || (d.cover is string && d.cover.size() <= 20000))
+        && (!('heightCm' in d) || (d.heightCm is number && d.heightCm >= 0 && d.heightCm <= 5000));
+    }
+    function treeCreateOk(d) {
+      return d.postedBy == me().userId && (
+        (ownedBySelf(d) && d.onBehalfOf == '' && d.orgId == me().orgId && (me().role != 'student' || d.public == false))
+        || (ownedViaManager(d) && d.onBehalfOf == d.ownerId && d.ownerId != me().userId));
+    }
+    match /trees/{code} {
+      allow get: if (isActive() && canSee(resource.data)) || resource.data.get('public', false) == true;
+      allow list: if isActive() && canSee(resource.data);
+      allow create: if isActive() && treeShape(request.resource.data, code) && treeCreateOk(request.resource.data);
+      allow update: if isActive() && canSee(resource.data) && treeShape(request.resource.data, code)
+        && request.resource.data.ownerId == resource.data.ownerId && request.resource.data.orgId == resource.data.orgId
+        && request.resource.data.ancestorOrgIds == resource.data.ancestorOrgIds && request.resource.data.postedBy == resource.data.postedBy
+        && request.resource.data.get('onBehalfOf', '') == resource.data.get('onBehalfOf', '')
+        && (me().role != 'student' || request.resource.data.public == false);
+      allow delete: if isActive() && canSee(resource.data);
+    }
+
+    // ---------- plots ----------
     match /plots/{id} {
-      allow read: if isActive() && manages(resource.data.ancestorOrgIds);
+      allow read: if isActive() && canSee(resource.data);
+      allow create: if isActive() && str(request.resource.data.name, 80) && request.resource.data.polygon is list && request.resource.data.polygon.size() <= 100
+        && request.resource.data.ancestorOrgIds is list && (ownedBySelf(request.resource.data) || ownedViaManager(request.resource.data));
+      allow update: if isActive() && canSee(resource.data) && request.resource.data.ownerId == resource.data.ownerId && request.resource.data.ancestorOrgIds == resource.data.ancestorOrgIds;
+      allow delete: if isActive() && canSee(resource.data);
+    }
+
+    // ---------- photos: metadata + 320px thumb in `photos`, full image in `photoData` (see js/core/photostore.js) ----------
+    function photoOwnerOk(d) { return d.createdAt is number && d.ancestorOrgIds is list && (ownedBySelf(d) || ownedViaManager(d)); }
+    match /photos/{id} {
+      allow read: if isActive() && canSee(resource.data);
+      allow create: if isActive() && photoOwnerOk(request.resource.data) && str(request.resource.data.thumb, 45000) && request.resource.data.size is int && request.resource.data.size <= 900000
+        && optStr(request.resource.data, 'note', 300);
+      allow update: if false;
+      allow delete: if isActive() && canSee(resource.data);
+    }
+    match /photoData/{id} {
+      allow read: if isActive() && canSee(resource.data);
+      allow create: if isActive() && photoOwnerOk(request.resource.data) && str(request.resource.data.data, 900000);
+      allow update: if false;
+      allow delete: if isActive() && canSee(resource.data);
     }
 
     // ---------- audit log ----------

@@ -45,7 +45,8 @@ js/features/landing.js     public landing page
 js/features/auth-pages.js  login, register, setup, pending, forgot
 js/features/dashboard.js   role home
 js/features/admin.js       approvals (phase 1) → command centre (phase 6)
-js/features/<planting|trees|updates|bulk|maps|greencover|gamification|certificates>.js   later phases
+js/features/maps.js share.js trees-core.js planting.js trees.js mapview.js   (phase 2)
+js/features/<updates|bulk|greencover|gamification|certificates>.js   later phases
 js/boot.js                 detect mode, load adapters, init, start router
 assets/logo.svg  assets/leaf.svg  assets/icons/*
 ```

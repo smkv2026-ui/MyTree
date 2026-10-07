@@ -8,6 +8,14 @@
 * **Make it comfortable:** the sliders icon in the top bar changes theme, language, text size and contrast.
 * **Phone:** use the bottom bar; the round **+** button is *Plant a tree*. Add MyTree to your home screen for an app-like experience (coming soon).
 
+## Planting a tree (everyone)
+1. Tap **Plant a tree** (the round **+** on phones).
+2. **Species:** search by common or scientific name. Choose how many saplings — each gets its own ID and QR code.
+3. **Location:** tap the map, drag the pin, search an address or press **Use my current location**. Use the layers button for satellite. Optionally mark the whole plot area.
+4. **Details:** planting date, a photo (camera or gallery), a dedication, how often you will post updates.
+5. **Review → Confirm.** Share the card on WhatsApp or print the QR code.
+**My trees** shows your trees as a grid, list or map; select several to export or delete (you can undo for a few seconds). School, institution and foundation admins can plant *on behalf of* anyone beneath them — it is recorded in the audit log.
+
 ## Individual
 1. *Get started → Individual*, fill in your details and tick the privacy box. You are active immediately and receive a user ID like `MT-IND-000123`.
 2. Plant trees, post growth updates and download certificates (coming soon).
