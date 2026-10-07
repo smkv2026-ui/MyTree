@@ -16,6 +16,9 @@
 5. **Review → Confirm.** Share the card on WhatsApp or print the QR code.
 **My trees** shows your trees as a grid, list or map; select several to export or delete (you can undo for a few seconds). School, institution and foundation admins can plant *on behalf of* anyone beneath them — it is recorded in the audit log.
 
+## Growth updates (everyone)
+Open a tree and tap **Post update** — add a photo, its height, how it looks (Thriving … Dead) and a note. The **Updates** page lists trees that are due or overdue (based on the weekly / monthly / yearly rhythm you chose), lets you update several trees at once, and accepts a batch of photos named with tree IDs. The bell shows what is due. MyTree cannot send e-mail reminders on the free plan, so use **Add reminders (.ics)** to put recurring reminders in your phone calendar. On a tree page you also get a growth chart, a before/after slider, a growth-journey movie, local weather and season-aware care tips. If a tree dies, mark it *Dead* and choose **replant** to link a new tree to it.
+
 ## Individual
 1. *Get started → Individual*, fill in your details and tick the privacy box. You are active immediately and receive a user ID like `MT-IND-000123`.
 2. Plant trees, post growth updates and download certificates (coming soon).

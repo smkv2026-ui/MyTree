@@ -57,15 +57,17 @@
             code: code, speciesId: sp.id, ownerId: owner.userId, ownerName: owner.name, postedBy: me.userId, onBehalfOf: onBehalf ? owner.userId : '',
             orgId: owner.orgId || '', ancestorOrgIds: owner.ancestorOrgIds || [], lat: round6(pos.lat), lng: round6(pos.lng), geohash: MT.geo.geohash(pos.lat, pos.lng, 9),
             city: place.city, state: place.state, address: clip(o.address, 300), plantedOn: o.plantedOn, status: 'alive', health: 'healthy', cadence: o.cadence || 'monthly',
-            heightCm: Math.max(0, Math.min(5000, Math.round(+o.heightCm || 30))), lastUpdateAt: 0, updatesCount: 0, plotId: plotId, public: !!(o.public && canPublic),
+            heightCm: Math.max(0, Math.min(5000, Math.round(+o.heightCm || 30))), initialHeightCm: Math.max(0, Math.min(5000, Math.round(+o.heightCm || 30))), lastUpdateAt: 0, updatesCount: 0, plotId: plotId, public: !!(o.public && canPublic),
             dedication: clip(o.dedication, 200), notes: clip(o.notes, 500), createdAt: now
           };
           if (sp.id === 'other') t.customName = clip(o.customName || 'Unnamed tree', 60);
           if (photoId) { t.coverPhotoId = photoId; t.cover = o.photo.cover; t.photoSize = o.photo.size; }
           if (o.geoFlag) t.geoFlag = o.geoFlag;
+          if (o.replaces && i === 0) t.replaces = o.replaces;
           return t;
         });
         trees.forEach(function (t) { b.set('trees', t.code, t); });
+        if (o.replaces) b.update('trees', o.replaces, { replacedBy: codes[0] });
         if (plotId) {
           b.set('plots', plotId, {
             name: clip(o.plotName, 80) || (sp.common + ' plot'), ownerId: owner.userId, orgId: owner.orgId || '', ancestorOrgIds: owner.ancestorOrgIds || [],
@@ -75,7 +77,7 @@
         }
         MT.stats.apply(b, trees.map(function (t) { return { tree: Object.assign({ cityLat: place.cityLat, cityLng: place.cityLng }, t), sign: 1 }; }));
         if (onBehalf) MT.audit.add(b, { action: 'tree.plant', targetType: 'tree', targetId: codes[0], onBehalfOfId: owner.userId, onBehalfOfName: owner.name, detail: count + ' × ' + (o.customName || sp.common), orgId: owner.orgId, ancestorOrgIds: owner.ancestorOrgIds });
-        return b.commit().then(function () { return { trees: trees.map(function (t) { return Object.assign({ id: t.code }, t); }), photoId: photoId, plotId: plotId }; });
+        return b.commit().then(function () { MT.due.invalidate(); return { trees: trees.map(function (t) { return Object.assign({ id: t.code }, t); }), photoId: photoId, plotId: plotId }; });
       });
     },
     /** Delete trees (and their counters). Photos are removed when this was the only tree they belonged to. */
@@ -88,7 +90,7 @@
       MT.stats.apply(b, trees.map(function (t) { return { tree: t, sign: -1 }; }));
       var other = trees.filter(function (t) { return t.ownerId !== me.userId; })[0];
       if (other) MT.audit.add(b, { action: 'tree.delete', targetType: 'tree', targetId: other.code, onBehalfOfId: other.ownerId, onBehalfOfName: other.ownerName, detail: trees.length + ' tree(s) deleted', orgId: other.orgId, ancestorOrgIds: other.ancestorOrgIds });
-      return b.commit();
+      return b.commit().then(function () { MT.due.invalidate(); });
     },
     update: function (tree, patch) {
       var me = MT.auth.profile(), b = MT.db.batch();

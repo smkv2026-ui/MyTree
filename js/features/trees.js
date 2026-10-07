@@ -163,7 +163,7 @@
   function detailPage(ctx) {
     return MT.db.get('trees', ctx.params.id).then(function (t) {
       if (!t) return ui.empty({ title: 'Tree not found', text: 'It may have been removed, or it belongs to someone else.', action: { label: 'My trees', href: '#/trees' } });
-      var sp = MT.species.get(t.speciesId), age = MT.trees.ageYears(t), co2 = MT.trees.co2(t), editable = canManageTree(t);
+      var sp = MT.species.get(t.speciesId), age = MT.trees.ageYears(t), co2 = MT.trees.co2(t), editable = canManageTree(t), cad = MT.cadence.status(t);
       return h`<div class="page tree-page" data-reveal>
         <a class="back-link" href="#/trees">${ui.icon('arrow-left')} All trees</a>
         <section class="tree-hero card">
@@ -178,7 +178,8 @@
               <div><strong>${MT.fmt.num(co2, 1)} kg</strong><span>CO₂ absorbed (est.)</span></div>
               <div><strong>${t.updatesCount || 0}</strong><span>updates</span></div>
             </div>
-            <div class="btn-row">${editable ? h`<button class="btn btn-soft" id="mv-pin">${ui.icon('move')} Move pin</button><button class="btn btn-danger-soft" id="del-tree">${ui.icon('trash-2')} Delete</button>` : ''}<button class="btn btn-ghost" id="copy-link">${ui.icon('link')} Copy public link</button></div>
+            <div class="due-row">${t.status === 'dead' ? h`<span class="badge badge-bad">This tree has died</span>${t.replacedBy ? h`<a class="btn btn-soft btn-sm" href="#/trees/${t.replacedBy}">See replacement ${t.replacedBy}</a>` : (editable ? h`<a class="btn btn-primary btn-sm" href="#/plant?replaces=${t.code}">${ui.icon('sprout')} Replant</a>` : '')}` : h`<span class="badge badge-${MT.cadence.tone(cad)}">${MT.cadence.label(cad)}</span>${editable ? h`<label class="inline-sel">Updates <select id="cad-sel">${MT.trees.CADENCES.map(function (c) { return h`<option value="${c[0]}" ${c[0] === t.cadence ? raw('selected') : ''}>${c[1]}</option>`; })}</select></label>` : ''}`}</div>
+            <div class="btn-row">${editable ? h`<button class="btn btn-primary" id="post-upd">${ui.icon('clipboard-check')} Post update</button><button class="btn btn-soft" id="mv-pin">${ui.icon('move')} Move pin</button><button class="btn btn-danger-soft" id="del-tree">${ui.icon('trash-2')} Delete</button>` : ''}<button class="btn btn-ghost" id="ics-tree">${ui.icon('calendar-plus')} Add reminders (.ics)</button><button class="btn btn-ghost" id="copy-link">${ui.icon('link')} Copy public link</button></div>
           </div>
         </section>
         <div class="two-col">
@@ -186,9 +187,9 @@
           <section class="card"><div class="card-head"><h3>QR code</h3></div><div id="detail-qr" class="qr-box"></div><p class="fine">Scan to open this tree's page. Print it on a tag next to the tree.</p></section>
         </div>
         <section class="card"><div class="card-head"><h3>About this tree</h3></div>
-          <dl class="kv kv-2"><dt>Planted on</dt><dd>${MT.fmt.date(t.plantedOn)}</dd><dt>Planted by</dt><dd>${t.ownerName}${t.onBehalfOf ? ' (posted by an admin on their behalf)' : ''}</dd><dt>City</dt><dd>${t.city || '—'}${t.state ? ', ' + t.state : ''}</dd><dt>Update cadence</dt><dd>${t.cadence}</dd>${t.plotId ? h`<dt>Plot</dt><dd class="mono">${t.plotId}</dd>` : ''}${t.notes ? h`<dt>Notes</dt><dd>${t.notes}</dd>` : ''}</dl>
+          <dl class="kv kv-2"><dt>Planted on</dt><dd>${MT.fmt.date(t.plantedOn)}</dd><dt>Planted by</dt><dd>${t.ownerName}${t.onBehalfOf ? ' (posted by an admin on their behalf)' : ''}</dd><dt>City</dt><dd>${t.city || '—'}${t.state ? ', ' + t.state : ''}</dd><dt>Update cadence</dt><dd>${t.cadence}</dd>${t.girthCm ? h`<dt>Girth</dt><dd>${t.girthCm} cm</dd>` : ''}${t.plotId ? h`<dt>Plot</dt><dd class="mono">${t.plotId}</dd>` : ''}${t.notes ? h`<dt>Notes</dt><dd>${t.notes}</dd>` : ''}</dl>
           <h4>Care tip</h4><p>${sp.tip}</p></section>
-        <section class="card soon-card"><p class="eyebrow">Next release</p><h3>Growth timeline</h3><p>Weekly, monthly and yearly updates with photos, a growth chart and a before/after slider will appear here.</p></section></div>`;
+        <div id="growth-host" class="growth-host"></div></div>`;
     });
   }
   function detailAfter(host, ctx) {
@@ -202,6 +203,11 @@
       MT.maps.create(el, { center: [t.lat, t.lng], zoom: 17, scrollWheelZoom: false }).then(function (m) {
         map = m; marker = L.marker([t.lat, t.lng], { icon: MT.maps.treeIcon(t.health), draggable: false }).addTo(m);
       }).catch(function (e) { el.innerHTML = '<div class="empty"><p>' + MT.esc(MT.friendlyError(e)) + '</p></div>'; });
+      var stopGrowth = MT.growth.mount(MT.$('#growth-host', host), t, { editable: canManageTree(t), onChange: function () { MT.router.refresh(); } });
+      host._stopGrowth = stopGrowth;
+      var pu = MT.$('#post-upd', host); if (pu) pu.addEventListener('click', function () { MT.growth.openForm([t], function (replant) { if (!replant) MT.router.refresh(); }); });
+      var ic = MT.$('#ics-tree', host); ic.addEventListener('click', function () { MT.ics.download([t], t.code + '-reminders.ics'); ui.success('Calendar file downloaded — open it to add the reminders.'); });
+      var cs = MT.$('#cad-sel', host); if (cs) cs.addEventListener('change', function () { MT.trees.update(t, { cadence: cs.value }).then(function () { t.cadence = cs.value; MT.due.invalidate(); ui.success('Update cadence changed to ' + cs.value + '.'); MT.router.refresh(); }).catch(ui.error); });
       var cl = MT.$('#copy-link', host); cl.addEventListener('click', function () { MT.copy(MT.trees.url(t.code)).then(function () { ui.success('Link copied'); }); });
       var mv = MT.$('#mv-pin', host);
       if (mv) mv.addEventListener('click', function () {
@@ -218,7 +224,7 @@
           ui.undoToast('Tree deleted.', function () { ui.toast('Restored.', { duration: 1500 }); }, function () { MT.trees.remove([t]).catch(ui.error); });
         });
       });
-    }).then(function () { return function () { if (map) map.remove(); }; });
+    }).then(function () { return function () { if (host._stopGrowth) host._stopGrowth(); if (map) map.remove(); }; });
   }
 
   /* =================== Public tree page (#/t/CODE) =================== */

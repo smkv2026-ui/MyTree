@@ -12,8 +12,8 @@ A complete tree-plantation tracking portal that is **just static files**: HTML, 
 |---|---|---|
 | 1 | Foundation: design system, landing, router, app shell, DB adapters (demo + Firebase), auth, role routing, 4-way registration, super-admin bootstrap, approval queue, security rules | ✅ done |
 | 2 | Planting stepper, map picker, photo store, My Trees, tree page, map | ✅ done |
-| 3 | Growth timeline, charts, before/after, cadence & notifications | next |
-| 4 | Students, sub-accounts, post-on-behalf, credentials PDF, password re-issue | |
+| 3 | Growth updates, timeline, chart, before/after, journey, cadence & notifications, .ics | ✅ done |
+| 4 | Students, sub-accounts, post-on-behalf, credentials PDF, password re-issue | next |
 | 5 | Bulk Excel/CSV import with validation | |
 | 6 | Command centre, counters, maps, reports, green cover, audit viewer | |
 | 7 | Gamification, certificates, public pages, PWA/offline, tours, i18n | |
@@ -39,7 +39,7 @@ js/firebase-config.js ← the only file you edit
 js/core/              util → sri → loader → store → (data/i18n) i18n → db → db-demo → db-firebase → auth → ui → stats → geocode → photostore → router → shell
 js/data/              i18n, site contact details, species (107 species + impact factors), India cities
 js/demo/seed.js       deterministic demo-data generator
-js/features/          landing, auth-pages, dashboard, admin, maps, share, trees-core, planting, trees, mapview   (updates, bulk, … in later phases)
+js/features/          landing, auth-pages, dashboard, admin, maps, share, trees-core, planting, trees, mapview   updates-core, growth, updates-page   (bulk, … in later phases)
 js/boot.js            picks the mode, installs adapters, starts the router (always last)
 firestore.rules  firestore.indexes.json  firebase.json
 tools/gen-sri.mjs     optional SRI hash generator
@@ -77,13 +77,22 @@ Routes registered later replace earlier ones (that is how "Soon" placeholders ar
 16. Duplicate check (same species within 0.5 m, own trees) and geofence check (pin far from the organisation's city → flagged, never blocked) are client-side warnings.
 17. Nominatim search/reverse lookups are queued ≥1.1 s apart and cached in localStorage (see `js/core/geocode.js`).
 
+### Phase 3 additions
+18. **Due logic is client-side** (`MT.cadence`): due when `lastUpdate (or planting date) + cadence` has passed, *overdue* after a further half-cadence, *soon* within 3 days. `MT.due.load` reads at most the 500 least-recently-updated trees in the user's scope (index: scope + `lastUpdateAt`), caches for 3 minutes and feeds the bell, the "Updates" badge and `#/updates`. No server e-mail is possible on the free plan, so `.ics` calendar files (recurring, with a 9 am alert) are offered per tree and for all trees.
+19. **One atomic batch per update:** update doc + photos + tree patch (health, status, height, `lastUpdateAt`, `updatesCount`) + counter transition (old health −1, new +1) + monthly/org `updates` counters + audit row when posted on behalf. Updates are immutable (delete only).
+20. **Timeline queries are scoped** by `ownerId` (owner) or `ancestorOrgIds array-contains` (org admin) so rules can prove them; the list is sorted client-side to avoid extra indexes.
+21. **Dead trees** stop being due; "Replant" opens the planting stepper pre-filled (`#/plant?replaces=CODE`) and links both trees (`replacedBy` / `replaces`).
+22. **Before/after** is a small `<mt-compare>` web component (keyboard-accessible range input); the **growth journey** auto-plays thumbnails when scrolled into view (never with reduced-motion). Weather comes from Open-Meteo (no key) and is cached for an hour; the advice text is heuristic.
+23. Demo data now includes ~9,000 growth updates and ~500 illustrative SVG photos (generated, not hot-linked).
+24. "Students post for any tree assigned by their admin" is not built — students post for their own trees; admins post on their behalf. Assignment arrives with phase 4 if wanted.
+
 ## Libraries (all from CDNs, lazy-loaded)
 Pinned versions in `js/core/loader.js` with a primary (cdnjs / unpkg / gstatic) and a fallback (jsDelivr) URL each; a failed load shows a friendly message rather than a blank page. Landing hero art, counters, reveals and the carousel are pure CSS/JS and work even if every CDN is blocked; Lucide icons, GSAP parallax, Leaflet and confetti degrade gracefully.
 
 **SRI:** hashes cannot be baked in without downloading the files from the CDNs. Run `node tools/gen-sri.mjs` once on a machine with internet; it writes `js/core/sri.js` and the loader then adds `integrity` + `crossorigin` automatically. Until you do, libraries load without SRI.
 
 ## Security notes
-* The Firebase web config is public by design; **`firestore.rules` is the real protection** (44 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
+* The Firebase web config is public by design; **`firestore.rules` is the real protection** (50 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
 * All user text is rendered through `MT.html` (auto-escaping) or `textContent`; DOMPurify is loaded for rich text. No inline event handlers are used on user data.
 * Demo mode stores demo passwords in plain text *inside the browser only*; live mode never sees or stores passwords.
 * Optional hardening (API-key restriction, App Check via `MT_APPCHECK_SITE_KEY`) is described in `SETUP.md`.

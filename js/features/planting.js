@@ -20,7 +20,7 @@
       </div></div>`;
   }
 
-  function after(host) {
+  function after(host, ctx) {
     var me = MT.auth.profile(), S = {
       step: 0, speciesId: '', customName: '', count: 1, owner: me, ownerLabel: 'Myself', lat: null, lng: null, address: '', geo: null, polygon: null, areaM2: 0,
       plantedOn: today(), heightCm: '', dedication: '', notes: '', cadence: 'monthly', pub: false, photo: null, photoSrc: '', exif: null, plotName: ''
@@ -255,7 +255,7 @@
       if (S.speciesId === 'other') return Promise.resolve(null);
       var p8 = MT.geo.geohash(S.lat, S.lng, 8);
       return MT.db.list('trees', { where: [['ownerId', '==', S.owner.userId], ['geohash', '>=', p8], ['geohash', '<', p8 + '~']], limit: 50 }).then(function (rows) {
-        return rows.filter(function (t) { return t.speciesId === S.speciesId && MT.geo.distance(S.lat, S.lng, t.lat, t.lng) < 0.5; })[0] || null;
+        return rows.filter(function (t) { return t.status !== 'dead' && t.code !== S.replaces && t.speciesId === S.speciesId && MT.geo.distance(S.lat, S.lng, t.lat, t.lng) < 0.5; })[0] || null;
       }).catch(function () { return null; });
     }
     nextBtn.addEventListener('click', function () {
@@ -269,7 +269,7 @@
       }).then(function (ok) {
         if (!ok) { nextBtn.disabled = false; nextBtn.classList.remove('is-loading'); return; }
         return MT.trees.plant({ owner: S.owner, speciesId: S.speciesId, customName: S.customName, count: S.count, lat: S.lat, lng: S.lng, address: S.address, geo: S.geo, polygon: S.polygon, areaM2: S.areaM2,
-          plantedOn: S.plantedOn, heightCm: S.heightCm, dedication: S.dedication, notes: S.notes, cadence: S.cadence, public: S.pub, photo: S.photo, plotName: S.plotName, geoFlag: S.geoFlag })
+          plantedOn: S.plantedOn, heightCm: S.heightCm, dedication: S.dedication, notes: S.notes, cadence: S.cadence, public: S.pub, photo: S.photo, plotName: S.plotName, geoFlag: S.geoFlag, replaces: S.replaces })
           .then(function (res) { done = true; success(res); });
       }).catch(function (e) { nextBtn.disabled = false; nextBtn.classList.remove('is-loading'); ui.error(e); setErr('We could not save your tree. Your details are still here — please try again.'); });
     });
@@ -299,7 +299,16 @@
       MT.$('#plant-more', panel).addEventListener('click', function () { MT.router.refresh(); });
     }
 
-    go(0);
+    S.replaces = (ctx && ctx.query && ctx.query.replaces) || '';
+    function prefill() {
+      if (!S.replaces) return Promise.resolve();
+      return MT.db.get('trees', S.replaces).then(function (old) {
+        if (!old) { S.replaces = ''; return; }
+        S.speciesId = old.speciesId; S.customName = old.customName || ''; S.lat = old.lat; S.lng = old.lng; S.address = old.address || '';
+        if (old.ownerId !== me.userId && MT.auth.isManager()) return loadUsers().then(function (us) { var u = us.filter(function (x) { return x.userId === old.ownerId; })[0]; if (u) { S.owner = u; S.ownerLabel = u.name + ' — ' + u.userId; } });
+      }).then(function () { if (S.replaces) ui.toast('Replanting for ' + S.replaces + ' — species and spot are pre-filled.', { duration: 5000 }); }).catch(function () { S.replaces = ''; });
+    }
+    prefill().then(function () { go(0); });
     return function () { if (map) map.remove(); };
   }
 

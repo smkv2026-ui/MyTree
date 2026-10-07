@@ -1,10 +1,131 @@
 {
   "indexes": [
-    { "collectionGroup": "trees", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "ancestorOrgIds", "arrayConfig": "CONTAINS" }, { "fieldPath": "createdAt", "order": "DESCENDING" } ] },
-    { "collectionGroup": "trees", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "ownerId", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" } ] },
-    { "collectionGroup": "trees", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "ownerId", "order": "ASCENDING" }, { "fieldPath": "geohash", "order": "ASCENDING" } ] },
-    { "collectionGroup": "trees", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "ancestorOrgIds", "arrayConfig": "CONTAINS" }, { "fieldPath": "geohash", "order": "ASCENDING" } ] },
-    { "collectionGroup": "orgs", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "status", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "ASCENDING" } ] }
+    {
+      "collectionGroup": "trees",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ancestorOrgIds",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "trees",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ownerId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "trees",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ownerId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "geohash",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "trees",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ancestorOrgIds",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "geohash",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "orgs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "trees",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ownerId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastUpdateAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "trees",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ancestorOrgIds",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "lastUpdateAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "treeUpdates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "treeId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "ownerId",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "treeUpdates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "treeId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "ancestorOrgIds",
+          "arrayConfig": "CONTAINS"
+        }
+      ]
+    }
   ],
   "fieldOverrides": []
 }

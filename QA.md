@@ -33,8 +33,20 @@ Tick each box in **Demo mode** (`index.html`) and again in **Live mode**. Phase 
 - [ ] Storage note shows photo usage; (live) warning appears above 70% of 1 GiB.
 - [ ] Offline (live): plant while offline, reconnect, tree appears.
 
+## Phase 3 — Growth updates
+- [ ] Tree page: timeline shows planting + updates newest first with health chips, height, girth, notes, thumbnails; click a thumbnail → full photo.
+- [ ] Post update: date limits (not future, not before planting), height/girth validation, up to 4 photos (camera + gallery) compressed, health picker (keyboard: arrows), notes. Tree health, height and counters change.
+- [ ] Growth chart: points + dashed "typical growth" line, legend, tooltip, **View as table**; dark mode redraws correctly.
+- [ ] Before/after: pick any two photos, drag or use arrow keys; Growth journey auto-plays on scroll, Play/Pause and scrubber work, reduced-motion disables autoplay.
+- [ ] Weather card shows temperature, rain totals and advice (and degrades politely offline).
+- [ ] Cadence select on the tree page (owner/admin); due badge text changes (Next update… / Due today / Overdue by N d).
+- [ ] `#/updates`: summary tiles, Due / Coming up / All tabs, search, per-row Post update, multi-select → one update for several trees, photo drop-zone with files named `TREE-YYYY-NNNNNN.jpg`.
+- [ ] Bell and the Updates nav badge show counts; **View all notifications** page lists what is due.
+- [ ] Download `.ics` for one tree and for all trees; import into Google/Apple/Outlook — recurring event with a morning alert.
+- [ ] Mark a tree **Dead** → status banner, no longer due, "Replant" pre-fills species and spot, replacement links back.
+- [ ] Post an update as school admin for a student → timeline shows "Posted by … on behalf of …".
+
 ## Later phases (to be filled in as they ship)
-- [ ] Post update, cadence overdue badges, before/after slider, dead-tree → replanted link
 - [ ] Post on behalf (audit row shows "Posted by Admin … on behalf of Student …")
 - [ ] Student creation, credentials PDF/CSV, password re-issue (old password stops working, same ID keeps trees)
 - [ ] Bulk import (trees, students, updates) with error report

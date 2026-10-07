@@ -186,6 +186,34 @@ async function t(name, fn) { try { await fn(); pass++; console.log('  ✓ ' + na
     await assertSucceeds(as('ind1').doc('plots/PLOT-1').set(plot)); await assertFails(as('st1').doc('plots/PLOT-1').get());
   });
 
+  console.log('\nGrowth updates (phase 3)'); await seed();
+  await env.withSecurityRulesDisabled((c) => c.firestore().doc('trees/TREE-2026-000100').set(treeDoc()));
+  await env.withSecurityRulesDisabled((c) => c.firestore().doc('trees/TREE-2026-000101').set(stuTree()));
+  const upd = (o) => Object.assign({ treeId: 'TREE-2026-000100', ownerId: 'MT-IND-000001', orgId: '', ancestorOrgIds: [], postedBy: 'MT-IND-000001', postedByName: 'Ind One', onBehalfOf: '', date: '2026-06-01', health: 'healthy', heightCm: 60, notes: 'ok', photoIds: [], kind: 'update', createdAt: 9 }, o || {});
+  const stuUpd = (o) => upd(Object.assign({ treeId: 'TREE-2026-000101', ownerId: 'MT-STU-SCH001-0001', orgId: 'MT-SCH-000001', ancestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'], postedBy: 'MT-STU-SCH001-0001' }, o || {}));
+  await t('owner posts an update and patches the tree (health, counters)', async () => {
+    const d = as('ind1'), b = d.batch(); b.set(d.doc('treeUpdates/u1'), upd()); b.update(d.doc('trees/TREE-2026-000100'), { health: 'needs_care', lastUpdateAt: 5, updatesCount: 1, heightCm: 60 }); await assertSucceeds(b.commit());
+  });
+  await t('update validation: bad health / future-less junk / >4 photos / negative height refused', async () => {
+    await assertFails(as('ind1').doc('treeUpdates/u2').set(upd({ health: 'amazing' }))); await assertFails(as('ind1').doc('treeUpdates/u2').set(upd({ photoIds: ['a', 'b', 'c', 'd', 'e'] }))); await assertFails(as('ind1').doc('treeUpdates/u2').set(upd({ heightCm: -5 })));
+  });
+  await t('cannot attach an update to someone else\'s tree, nor post as someone else', async () => {
+    await assertFails(as('st2').doc('treeUpdates/u3').set(stuUpd({ postedBy: 'MT-STU-SCH001-0002', ownerId: 'MT-STU-SCH001-0001' }))); await assertFails(as('ind1').doc('treeUpdates/u3').set(upd({ treeId: 'TREE-2026-000101' })));
+  });
+  await t('school admin posts on behalf of own student; other school cannot', async () => {
+    await assertSucceeds(as('s1').doc('treeUpdates/u4').set(stuUpd({ postedBy: 'MT-SCH-000001', postedByName: 'S1 admin', onBehalfOf: 'MT-STU-SCH001-0001' })));
+    await assertFails(as('s2').doc('treeUpdates/u5').set(stuUpd({ postedBy: 'MT-SCH-000002', onBehalfOf: 'MT-STU-SCH001-0001' })));
+  });
+  await t('updates are readable by owner and managers only; immutable; deletable by owner/manager', async () => {
+    await assertSucceeds(as('ind1').collection('treeUpdates').where('treeId', '==', 'TREE-2026-000100').where('ownerId', '==', 'MT-IND-000001').get());
+    await assertSucceeds(as('s1').collection('treeUpdates').where('treeId', '==', 'TREE-2026-000101').where('ancestorOrgIds', 'array-contains', 'MT-SCH-000001').get());
+    await assertFails(as('st2').doc('treeUpdates/u4').get()); await assertFails(as('ind1').doc('treeUpdates/u1').update({ notes: 'edit' })); await assertSucceeds(as('ind1').doc('treeUpdates/u1').delete()); await assertFails(as('st2').doc('treeUpdates/u4').delete());
+  });
+  await t('due-list queries (scope + orderBy lastUpdateAt) are allowed for owner and org admin', async () => {
+    await assertSucceeds(as('ind1').collection('trees').where('ownerId', '==', 'MT-IND-000001').orderBy('lastUpdateAt').limit(50).get());
+    await assertSucceeds(as('s1').collection('trees').where('ancestorOrgIds', 'array-contains', 'MT-SCH-000001').orderBy('lastUpdateAt').limit(50).get());
+  });
+
   console.log(`\n${pass} passed, ${fail} failed`);
   await env.cleanup(); process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(2); });

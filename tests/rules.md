@@ -1,6 +1,6 @@
 # Firestore rules — manual test matrix
 
-Automated: `cd tests && npm install && npm test` (needs Node 18+ and Java for the emulator) runs `rules.test.js` (44 checks).
+Automated: `cd tests && npm install && npm test` (needs Node 18+ and Java for the emulator) runs `rules.test.js` (50 checks).
 Manual: in the Firebase console → Firestore → **Rules → Rules playground**, simulate the requests below. ✅ = allowed, ❌ = denied.
 Set up three profiles first (use the app itself): super admin, a school admin (approved) with one student, and a second school admin.
 
@@ -44,4 +44,10 @@ Set up three profiles first (use the app itself): super admin, a school admin (a
 | 35 | Owner | create `photos` + `photoData` ✅; thumb > 45 KB or full > 900 KB ❌; classmate read ❌ | as shown |
 | 36 | Any signed-in | reserve counter block ≤ 500 ✅; 700 or going backwards ❌ | as shown |
 
-Later phases add rows for updates, stats coupling and bulk imports.
+| 37 | Owner | post update + patch tree in one batch ✅; invalid health / > 4 photos / negative height ❌ | as shown |
+| 38 | Anyone | attach an update to a tree owned by someone else, or post as another user ❌ | as shown |
+| 39 | School admin | post update on behalf of own student ✅; other school ❌ | as shown |
+| 40 | Owner / manager | read scoped updates ✅; classmate ❌; edit an update ❌; delete own ✅ | as shown |
+| 41 | Owner / org admin | due-list query (scope + `orderBy lastUpdateAt`) ✅ | as shown |
+
+Later phases add rows for stats coupling and bulk imports.

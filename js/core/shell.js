@@ -39,6 +39,7 @@
       el.setAttribute('data-fs', String(MT.storage.get('mt.fs', 100)));
       if (MT.storage.get('mt.contrast', false)) el.setAttribute('data-contrast', 'high'); else el.removeAttribute('data-contrast');
       var m = document.querySelector('meta[name=theme-color]');
+      MT.store.set('themeTick', Date.now());
       if (m) m.setAttribute('content', (t === 'dark' || (t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) ? '#0b2b20' : '#0f3d2e');
     },
     setTheme: function (t) { MT.storage.set('mt.theme', t); prefs.apply(); },
@@ -151,7 +152,7 @@
       '<h1 class="topbar-title" id="topbar-title"></h1>' +
       '<button type="button" class="search-btn" data-act="palette" aria-label="Search (Ctrl+K)"><i data-lucide="search" class="ic"></i><span>' + MT.t('common.search') + '</span><kbd>Ctrl K</kbd></button>' +
       '<div class="topbar-actions">' +
-      pop('notif', '<button type="button" class="icon-btn" data-pop-btn="notif" aria-haspopup="true" aria-expanded="false" aria-controls="pop-notif" aria-label="' + MT.t('common.notifications') + '"><i data-lucide="bell" class="ic"></i><span class="dot-badge" id="bell-badge" hidden></span></button>', '<h3 class="pop-title">' + MT.t('common.notifications') + '</h3><div id="notif-list"></div>', 'pop-wide') +
+      pop('notif', '<button type="button" class="icon-btn" data-pop-btn="notif" aria-haspopup="true" aria-expanded="false" aria-controls="pop-notif" aria-label="' + MT.t('common.notifications') + '"><i data-lucide="bell" class="ic"></i><span class="dot-badge" id="bell-badge" hidden></span></button>', '<h3 class="pop-title">' + MT.t('common.notifications') + '</h3><div id="notif-list"></div><a class="pop-item" href="#/notifications">View all notifications</a>', 'pop-wide') +
       pop('settings', '<button type="button" class="icon-btn" data-pop-btn="settings" aria-haspopup="true" aria-expanded="false" aria-controls="pop-settings" aria-label="Appearance and accessibility"><i data-lucide="settings-2" class="ic"></i></button>', settingsBody()) +
       pop('user', '<button type="button" class="icon-btn avatar-btn" data-pop-btn="user" aria-haspopup="true" aria-expanded="false" aria-controls="pop-user" aria-label="Account menu">' + ui.avatar(p.name, 34).s + '</button>', userMenu) +
       '</div></header><div id="announce"></div><main id="main" tabindex="-1" class="app-main"></main></div>' +

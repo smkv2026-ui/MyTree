@@ -218,6 +218,26 @@ service cloud.firestore {
       allow delete: if isActive() && canSee(resource.data);
     }
 
+    // ---------- growth updates ----------
+    function updateShape(d) {
+      return d.date is string && d.date.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}') && d.health in ['thriving', 'healthy', 'needs_care', 'struggling', 'dead']
+        && d.kind in ['update', 'dead'] && optStr(d, 'notes', 500) && d.photoIds is list && d.photoIds.size() <= 4 && d.createdAt is number
+        && (!('heightCm' in d) || (d.heightCm is number && d.heightCm >= 0 && d.heightCm <= 5000))
+        && (!('girthCm' in d) || (d.girthCm is number && d.girthCm >= 0 && d.girthCm <= 1000))
+        && (!('cover' in d) || (d.cover is string && d.cover.size() <= 20000)) && d.ancestorOrgIds is list && str(d.treeId, 40);
+    }
+    function updateCreateOk(d) {
+      // the tree must exist, belong to the same owner, and be recorded by the owner (self) or a verified manager (on behalf)
+      return get(/databases/$(database)/documents/trees/$(d.treeId)).data.ownerId == d.ownerId && d.postedBy == me().userId && (
+        (ownedBySelf(d) && d.onBehalfOf == '') || (ownedViaManager(d) && d.onBehalfOf == d.ownerId && d.ownerId != me().userId));
+    }
+    match /treeUpdates/{id} {
+      allow read: if isActive() && canSee(resource.data);
+      allow create: if isActive() && updateShape(request.resource.data) && updateCreateOk(request.resource.data);
+      allow update: if false;
+      allow delete: if isActive() && canSee(resource.data);
+    }
+
     // ---------- plots ----------
     match /plots/{id} {
       allow read: if isActive() && canSee(resource.data);
