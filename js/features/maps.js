@@ -33,6 +33,7 @@
         var base = {}, saved = MT.storage.get('mt.baselayer', 'street'), first;
         LAYERS.forEach(function (l) { var t = L.tileLayer(l.url, Object.assign({ subdomains: 'abc' }, l.opts)); base[l.label] = t; if (l.id === saved) first = t; });
         (first || base.Street).addTo(map);
+        maps.watchTiles(map, el, Object.keys(base).map(function (k) { return base[k]; }));
         L.control.layers(base, null, { collapsed: true, position: 'topright' }).addTo(map);
         map.on('baselayerchange', function (e) { var l = LAYERS.filter(function (x) { return x.label === e.name; })[0]; if (l) MT.storage.set('mt.baselayer', l.id); });
         if (o.fullscreen !== false) maps.addButton(map, 'Full screen', 'maximize', function (btn) {
@@ -48,6 +49,28 @@
         // make sure tiles render after the container is laid out (stepper panels, tabs)
         setTimeout(function () { try { if (el.isConnected) map.invalidateSize(); } catch (e) { /* map already removed */ } }, 200);
         return map;
+      });
+    },
+    /**
+     * If map imagery cannot be loaded at all (offline, blocked network, sandboxed preview) draw a simple built-in fallback —
+     * graticule, state names and major cities — so pins still have context. Removed again as soon as real tiles load.
+     */
+    watchTiles: function (map, el, layers) {
+      var ok = 0, bad = 0, fb = null, note = null;
+      function show() {
+        if (fb || !el.isConnected) return;
+        fb = L.layerGroup(); el.classList.add('map-offline');
+        for (var lat = -80; lat <= 80; lat += 5) fb.addLayer(L.polyline([[lat, -180], [lat, 180]], { color: '#9fb5a8', weight: lat % 10 === 0 ? 1 : .5, opacity: .6, interactive: false }));
+        for (var lng = -180; lng <= 180; lng += 5) fb.addLayer(L.polyline([[-85, lng], [85, lng]], { color: '#9fb5a8', weight: lng % 10 === 0 ? 1 : .5, opacity: .6, interactive: false }));
+        var sc = (MT.geoData && MT.geoData.stateCentroids) || {};
+        Object.keys(sc).forEach(function (n) { fb.addLayer(L.marker(sc[n], { interactive: false, keyboard: false, icon: L.divIcon({ className: 'map-fb-label', html: '<span>' + MT.esc(n) + '</span>', iconSize: [0, 0] }) })); });
+        fb.addTo(map); fb.eachLayer(function (l) { if (l.bringToBack) l.bringToBack(); });
+        note = document.createElement('div'); note.className = 'map-fb-note'; note.setAttribute('role', 'status'); note.textContent = 'Map imagery could not be loaded here — showing a simple outline. Your trees are still placed correctly.'; el.appendChild(note);
+      }
+      function hide() { if (!fb) return; map.removeLayer(fb); fb = null; el.classList.remove('map-offline'); if (note) note.remove(); }
+      layers.forEach(function (l) {
+        l.on('tileload', function () { ok++; hide(); });
+        l.on('tileerror', function () { bad++; if (!ok && bad >= 4) show(); });
       });
     },
     addButton: function (map, label, icon, fn, pos) {

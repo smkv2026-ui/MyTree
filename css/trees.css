@@ -148,3 +148,10 @@ mt-compare { display: block; --x: 50%; } .cmp { position: relative; aspect-ratio
 .help-topics{display:flex;flex-wrap:wrap;gap:.4rem;margin:.8rem 0}.help-list{display:grid;gap:.6rem;margin-bottom:1.2rem}
 .help-art summary{cursor:pointer;list-style:none}.help-art p{margin:.6rem 0 0;max-width:68ch}.help-faq details{padding:.5rem 0;border-top:1px solid var(--border)}.help-faq summary{cursor:pointer;font-weight:600}
 .help-page .card{margin-bottom:.8rem}
+
+/* ---------- built-in map fallback (no tiles) ---------- */
+.map-offline.leaflet-container { background: linear-gradient(180deg, #e6f1ee, #eef3e4); }
+.map-fb-label span { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; font-size: .68rem; font-weight: 600; letter-spacing: .04em; color: #4d6a5c; text-transform: uppercase; opacity: .75; pointer-events: none; }
+.map-fb-note { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 800; max-width: calc(100% - 24px); padding: .35rem .7rem; border-radius: 999px; background: rgba(255,255,255,.92); color: #35503f; font-size: .75rem; box-shadow: 0 2px 8px rgba(0,0,0,.15); text-align: center; }
+/* layers control icon as an inline SVG so it still shows when Leaflet's sprite images cannot load */
+.leaflet-control-layers-toggle { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2312261e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m12 2 10 5-10 5L2 7z'/><path d='m2 12 10 5 10-5'/><path d='m2 17 10 5 10-5'/></svg>") !important; background-size: 22px 22px !important; background-repeat: no-repeat; background-position: center; }
