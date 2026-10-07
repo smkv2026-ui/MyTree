@@ -85,8 +85,6 @@
     ['/orgs', 'Organisations', 4, 'Sub-foundations, schools and institutions beneath you.'],
     ['/bulk', 'Bulk upload', 5, 'Download Excel templates and import trees, students and updates.'],
     ['/map', 'Map', 2, 'All trees on a real map with clusters, heatmap and satellite.'],
-    ['/leaderboard', 'Leaderboard', 7, 'Schools and students ranked by trees planted and cared for.'],
-    ['/help', 'Help centre', 7, 'Searchable guides for every role.'],
     ['/admin/reports', 'Reports', 6, 'Sortable tables with CSV, Excel and PDF export.'],
     ['/admin/audit', 'Audit log', 6, 'Every admin and on-behalf action, with who did what for whom.']
   ];
@@ -97,7 +95,15 @@
     } });
   });
 
-  MT.router.add('/dashboard', { title: 'Dashboard', layout: 'app', access: 'auth', render: dashboard });
+  MT.router.add('/dashboard', { title: 'Dashboard', layout: 'app', access: 'auth', render: dashboard, after: function () {
+    var role = MT.auth.role(), dead = false;
+    setTimeout(function () { /* after first paint: badges + first-run tour load in the background */
+      if (dead) return;
+      if (role !== 'super_admin') MT.lazy.load('social').then(function () { MT.gamify.celebrate(); }).catch(function () {});
+      if (!(MT.storage.get('tour.' + role, false) || MT.storage.get('tour.off', false))) MT.lazy.load('help').then(function () { if (!dead) MT.tour.start(); }).catch(function () {});
+    }, 1500);
+    return function () { dead = true; };
+  } });
   MT.router.add('/404', { title: 'Page not found', layout: 'public', access: 'public', render: function () {
     return h`<div class="wrap narrow notfound"><div class="empty">${raw('<svg viewBox="0 0 160 120" class="empty-art" aria-hidden="true"><path d="M80 100V70" stroke="#8b5e3c" stroke-width="5" stroke-linecap="round"/><circle cx="80" cy="58" r="22" fill="#c9d8cf"/></svg>')}<h1>This path has not grown yet</h1><p>We could not find that page.</p><a class="btn btn-primary" href="#/">Take me home</a></div></div>`;
   } });

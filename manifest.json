@@ -1,0 +1,23 @@
+{
+  "name": "MyTree — Maitree",
+  "short_name": "MyTree",
+  "description": "Plant, track and nurture trees — friendship with nature.",
+  "start_url": "./index.html#/dashboard",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f6f4ec",
+  "theme_color": "#0f3d2e",
+  "categories": ["education", "lifestyle", "productivity"],
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "Plant a tree", "url": "./index.html#/plant" },
+    { "name": "My trees", "url": "./index.html#/trees" },
+    { "name": "Growth updates", "url": "./index.html#/updates" }
+  ]
+}

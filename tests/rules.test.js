@@ -46,9 +46,9 @@ async function t(name, fn) { try { await fn(); pass++; console.log('  ✓ ' + na
     await assertFails(anon().doc('stats/org_MT-SCH-000001').get());
     await assertFails(anon().collection('stats').get());
   });
-  await t('anyone cannot read users, orgs or private trees; can read a public tree', async () => {
+  await t('anyone cannot read users, orgs or any tree (public trees are served by publicTrees)', async () => {
     await assertFails(anon().doc('users/st1').get()); await assertFails(anon().doc('orgs/MT-SCH-000001').get());
-    await assertFails(anon().doc('trees/TREE-2026-000001').get()); await assertSucceeds(anon().doc('trees/TREE-2026-000002').get());
+    await assertFails(anon().doc('trees/TREE-2026-000001').get()); await assertFails(anon().doc('trees/TREE-2026-000002').get());
   });
   await t('anyone cannot write stats or counters', async () => { await assertFails(anon().doc('stats/global').set({ trees: 1 })); await assertFails(anon().doc('counters/IND').set({ n: 2 })); });
 
@@ -284,6 +284,33 @@ async function t(name, fn) { try { await fn(); pass++; console.log('  ✓ ' + na
     const r = (o) => Object.assign({ method: 'ground', pct: 40, ownerId: 'MT-SCH-000001', ancestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'], plotId: 'P1', at: 1 }, o);
     await assertSucceeds(as('s1').doc('greenCoverReadings/r1').set(r())); await assertFails(as('s1').doc('greenCoverReadings/r2').set(r({ pct: 140 }))); await assertFails(as('s1').doc('greenCoverReadings/r3').set(r({ method: 'magic' })));
     await assertFails(as('s2').doc('greenCoverReadings/r4').set(r())); await assertSucceeds(as('f1').doc('greenCoverReadings/r1').get()); await assertFails(as('s2').doc('greenCoverReadings/r1').get());
+  });
+
+  console.log('\nPublic trees, badges, challenges (phase 7)'); await seed();
+  await t('trees are no longer publicly readable (even when flagged public)', async () => { await assertFails(anon().doc('trees/TREE-2026-000002').get()); await assertFails(as('s2').doc('trees/TREE-2026-000002').get()); });
+  const pubDoc = (o) => Object.assign({ code: 'TREE-2026-000002', speciesId: 'neem', plantedOn: '2026-01-01', status: 'alive', health: 'healthy', heightCm: 40, city: 'Pune', state: 'Maharashtra', cityLat: 18.5, cityLng: 73.8, dedication: '', ownerFirst: 'Ind', updatesCount: 0, updatedAt: 1 }, o);
+  await t('publicTrees: anyone gets one by code, nobody lists', async () => {
+    await env.withSecurityRulesDisabled((c) => c.firestore().doc('publicTrees/TREE-2026-000002').set(pubDoc()));
+    await assertSucceeds(anon().doc('publicTrees/TREE-2026-000002').get()); await assertFails(anon().collection('publicTrees').get());
+  });
+  await t('publicTrees: owner writes for a public tree; others, private trees and unknown fields refused', async () => {
+    await env.withSecurityRulesDisabled((c) => c.firestore().doc('trees/TREE-2026-000002').update({ speciesId: 'neem' }));
+    await assertSucceeds(as('ind1').doc('publicTrees/TREE-2026-000002').set(pubDoc())); await assertFails(as('s2').doc('publicTrees/TREE-2026-000002').set(pubDoc()));
+    await assertFails(as('ind1').doc('publicTrees/TREE-2026-000002').set(pubDoc({ ownerId: 'MT-IND-000001' }))); await assertFails(as('s1').doc('publicTrees/TREE-2026-000001').set(pubDoc({ code: 'TREE-2026-000001' })));
+    await assertFails(as('ind1').doc('publicTrees/TREE-2026-000002').set(pubDoc({ speciesId: 'teak' })));
+  });
+  await t('publicTrees: only someone who can see the tree deletes the copy', async () => {
+    await assertFails(as('s2').doc('publicTrees/TREE-2026-000002').delete()); await assertSucceeds(as('ind1').doc('publicTrees/TREE-2026-000002').delete());
+  });
+  await t('userBadges: own badge only, id must match; managers above read', async () => {
+    const bd = (o) => Object.assign({ userId: 'MT-STU-SCH001-0001', badgeId: 'first_tree', earnedAt: 1, orgId: 'MT-SCH-000001', ancestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'] }, o);
+    await assertSucceeds(as('st1').doc('userBadges/MT-STU-SCH001-0001_first_tree').set(bd())); await assertFails(as('st2').doc('userBadges/MT-STU-SCH001-0001_ten_trees').set(bd({ badgeId: 'ten_trees' })));
+    await assertFails(as('st1').doc('userBadges/MT-STU-SCH001-0001_x').set(bd({ badgeId: 'ten_trees' }))); await assertSucceeds(as('s1').doc('userBadges/MT-STU-SCH001-0001_first_tree').get()); await assertFails(as('s2').doc('userBadges/MT-STU-SCH001-0001_first_tree').get());
+  });
+  await t('challenges: managers create for own org; members read; other orgs cannot; students cannot create', async () => {
+    const ch = (o) => Object.assign({ orgId: 'MT-SCH-000001', ancestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'], title: 'Plant 50', metric: 'trees', target: 50, from: '2026-01-01', to: '2026-02-01', createdBy: 'MT-SCH-000001', createdAt: 1 }, o);
+    await assertSucceeds(as('s1').doc('challenges/c1').set(ch())); await assertFails(as('s2').doc('challenges/c2').set(ch())); await assertFails(as('st1').doc('challenges/c3').set(ch({ createdBy: 'MT-STU-SCH001-0001' })));
+    await assertFails(as('s1').doc('challenges/c4').set(ch({ target: 0 }))); await assertSucceeds(as('st1').collection('challenges').where('ancestorOrgIds', 'array-contains', 'MT-SCH-000001').get()); await assertFails(as('s2').doc('challenges/c1').get());
   });
 
   console.log(`\n${pass} passed, ${fail} failed`);

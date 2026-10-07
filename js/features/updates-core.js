@@ -96,7 +96,7 @@
         MT.due.invalidate();
         Object.assign(t, { health: patch.health, status: patch.status, lastUpdateAt: patch.lastUpdateAt, updatesCount: (t.updatesCount || 0) + 1 });
         if (patch.heightCm != null) t.heightCm = patch.heightCm; if (patch.coverPhotoId) { t.coverPhotoId = patch.coverPhotoId; t.cover = patch.cover; }
-        return Object.assign({ id: id }, upd);
+        return (t.public && MT.trees.syncPublic ? MT.trees.syncPublic([{ after: t }]) : Promise.resolve()).then(function () { return Object.assign({ id: id }, upd); });
       });
     },
     /** Updates for one tree, newest first. The query is scoped so Firestore rules can prove access for owners and org admins. */

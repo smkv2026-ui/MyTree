@@ -210,7 +210,7 @@ service cloud.firestore {
         || (ownedViaManager(d) && d.onBehalfOf == d.ownerId && d.ownerId != me().userId));
     }
     match /trees/{code} {
-      allow get: if (isActive() && canSee(resource.data)) || resource.data.get('public', false) == true;
+      allow get: if isActive() && canSee(resource.data);
       allow list: if isActive() && canSee(resource.data);
       allow create: if isActive() && treeShape(request.resource.data, code) && treeCreateOk(request.resource.data);
       allow update: if isActive() && canSee(resource.data) && treeShape(request.resource.data, code)
@@ -307,6 +307,18 @@ service cloud.firestore {
       allow create: if isActive() && request.resource.data.method in ['photo-exg', 'ground', 'satellite', 'simulated'] && request.resource.data.pct is number && request.resource.data.pct >= 0 && request.resource.data.pct <= 100
         && request.resource.data.ancestorOrgIds is list && (ownedBySelf(request.resource.data) || ownedViaManager(request.resource.data));
       allow delete: if isActive() && canSee(resource.data);
+    }
+
+    // ---------- publicTrees: sanitised copy of a tree the owner chose to share (no owner ID, no organisation, city-level location only) ----------
+    // Written right after the tree itself; the tree must exist, be public and be visible to the writer. Deleted by anyone who may see the tree.
+    match /publicTrees/{code} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if isActive() && request.resource.data.keys().hasOnly(['code', 'speciesId', 'customName', 'plantedOn', 'status', 'health', 'heightCm', 'city', 'state', 'cityLat', 'cityLng', 'dedication', 'ownerFirst', 'updatesCount', 'updatedAt'])
+        && request.resource.data.code == code
+        && get(/databases/$(database)/documents/trees/$(code)).data.public == true && canSee(get(/databases/$(database)/documents/trees/$(code)).data)
+        && get(/databases/$(database)/documents/trees/$(code)).data.speciesId == request.resource.data.speciesId;
+      allow delete: if isActive() && (isSuper() || (exists(/databases/$(database)/documents/trees/$(code)) && canSee(get(/databases/$(database)/documents/trees/$(code)).data)));
     }
 
     // ---------- badges (self-awarded from the user's own counters; cosmetic only, no privileges attach to them) ----------

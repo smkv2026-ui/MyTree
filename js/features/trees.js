@@ -179,7 +179,7 @@
               <div><strong>${t.updatesCount || 0}</strong><span>updates</span></div>
             </div>
             <div class="due-row">${t.status === 'dead' ? h`<span class="badge badge-bad">This tree has died</span>${t.replacedBy ? h`<a class="btn btn-soft btn-sm" href="#/trees/${t.replacedBy}">See replacement ${t.replacedBy}</a>` : (editable ? h`<a class="btn btn-primary btn-sm" href="#/plant?replaces=${t.code}">${ui.icon('sprout')} Replant</a>` : '')}` : h`<span class="badge badge-${MT.cadence.tone(cad)}">${MT.cadence.label(cad)}</span>${editable ? h`<label class="inline-sel">Updates <select id="cad-sel">${MT.trees.CADENCES.map(function (c) { return h`<option value="${c[0]}" ${c[0] === t.cadence ? raw('selected') : ''}>${c[1]}</option>`; })}</select></label>` : ''}`}</div>
-            <div class="btn-row">${editable ? h`<button class="btn btn-primary" id="post-upd">${ui.icon('clipboard-check')} Post update</button><button class="btn btn-soft" id="mv-pin">${ui.icon('move')} Move pin</button><button class="btn btn-danger-soft" id="del-tree">${ui.icon('trash-2')} Delete</button>` : ''}<button class="btn btn-ghost" id="ics-tree">${ui.icon('calendar-plus')} Add reminders (.ics)</button><button class="btn btn-ghost" id="copy-link">${ui.icon('link')} Copy public link</button></div>
+            <div class="btn-row">${editable ? h`<button class="btn btn-primary" id="post-upd">${ui.icon('clipboard-check')} Post update</button><button class="btn btn-soft" id="mv-pin">${ui.icon('move')} Move pin</button><button class="btn btn-danger-soft" id="del-tree">${ui.icon('trash-2')} Delete</button>` : ''}<button class="btn btn-ghost" id="ics-tree">${ui.icon('calendar-plus')} Add reminders (.ics)</button><button class="btn btn-ghost" id="copy-link">${ui.icon('link')} Copy public link</button><button class="btn btn-ghost" id="cert-tree">${ui.icon('award')} Certificate</button><button class="btn btn-ghost" id="gift-tree">${ui.icon('gift')} Gift card</button></div>
           </div>
         </section>
         <div class="two-col">
@@ -206,6 +206,8 @@
       var stopGrowth = MT.growth.mount(MT.$('#growth-host', host), t, { editable: canManageTree(t), onChange: function () { MT.router.refresh(); } });
       host._stopGrowth = stopGrowth;
       var pu = MT.$('#post-upd', host); if (pu) pu.addEventListener('click', function () { MT.growth.openForm([t], function (replant) { if (!replant) MT.router.refresh(); }); });
+      var ct = MT.$('#cert-tree', host); if (ct) ct.addEventListener('click', function () { ct.disabled = true; MT.lazy.load('social').then(function () { return MT.certificates.tree(t); }).catch(ui.error).then(function () { ct.disabled = false; }); });
+      var gt = MT.$('#gift-tree', host); if (gt) gt.addEventListener('click', function () { MT.lazy.load('social').then(function () { MT.certificates.giftForm(t); }).catch(ui.error); });
       var ic = MT.$('#ics-tree', host); ic.addEventListener('click', function () { MT.ics.download([t], t.code + '-reminders.ics'); ui.success('Calendar file downloaded — open it to add the reminders.'); });
       var cs = MT.$('#cad-sel', host); if (cs) cs.addEventListener('change', function () { MT.trees.update(t, { cadence: cs.value }).then(function () { t.cadence = cs.value; MT.due.invalidate(); ui.success('Update cadence changed to ' + cs.value + '.'); MT.router.refresh(); }).catch(ui.error); });
       var cl = MT.$('#copy-link', host); cl.addEventListener('click', function () { MT.copy(MT.trees.url(t.code)).then(function () { ui.success('Link copied'); }); });
@@ -229,16 +231,20 @@
 
   /* =================== Public tree page (#/t/CODE) =================== */
   function publicPage(ctx) {
-    return MT.db.get('trees', ctx.params.code).then(function (t) { return t; }, function () { return null; }).then(function (t) {
-      if (!t || !t.public) return h`<div class="wrap narrow notfound"><div class="empty"><h1>This tree’s page is private</h1><p>The person who planted it has not made it public. If it is yours, sign in to view it.</p><a class="btn btn-primary" href="#/login">Sign in</a></div></div>`;
+    return MT.db.get('publicTrees', ctx.params.code).then(function (t) { return t; }, function () { return null; }).then(function (t) {
+      if (!t) return h`<div class="wrap narrow notfound"><div class="empty"><h1>This tree’s page is private</h1><p>The person who planted it has not made it public. If it is yours, sign in to view it.</p><a class="btn btn-primary" href="#/login">Sign in</a></div></div>`;
       var sp = MT.species.get(t.speciesId);
       return h`<div class="wrap narrow public-tree"><section class="card tree-hero"><div class="th-photo">${ui.treeArt(t.health, 240)}</div><div class="th-main"><p class="eyebrow">A MyTree tree</p><h1>${MT.trees.nameOf(t)}</h1><p class="sci">${sp.scientific}</p>
         <div class="th-chips">${healthChip(t.health)}<span class="mono code-chip">${t.code}</span></div>${t.dedication ? h`<blockquote class="dedication">“${t.dedication}”</blockquote>` : ''}
-        <p>Planted ${MT.fmt.date(t.plantedOn)}${t.city ? ' in ' + t.city : ''}. It has absorbed an estimated ${MT.fmt.num(MT.trees.co2(t), 1)} kg of CO₂ so far (estimate).</p><a class="btn btn-primary" href="#/register">Plant your own tree</a></div></section></div>`;
+        <p>Planted ${t.ownerFirst ? 'by ' + t.ownerFirst + ' ' : ''}on ${MT.fmt.date(t.plantedOn)}${t.city ? ' in ' + t.city : ''}. It has absorbed an estimated ${MT.fmt.num(MT.trees.co2(t), 1)} kg of CO₂ so far (estimate).</p>
+        <div class="btn-row"><a class="btn btn-primary" href="#/register">Plant your own tree</a><button class="btn btn-ghost" id="pub-share">${ui.icon('share-2')} Share</button></div></div></section></div>`;
     });
+  }
+  function publicAfter(host, ctx) {
+    var b = MT.$('#pub-share', host); if (b) b.addEventListener('click', function () { var u = MT.trees.url(ctx.params.code); if (navigator.share) navigator.share({ title: 'A MyTree tree', url: u }).catch(function () {}); else MT.copy(u).then(function () { ui.success('Link copied'); }); });
   }
 
   MT.router.add('/trees', { title: 'Trees', layout: 'app', access: ALL_ROLES, render: listPage, after: listAfter });
   MT.router.add('/trees/:id', { title: 'Tree', layout: 'app', access: ALL_ROLES.concat(['super_admin']), render: detailPage, after: detailAfter });
-  MT.router.add('/t/:code', { title: 'Tree', layout: 'public', access: 'public', render: publicPage });
+  MT.router.add('/t/:code', { title: 'Tree', layout: 'public', access: 'public', render: publicPage, after: publicAfter });
 })();

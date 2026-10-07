@@ -212,6 +212,7 @@
     db._bulk('loginAliases', aliases);
     db._bulk('_auth', auths);
     db._bulk('trees', trees);
+    db._bulk('publicTrees', trees.filter(function (t) { return t.public; }).map(function (t) { return Object.assign({ id: t.code }, MT.trees.publicDoc(t)); }));
     db._bulk('plots', plots);
     db._bulk('stats', statDocs);
     db._bulk('counters', Object.keys(counters).map(function (k) { return Object.assign({ id: k }, counters[k]); }));

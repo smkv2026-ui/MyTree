@@ -65,4 +65,9 @@ Set up three profiles first (use the app itself): super admin, a school admin (a
 | 52 | Anyone | `meta/sample` Super admin only | as shown |
 | 53 | Manager | `greenCoverReadings`: own scope ✅; pct > 100, unknown method, stranger ❌; parent reads ✅ | as shown |
 
+| 54 | Anyone | `trees` are never publicly readable; `publicTrees/{code}` readable by code, not listable | as shown |
+| 55 | Owner / manager | `publicTrees` write only for a public tree they can see, with the same species, no extra fields; delete by anyone who can see the tree | as shown |
+| 56 | Member | `userBadges`: only own badge, id = `userId_badgeId`, own ancestors; managers above read | as shown |
+| 57 | Manager | `challenges`: create for own org (metric trees/updates, target 1…1 000 000); members read; other orgs ❌; students ❌ | as shown |
+
 Later phases add rows for stats hardening, notifications, challenges and species edits.

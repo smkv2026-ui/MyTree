@@ -78,6 +78,16 @@ Tick each box in **Demo mode** (`index.html`) and again in **Live mode**. Phase 
 - [ ] `#/green` / `#/green/:plotId`: ground estimate, photo ExG estimate, swipe before/after; satellite provider shows "not configured"; *simulated* readings exist only in demo and are labelled.
 - [ ] Live: counters after sample load equal counters after rebuild (verified: 0 differences).
 
+## Phase 7 — Extras
+- [ ] `#/leaderboard`: Schools (ranked by live trees; names and totals only), In my school (shortened names), Challenges (admins create; ring shows progress), My badges (locked ones show progress; "Certificate" per badge).
+- [ ] New badges are celebrated once (toast + confetti) after the dashboard loads.
+- [ ] Tree page → **Certificate** (PDF with QR) and **Gift card** (A5 PDF; asks recipient + message).
+- [ ] Public page `#/t/CODE`: shows species, planting date, city, dedication, first name only. Making the tree private (or deleting it) removes the page. The `trees` document itself is never readable anonymously.
+- [ ] Help centre `#/help` (public and signed-in): topic chips, instant search, role-aware articles, FAQ, contact, replay tour. Articles also appear in Quick search (Ctrl K).
+- [ ] First sign-in of each role shows a skippable spotlight tour (→ ← Esc work); never repeats; replay via Help or Quick search.
+- [ ] Language switch (हिन्दी / मराठी) translates navigation and common UI phrases in place; unknown phrases stay English.
+- [ ] PWA (served over https/http, not file://): manifest valid, service worker registers, app opens offline (shell), offline banner appears, "Install app" in Quick search / banner.
+
 ## Later phases (to be filled in as they ship)
 - [ ] Admin dashboard counters, rebuild stats, reports export, impact report PDF
 - [ ] Green-cover swipe comparison, photo ExG estimate, simulated label in demo

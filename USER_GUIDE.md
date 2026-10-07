@@ -56,3 +56,13 @@ Your teacher gives you a **user ID** and **password** (for example `Maple-River-
 * **Audit log**: who did what and when.
 * **Settings**: announcements banner, species data (CO₂ per year, growth, canopy), *Rebuild statistics* (use if numbers ever look off), and *Sample data* (live mode) to explore with ready-made schools and trees; remove it with one click.
 * **Green cover**: each planting site can be measured three honest ways — on-ground estimate, photo analysis (share of green pixels, computed in your browser) and, if you configure a provider, satellite imagery. Without a provider it says so; nothing is made up.
+
+## Badges, leaderboards, certificates and gifts (everyone)
+* **Badges** (`Leaderboard → My badges`): First Tree, Ten Trees, Green Guardian, Year Keeper, Steady Hands, Forest Maker. Locked badges show how close you are; every earned badge has a printable certificate.
+* **Leaderboards**: schools are ranked by live trees (organisation names and totals only); inside your school students appear as first name + initial.
+* **Challenges**: school / institution admins can set a goal (“Plant 50 trees in March”) and everyone sees the progress ring.
+* **Certificate** and **Gift card**: on any tree page. The gift card is a ready-to-print card saying “A tree has been planted in your name”, with a QR code to the tree.
+* **Public tree page**: tick “Make this tree’s page public” when planting (not available for students). Anyone with the link or QR sees species, planting date, city and your first name — never your exact location, user ID or organisation. Turn it off any time.
+* **Help centre** (`Help`): searchable guides. **Welcome tour**: replay from Help or Quick search (Ctrl K).
+* **Language**: English, हिन्दी, मराठी (navigation and common labels).
+* **Install as an app**: Quick search → “Install the app”, or your browser's menu → Install / Add to Home Screen. Works offline for pages you have opened.

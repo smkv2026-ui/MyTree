@@ -100,19 +100,28 @@ Routes registered later replace earlier ones (that is how "Soon" placeholders ar
 33. **Import mechanics:** trees import one owner per batch of ≤300 trees (Firestore rules allow ≤20 document look-ups per batch, and each owner needs one), IDs are reserved with a single counter transaction per batch, counters are written in the same batch, failures of one batch never stop the others, and everything is retried on transient errors. Students and organisations are created one account per batch because each needs its own Auth account; the credentials sheet appears immediately. Each run stores an `importJobs` summary (counts, ≤200 row errors, tree codes) that powers the “Post updates for these trees” screen (`#/updates?job=…`) and the downloadable error report.
 34. Photos for imported trees are added afterwards by dropping files named `TREE-YYYY-NNNNNN.jpg` on `#/updates`.
 
+35. **Command centre reads counters, never scans.** Every write that changes a total also bumps `stats/*` in the same batch (`MT.stats.apply`). *Rebuild statistics* recomputes everything from the data (verified: 0 differences against live counters). Charts that need raw rows say they use a sample.
+36. **Green cover is honest.** Three real methods (ground estimate, photo ExG with Otsu threshold, optional satellite provider). Satellite shows “not configured” unless a provider is set; simulated readings exist only in demo mode and are labelled.
+37. **Reports are paged** (never “load everything”), sortable client-side per page, exported as CSV / Excel / PDF; PDFs replace subscript characters that the built-in PDF font lacks.
+38. **Sample data (live)** is clearly separated (`sample: true`, tracked in `meta/sample`) and removable; sample people have no Auth account and cannot sign in.
+39. **Public tree pages** use a sanitised `publicTrees` copy (no owner ID, organisation or exact coordinates). Rules require the real tree to exist, be public and be visible to the writer.
+40. **Badges are cosmetic**: self-awarded from the user's own data, no privileges attach to them. Leaderboards show organisation names/totals and shortened member names (first name + initial), only inside the same organisation.
+41. **PWA:** `sw.js` precaches what `index.html` references (no list to maintain), never intercepts Firebase traffic, and is registered only on http(s). Bump `VERSION` in `sw.js` to force a refresh.
+42. **Translations are phrase-level** (`js/data/phrases.js`): exact UI strings are swapped in place by a MutationObserver; anything not listed stays English. Add phrases freely — no code change needed.
+
 ## Libraries (all from CDNs, lazy-loaded)
 Pinned versions in `js/core/loader.js` with a primary (cdnjs / unpkg / gstatic) and a fallback (jsDelivr) URL each; a failed load shows a friendly message rather than a blank page. Landing hero art, counters, reveals and the carousel are pure CSS/JS and work even if every CDN is blocked; Lucide icons, GSAP parallax, Leaflet and confetti degrade gracefully.
 
 **SRI:** hashes cannot be baked in without downloading the files from the CDNs. Run `node tools/gen-sri.mjs` once on a machine with internet; it writes `js/core/sri.js` and the loader then adds `integrity` + `crossorigin` automatically. Until you do, libraries load without SRI.
 
 ## Security notes
-* The Firebase web config is public by design; **`firestore.rules` is the real protection** (64 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
+* The Firebase web config is public by design; **`firestore.rules` is the real protection** (70 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
 * All user text is rendered through `MT.html` (auto-escaping) or `textContent`; DOMPurify is loaded for rich text. No inline event handlers are used on user data.
 * Demo mode stores demo passwords in plain text *inside the browser only*; live mode never sees or stores passwords.
 * Optional hardening (API-key restriction, App Check via `MT_APPCHECK_SITE_KEY`) is described in `SETUP.md`.
 
 ## Known limitations (Phase 1)
 * Multi-chunk batches (> 400 operations) are atomic per chunk, not overall (Firestore limit).
-* A tree flagged `public:true` currently exposes its whole document to anyone with the link (owner name included); phase 7 replaces this with a sanitised public view. Student trees can never be public.
+* Public tree pages are served from a sanitised copy (`publicTrees/{code}`: species, date, city, first name) — the `trees` document is never public. The copy is written right after the tree (best-effort), so a failed network call can leave a page stale until the next edit. Student trees can never be public.
 * `stats/*` write rules only restrict *which fields* can be written; phase 6 couples them to tree writes with `getAfter()` as specified.
 * Satellite/green-cover, certificates, bulk import, PWA install etc. are scheduled for later phases (see table).

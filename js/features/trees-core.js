@@ -86,11 +86,12 @@
         if (made.plot) b.set('plots', plotId, made.plot);
         MT.stats.apply(b, trees.map(function (t) { return { tree: t, sign: 1 }; }));
         if (onBehalf) MT.audit.add(b, { action: 'tree.plant', targetType: 'tree', targetId: codes[0], onBehalfOfId: owner.userId, onBehalfOfName: owner.name, detail: count + ' × ' + (o.customName || sp.common), orgId: owner.orgId, ancestorOrgIds: owner.ancestorOrgIds });
-        return b.commit().then(function () { MT.due.invalidate(); return { trees: trees.map(function (t) { return Object.assign({ id: t.code }, t); }), photoId: photoId, plotId: plotId }; });
+        return b.commit().then(function () { MT.due.invalidate(); return T.syncPublic(trees.map(function (t) { return { after: t }; })); }).then(function () { return { trees: trees.map(function (t) { return Object.assign({ id: t.code }, t); }), photoId: photoId, plotId: plotId }; });
       });
     },
     /** Delete trees (and their counters). Photos are removed when this was the only tree they belonged to. */
-    remove: function (trees) {
+    remove: function (trees) { return T.syncPublic(trees.map(function (t) { return { before: t }; })).then(function () { return T._remove(trees); }); },
+    _remove: function (trees) {
       var me = MT.auth.profile(), b = MT.db.batch();
       trees.forEach(function (t) {
         b.delete('trees', t.id || t.code);
@@ -105,7 +106,29 @@
       var me = MT.auth.profile(), b = MT.db.batch();
       b.update('trees', tree.id || tree.code, patch);
       if (tree.ownerId !== me.userId) MT.audit.add(b, { action: 'tree.edit', targetType: 'tree', targetId: tree.code, onBehalfOfId: tree.ownerId, onBehalfOfName: tree.ownerName, detail: Object.keys(patch).join(', '), orgId: tree.orgId, ancestorOrgIds: tree.ancestorOrgIds });
-      return b.commit();
+      return b.commit().then(function () { return T.syncPublic([{ before: tree, after: Object.assign({}, tree, patch) }]); });
+    },
+    /** The only fields a public tree page may expose: no owner ID, no organisation, no exact coordinates (city-level only). */
+    publicDoc: function (t) {
+      var d = { code: t.code, speciesId: t.speciesId, plantedOn: t.plantedOn, status: t.status, health: t.health, heightCm: t.heightCm || 0, city: t.city || '', state: t.state || '', cityLat: t.cityLat || 0, cityLng: t.cityLng || 0,
+        dedication: t.dedication || '', ownerFirst: String(t.ownerName || '').split(' ')[0].slice(0, 30), updatesCount: typeof t.updatesCount === 'number' ? t.updatesCount : 0, updatedAt: Date.now() };
+      if (t.customName) d.customName = t.customName;
+      return d;
+    },
+    /**
+     * Keep the sanitised `publicTrees/{code}` copies in step with `trees`. Items: {before, after}. A tree that is (or becomes) public gets a copy; one that stops being public loses it.
+     * Run AFTER the main commit for create/update (rules look the tree up) and BEFORE it for delete. Chunked (rules allow 20 look-ups per write) and best-effort.
+     */
+    syncPublic: function (items) {
+      items = items.filter(function (x) { return (x.after && x.after.public) || (x.before && x.before.public); });
+      var chunks = []; for (var i = 0; i < items.length; i += 12) chunks.push(items.slice(i, i + 12));
+      return chunks.reduce(function (p, ch) {
+        return p.then(function () {
+          var b = MT.db.batch();
+          ch.forEach(function (x) { if (x.after && x.after.public) b.set('publicTrees', x.after.code, T.publicDoc(x.after)); else b.delete('publicTrees', (x.before || x.after).code); });
+          return b.commit();
+        });
+      }, Promise.resolve()).catch(function () {});
     },
     /** Public URL encoded into each tree's QR code. */
     url: function (code) { return location.href.split('#')[0].split('?')[0] + '#/t/' + encodeURIComponent(code); },

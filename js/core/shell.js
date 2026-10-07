@@ -244,6 +244,8 @@
       out.push({ title: 'Home page', hint: 'Go to', icon: 'house', run: function () { MT.router.go('/'); } });
       out.push({ title: 'Switch theme', hint: 'Action', icon: 'sun-moon', run: prefs.cycle });
       MT.LANGS.forEach(function (l) { if (l.code !== MT.lang) out.push({ title: 'Language: ' + l.label, hint: 'Action', icon: 'languages', run: function () { MT.setLang(l.code); } }); });
+      if (role) out.push({ title: 'Replay the welcome tour', hint: 'Help', icon: 'map', run: function () { MT.router.go('/dashboard'); MT.lazy.load('help').then(function () { setTimeout(function () { MT.tour.start(true); }, 500); }); } });
+      if (role) out.push({ title: 'Copy my user ID', hint: 'Action', icon: 'copy', run: function () { MT.copy(MT.auth.profile().userId).then(function () { ui.success('User ID copied'); }); } });
       if (role) out.push({ title: 'Sign out', hint: 'Action', icon: 'log-out', run: doLogout });
       if (MT.mode === 'demo') out.push({ title: 'Reset demo data', hint: 'Action', icon: 'rotate-ccw', run: resetDemo });
       return out.concat(commands.filter(function (c) { return !c.roles || c.roles.indexOf(role) > -1; }));
