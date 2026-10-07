@@ -301,6 +301,8 @@
 
     S.replaces = (ctx && ctx.query && ctx.query.replaces) || '';
     function prefill() {
+      var forId = ctx && ctx.query && ctx.query.for;
+      if (forId && MT.auth.isManager() && !S.replaces) return loadUsers().then(function (us) { var u = us.filter(function (x) { return x.userId === forId; })[0]; if (u) { S.owner = u; S.ownerLabel = u.name + ' — ' + u.userId; ui.toast('Planting for ' + u.name, { duration: 3000 }); } }).catch(function () {});
       if (!S.replaces) return Promise.resolve();
       return MT.db.get('trees', S.replaces).then(function (old) {
         if (!old) { S.replaces = ''; return; }

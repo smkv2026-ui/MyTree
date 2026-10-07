@@ -88,7 +88,7 @@ service cloud.firestore {
       return d.role in ['super_admin', 'foundation', 'school', 'institution', 'student', 'individual']
         && str(d.userId, 40) && str(d.name, 120) && d.ancestorOrgIds is list && d.ancestorOrgIds.size() <= 8
         && d.active is bool && str(d.status, 20) && optStr(d, 'email', 120) && optStr(d, 'authEmail', 120)
-        && optStr(d, 'phone', 30) && optStr(d, 'grade', 60) && optStr(d, 'roll', 30);
+        && optStr(d, 'phone', 30) && optStr(d, 'grade', 60) && optStr(d, 'roll', 30) && optStr(d, 'guardian', 120);
     }
     function boundId(d, uid) {
       return getAfter(/databases/$(database)/documents/userIds/$(d.userId)).data.uid == uid;
@@ -149,8 +149,8 @@ service cloud.firestore {
     }
     function managerCreatesOrg(orgId, d) {
       return orgId.matches('MT-(FND|SCH|INS)-[0-9]{6}') && orgId[3:6] == orgPrefix(d.type) && idNumber(orgId) <= counterN(orgPrefix(d.type))
-        && d.status == 'approved' && d.parentOrgId != '' && d.ancestorOrgIds[d.ancestorOrgIds.size() - 1] == orgId
-        && (isSuper() || (me().role == 'foundation' && me().orgId in d.ancestorOrgIds && d.parentOrgId in d.ancestorOrgIds));
+        && d.status == 'approved' && d.ancestorOrgIds[d.ancestorOrgIds.size() - 1] == orgId
+        && (isSuper() || (d.parentOrgId != '' && me().role == 'foundation' && me().orgId in d.ancestorOrgIds && d.parentOrgId in d.ancestorOrgIds));
     }
     match /orgs/{orgId} {
       allow get: if signedIn() && (inMyOrg(orgId) || manages(resource.data.ancestorOrgIds));

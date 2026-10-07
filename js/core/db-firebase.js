@@ -132,8 +132,10 @@
     create: function (email, pw) { return authSvc.createUserWithEmailAndPassword(email, pw).then(function (c) { return c.user.uid; }); },
     /** Create an account on a SECOND app instance so the admin stays signed in; signs out of the secondary only. */
     createSecondary: function (email, pw) {
+      var fresh = !secondaryApp;
       if (!secondaryApp) secondaryApp = fb.initializeApp(window.MT_FIREBASE_CONFIG, 'secondary');
       var sa = secondaryApp.auth();
+      if (fresh && window.MT_EMULATOR) sa.useEmulator('http://' + window.MT_EMULATOR.host + ':' + window.MT_EMULATOR.auth);
       return sa.createUserWithEmailAndPassword(email, pw).then(function (c) {
         var uid = c.user.uid;
         return sa.signOut().then(function () { return uid; });
@@ -141,6 +143,8 @@
     },
     /** Roll back a half-finished registration (deletes the just-created Auth user). */
     deleteCurrent: function () { var u = authSvc.currentUser; return u ? u.delete().catch(function () { return authSvc.signOut(); }) : Promise.resolve(); },
+    /** Change the signed-in user's password (needs a recent sign-in, which is true right after login). */
+    changePassword: function (pw) { var u = authSvc.currentUser; return u ? u.updatePassword(pw) : Promise.reject({ code: 'auth/requires-recent-login' }); },
     signOut: function () { return authSvc.signOut(); },
     sendReset: function (email) { return authSvc.sendPasswordResetEmail(email); }
   };

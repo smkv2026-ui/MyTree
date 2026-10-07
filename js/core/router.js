@@ -63,6 +63,7 @@
       if (a === 'guest') return s ? MT.auth.homeRoute() : null;
       if (!s) return '/login?next=' + encodeURIComponent(ctx.path);
       if (!p.active && ['/pending'].indexOf(ctx.path) < 0) return '/pending';
+      if (p.mustChangePassword && p.active && ctx.path !== '/change-password') return '/change-password';
       if (Array.isArray(a) && a.indexOf(p.role) < 0) { MT.ui.toast('That page is not available for your account type.', { type: 'warn' }); return MT.auth.homeRoute(); }
       return null;
     }

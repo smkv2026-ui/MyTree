@@ -19,6 +19,13 @@
 ## Growth updates (everyone)
 Open a tree and tap **Post update** — add a photo, its height, how it looks (Thriving … Dead) and a note. The **Updates** page lists trees that are due or overdue (based on the weekly / monthly / yearly rhythm you chose), lets you update several trees at once, and accepts a batch of photos named with tree IDs. The bell shows what is due. MyTree cannot send e-mail reminders on the free plan, so use **Add reminders (.ics)** to put recurring reminders in your phone calendar. On a tree page you also get a growth chart, a before/after slider, a growth-journey movie, local weather and season-aware care tips. If a tree dies, mark it *Dead* and choose **replant** to link a new tree to it.
 
+## Adding people and organisations (admins)
+* **School / institution admin → People → Add student.** Enter the name (class and roll optional). MyTree creates a user ID and an easy password and shows them **once** — copy them, or download the **printable PDF** (cards with a QR to the sign-in page) or the **CSV**. Passwords are never stored, so a forgotten one is replaced with **Actions → Re-issue password**: the old password stops working, the user ID and all trees stay.
+* **Plant or post for someone:** People → Actions → *Plant a tree for them*, or open any of their trees and post an update. It is recorded as “Posted by you on behalf of …”.
+* **Deactivate** pauses an account without deleting anything; **Reactivate** brings it back.
+* **Foundation → Organisations → Add organisation** creates a sub-foundation, school or institution together with its administrator account (you get the sign-in details once; the new admin picks their own password at first sign-in). Super admins can also create top-level organisations.
+* Anyone can change their own password from the account menu.
+
 ## Individual
 1. *Get started → Individual*, fill in your details and tick the privacy box. You are active immediately and receive a user ID like `MT-IND-000123`.
 2. Plant trees, post growth updates and download certificates (coming soon).

@@ -44,11 +44,11 @@
       <div class="center" id="tr-more"></div></div>`;
   }
 
-  function listAfter(host) {
+  function listAfter(host, ctx) {
     var p = MT.auth.profile(), isOrg = MT.auth.isOrgAdmin();
     var S = { scope: isOrg ? 'org' : 'mine', view: MT.storage.get('mt.treeview', 'grid'), limit: 500, all: [], shown: PAGE, selecting: false, sel: {} };
     var body = MT.$('#tr-body', host), map = null, layer = null, destroyed = false;
-    var q = MT.$('#tr-q', host);
+    var q = MT.$('#tr-q', host); if (ctx && ctx.query && ctx.query.q) q.value = ctx.query.q;
 
     function scopeWhere() { return S.scope === 'org' ? [['ancestorOrgIds', 'array-contains', p.orgId]] : [['ownerId', '==', p.userId]]; }
     function load() {
@@ -67,7 +67,7 @@
       var out = S.all.filter(function (t) {
         if (sp && t.speciesId !== sp) return false; if (st && t.status !== st) return false; if (hl && t.health !== hl) return false;
         if (from && t.plantedOn < from) return false; if (to && t.plantedOn > to) return false;
-        if (term) { var hay = (t.code + ' ' + MT.trees.nameOf(t) + ' ' + MT.species.get(t.speciesId).scientific + ' ' + (t.ownerName || '') + ' ' + (t.dedication || '') + ' ' + (t.city || '')).toLowerCase(); if (hay.indexOf(term) < 0) return false; }
+        if (term) { var hay = (t.code + ' ' + MT.trees.nameOf(t) + ' ' + MT.species.get(t.speciesId).scientific + ' ' + (t.ownerName || '') + ' ' + (t.ownerId || '') + ' ' + (t.dedication || '') + ' ' + (t.city || '')).toLowerCase(); if (hay.indexOf(term) < 0) return false; }
         return true;
       });
       var sort = MT.$('#f-sort', host).value, rank = { struggling: 0, dead: 1, needs_care: 2, healthy: 3, thriving: 4 };

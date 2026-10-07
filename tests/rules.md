@@ -1,6 +1,6 @@
 # Firestore rules — manual test matrix
 
-Automated: `cd tests && npm install && npm test` (needs Node 18+ and Java for the emulator) runs `rules.test.js` (50 checks).
+Automated: `cd tests && npm install && npm test` (needs Node 18+ and Java for the emulator) runs `rules.test.js` (57 checks).
 Manual: in the Firebase console → Firestore → **Rules → Rules playground**, simulate the requests below. ✅ = allowed, ❌ = denied.
 Set up three profiles first (use the app itself): super admin, a school admin (approved) with one student, and a second school admin.
 
@@ -49,5 +49,12 @@ Set up three profiles first (use the app itself): super admin, a school admin (a
 | 39 | School admin | post update on behalf of own student ✅; other school ❌ | as shown |
 | 40 | Owner / manager | read scoped updates ✅; classmate ❌; edit an update ❌; delete own ✅ | as shown |
 | 41 | Owner / org admin | due-list query (scope + `orderBy lastUpdateAt`) ✅ | as shown |
+
+| 42 | School admin | re-issue a student (new profile, old → replaced, repoint `userIds` + alias) ✅; another school ❌ | as shown |
+| 43 | Re-issued student | reads own trees ✅; the replaced profile ❌ | as shown |
+| 44 | Foundation | create school + admin user + `userIds` + alias in one batch ✅; admin then reads own org ✅ | as shown |
+| 45 | User with `mustChangePassword` | clear the flag ✅; set it ❌ | as shown |
+| 46 | Super admin | create a top-level organisation ✅; foundation without a parent ❌ | as shown |
+| 47 | Foundation | add a student to a school beneath it ✅ | as shown |
 
 Later phases add rows for stats coupling and bulk imports.

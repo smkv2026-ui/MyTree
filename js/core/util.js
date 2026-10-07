@@ -238,6 +238,7 @@
       'auth/invalid-email': 'That e-mail address does not look right.',
       'auth/email-already-in-use': 'An account with this e-mail already exists. Try signing in instead.',
       'auth/weak-password': 'Please choose a stronger password (at least 8 characters).',
+      'auth/requires-recent-login': 'For your safety please sign out, sign in again, and then change your password.',
       'auth/too-many-requests': 'Too many attempts. Please wait a few minutes and try again.',
       'auth/network-request-failed': 'No internet connection. Please check your network and retry.',
       'auth/operation-not-allowed': 'E-mail/password sign-in is not enabled yet. The site owner must enable it in Firebase (see SETUP.md).',

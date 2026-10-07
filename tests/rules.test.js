@@ -214,6 +214,44 @@ async function t(name, fn) { try { await fn(); pass++; console.log('  ✓ ' + na
     await assertSucceeds(as('s1').collection('trees').where('ancestorOrgIds', 'array-contains', 'MT-SCH-000001').orderBy('lastUpdateAt').limit(50).get());
   });
 
+  console.log('\nAccounts & hierarchy (phase 4)'); await seed();
+  await t('school admin re-issues a student password (new profile + repoint ID and alias, old profile replaced)', async () => {
+    const d = as('s1'), anc = ['MT-FND-000001', 'MT-SCH-000001'], b = d.batch();
+    b.set(d.doc('users/st1new'), prof({ userId: 'MT-STU-SCH001-0001', role: 'student', orgId: 'MT-SCH-000001', ancestorOrgIds: anc, name: 'Stu One', authEmail: 'mt-stu-sch001-0001+r2@mytree.app', reissueCount: 2, supersedes: 'st1' }));
+    b.update(d.doc('users/st1'), { active: false, status: 'replaced', supersededBy: 'st1new' }); b.update(d.doc('userIds/MT-STU-SCH001-0001'), { uid: 'st1new' });
+    b.set(d.doc('loginAliases/MT-STU-SCH001-0001'), { authEmail: 'mt-stu-sch001-0001+r2@mytree.app', active: true }); await assertSucceeds(b.commit());
+  });
+  await t('the re-issued profile works (reads own trees); the replaced one is locked out', async () => {
+    await env.withSecurityRulesDisabled((c) => c.firestore().doc('trees/TREE-2026-000200').set(stuTree({ code: 'TREE-2026-000200' })));
+    await assertSucceeds(as('st1new').doc('trees/TREE-2026-000200').get()); await assertFails(as('st1').doc('trees/TREE-2026-000200').get());
+  });
+  await t('re-issue by another school is refused', async () => {
+    await seed(); const d = as('s2'), anc = ['MT-FND-000001', 'MT-SCH-000001'], b = d.batch();
+    b.set(d.doc('users/evil'), prof({ userId: 'MT-STU-SCH001-0001', role: 'student', orgId: 'MT-SCH-000001', ancestorOrgIds: anc, name: 'x' })); b.update(d.doc('userIds/MT-STU-SCH001-0001'), { uid: 'evil' }); await assertFails(b.commit());
+  });
+  await t('foundation creates a school + its admin account + alias; the admin can then read its own org', async () => {
+    await env.withSecurityRulesDisabled((c) => c.firestore().doc('counters/SCH').set({ n: 5 }));
+    const d = as('f1'), anc = ['MT-FND-000001', 'MT-SCH-000005'], b = d.batch();
+    b.set(d.doc('orgs/MT-SCH-000005'), { type: 'school', name: 'Child', ancestorOrgIds: anc, parentOrgId: 'MT-FND-000001', status: 'approved', createdBy: 'f1' });
+    b.set(d.doc('users/schnew'), prof({ userId: 'MT-SCH-000005', role: 'school', orgId: 'MT-SCH-000005', ancestorOrgIds: anc, name: 'Mrs Rao', mustChangePassword: true }));
+    b.set(d.doc('userIds/MT-SCH-000005'), { uid: 'schnew', orgId: 'MT-SCH-000005', ancestorOrgIds: anc }); b.set(d.doc('loginAliases/MT-SCH-000005'), { authEmail: 'mt-sch-000005@mytree.app', active: true });
+    b.set(d.doc('stats/global'), { users: 1, orgsApproved: 1, orgs_school: 1 }, { merge: true }); await assertSucceeds(b.commit());
+    await assertSucceeds(as('schnew').doc('orgs/MT-SCH-000005').get());
+  });
+  await t('forced-password flag: the user may clear it, never set it', async () => {
+    await assertSucceeds(as('schnew').doc('users/schnew').update({ mustChangePassword: false })); await assertFails(as('schnew').doc('users/schnew').update({ mustChangePassword: true }));
+  });
+  await t('super admin creates a top-level organisation; a foundation cannot', async () => {
+    await env.withSecurityRulesDisabled((c) => c.firestore().doc('counters/INS').set({ n: 3 }));
+    const org = { type: 'institution', name: 'Top', ancestorOrgIds: ['MT-INS-000003'], parentOrgId: '', status: 'approved', createdBy: 'sa' };
+    await assertSucceeds(as('sa').doc('orgs/MT-INS-000003').set(org)); await assertFails(as('f1').doc('orgs/MT-INS-000003').set(Object.assign({}, org, { createdBy: 'f1' })));
+  });
+  await t('foundation adds a student into a school beneath it', async () => {
+    const d = as('f1'), anc = ['MT-FND-000001', 'MT-SCH-000001'], b = d.batch();
+    b.set(d.doc('users/nstu'), prof({ userId: 'MT-STU-SCH001-0009', role: 'student', orgId: 'MT-SCH-000001', ancestorOrgIds: anc, name: 'N', guardian: 'Parent' })); b.set(d.doc('userIds/MT-STU-SCH001-0009'), { uid: 'nstu', orgId: 'MT-SCH-000001', ancestorOrgIds: anc });
+    b.set(d.doc('loginAliases/MT-STU-SCH001-0009'), { authEmail: 'mt-stu-sch001-0009@mytree.app', active: true }); await assertSucceeds(b.commit());
+  });
+
   console.log(`\n${pass} passed, ${fail} failed`);
   await env.cleanup(); process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(2); });

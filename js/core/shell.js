@@ -140,7 +140,7 @@
     var tabs = mobileTabs(role, items);
     var userMenu = '<div class="pop-user"><strong>' + MT.esc(p.name) + '</strong><span>' + MT.esc(MT.ROLE_LABEL[p.role]) + (org ? ' · ' + MT.esc(org.name) : '') + '</span>' +
       '<button type="button" class="link-btn" data-copy="' + MT.esc(p.userId) + '" title="Copy user ID"><code>' + MT.esc(p.userId) + '</code> <i data-lucide="copy" class="ic ic-sm"></i></button></div>' +
-      '<a class="pop-item" href="#/dashboard"><i data-lucide="user-round" class="ic"></i> My profile</a>' +
+      '<a class="pop-item" href="#/dashboard"><i data-lucide="user-round" class="ic"></i> My dashboard</a><a class="pop-item" href="#/change-password"><i data-lucide="key-round" class="ic"></i> Change password</a>' +
       '<button type="button" class="pop-item" data-act="logout"><i data-lucide="log-out" class="ic"></i> ' + MT.t('common.signout') + '</button>';
     return ribbon() + '<div class="shell' + (MT.storage.get('mt.sidebar', false) ? ' collapsed' : '') + '" id="shell">' +
       '<aside class="sidebar" id="sidebar" aria-label="Sidebar"><div class="side-head"><a href="#/" class="brand brand-light" aria-label="MyTree home">' + ui.logo(34).s + '<span class="brand-name">MyTree</span></a>' +

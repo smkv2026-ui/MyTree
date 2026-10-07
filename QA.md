@@ -46,9 +46,19 @@ Tick each box in **Demo mode** (`index.html`) and again in **Live mode**. Phase 
 - [ ] Mark a tree **Dead** → status banner, no longer due, "Replant" pre-fills species and spot, replacement links back.
 - [ ] Post an update as school admin for a student → timeline shows "Posted by … on behalf of …".
 
+## Phase 4 — Hierarchy & accounts
+- [ ] School admin: **Add student** (name, class, roll, optional contacts) → ID like `MT-STU-SCH001-0013` and an easy password shown once; Copy works; PDF and CSV download; the PDF prints 8 cards per A4 page with a scannable QR.
+- [ ] The new student signs in with the **user ID** (any letter case) + password; with "ask to choose own password" ticked they are sent to Change password first.
+- [ ] **Re-issue password:** old password stops working immediately, new works, same ID, trees and history intact; list shows no duplicate person.
+- [ ] Deactivate → student sees "This account is not active"; Reactivate restores access.
+- [ ] Edit name/class/roll/phone/guardian; bulk select → re-issue several (one sheet) / deactivate several.
+- [ ] Admin signed-in session survives creating accounts (live: secondary Firebase app) — no logout, no flicker.
+- [ ] Foundation: **Add organisation** (school, institution, sub-foundation) → admin credentials shown; the new admin must change the password at first sign-in; foundation sees the org with members/trees; suspend/reactivate a child; cannot suspend itself.
+- [ ] Super admin: create a top-level organisation; People page shows everyone; re-issue for an individual.
+- [ ] **Plant on behalf:** People → Actions → *Plant a tree for them* pre-selects the person; the tree belongs to them and its timeline/audit credit the admin ("Posted by … on behalf of …"). Posting an update on a student's tree does the same.
+- [ ] A foundation sees trees of schools beneath it (Trees → My organisation, Map); a sibling school never sees them.
+
 ## Later phases (to be filled in as they ship)
-- [ ] Post on behalf (audit row shows "Posted by Admin … on behalf of Student …")
-- [ ] Student creation, credentials PDF/CSV, password re-issue (old password stops working, same ID keeps trees)
 - [ ] Bulk import (trees, students, updates) with error report
 - [ ] Admin dashboard counters, rebuild stats, reports export, impact report PDF
 - [ ] Green-cover swipe comparison, photo ExG estimate, simulated label in demo

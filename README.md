@@ -13,8 +13,8 @@ A complete tree-plantation tracking portal that is **just static files**: HTML, 
 | 1 | Foundation: design system, landing, router, app shell, DB adapters (demo + Firebase), auth, role routing, 4-way registration, super-admin bootstrap, approval queue, security rules | ✅ done |
 | 2 | Planting stepper, map picker, photo store, My Trees, tree page, map | ✅ done |
 | 3 | Growth updates, timeline, chart, before/after, journey, cadence & notifications, .ics | ✅ done |
-| 4 | Students, sub-accounts, post-on-behalf, credentials PDF, password re-issue | next |
-| 5 | Bulk Excel/CSV import with validation | |
+| 4 | Students, sub-accounts, post-on-behalf, credentials PDF/CSV, password re-issue, forced password change | ✅ done |
+| 5 | Bulk Excel/CSV import with validation | next |
 | 6 | Command centre, counters, maps, reports, green cover, audit viewer | |
 | 7 | Gamification, certificates, public pages, PWA/offline, tours, i18n | |
 | 8 | Polish, accessibility, performance, docs, QA | |
@@ -39,7 +39,7 @@ js/firebase-config.js ← the only file you edit
 js/core/              util → sri → loader → store → (data/i18n) i18n → db → db-demo → db-firebase → auth → ui → stats → geocode → photostore → router → shell
 js/data/              i18n, site contact details, species (107 species + impact factors), India cities
 js/demo/seed.js       deterministic demo-data generator
-js/features/          landing, auth-pages, dashboard, admin, maps, share, trees-core, planting, trees, mapview   updates-core, growth, updates-page   (bulk, … in later phases)
+js/features/          landing, auth-pages, dashboard, admin, maps, share, trees-core, planting, trees, mapview   updates-core, growth, updates-page, accounts-core, credentials, people   (bulk, … in later phases)
 js/boot.js            picks the mode, installs adapters, starts the router (always last)
 firestore.rules  firestore.indexes.json  firebase.json
 tools/gen-sri.mjs     optional SRI hash generator
@@ -86,13 +86,21 @@ Routes registered later replace earlier ones (that is how "Soon" placeholders ar
 23. Demo data now includes ~9,000 growth updates and ~500 illustrative SVG photos (generated, not hot-linked).
 24. "Students post for any tree assigned by their admin" is not built — students post for their own trees; admins post on their behalf. Assignment arrives with phase 4 if wanted.
 
+### Phase 4 additions
+25. **Managed accounts** (students, and the admin of any organisation a foundation/super admin creates) get Auth e-mail `<userid>@mytree.app` + a public `loginAliases/{userId}` doc. They are created on a **second Firebase app instance**, so the admin is never signed out. Passwords come from `MT.genPassword()` (e.g. `Maple-River-4821`), are shown once and never stored.
+26. **Password re-issue without a server:** a new Auth account `<userid>+rN@mytree.app` is created, the profile is copied to the new uid, the old profile becomes `status:'replaced'` (rules deny it, login refuses it), and `userIds/{id}` + the alias are re-pointed. The user ID, trees and history are unchanged because ownership is by `userId`. Self-registered accounts (real e-mail) can also be re-issued by their managers/super admin, after which they sign in by ID.
+27. **Credentials sheet:** printable A4 PDF (jsPDF, 8 cards per page, QR to the sign-in page) + CSV + copy buttons, produced from the passwords held in memory at creation / re-issue time. There is deliberately no way to recover an existing password — re-issue instead.
+28. **Forced password change:** organisation admins created by a foundation, and students when ticked, must choose their own password at first sign-in (`mustChangePassword`; the router redirects to `#/change-password`). Anyone can change their password from the account menu (Firebase requires a recent sign-in).
+29. **`#/people`:** search/filter/page through everyone beneath you; per-person actions (view trees, plant for them, edit, re-issue, deactivate/reactivate) and bulk re-issue/deactivate. **`#/orgs`:** create sub-foundations, schools and institutions (approved immediately, with their admin account), suspend/reactivate children, see members/trees per organisation. Super admins can also create top-level organisations.
+30. Per-organisation counters are readable by any active user (needed for leaderboards later); user-level counters are limited to the owner and managers.
+
 ## Libraries (all from CDNs, lazy-loaded)
 Pinned versions in `js/core/loader.js` with a primary (cdnjs / unpkg / gstatic) and a fallback (jsDelivr) URL each; a failed load shows a friendly message rather than a blank page. Landing hero art, counters, reveals and the carousel are pure CSS/JS and work even if every CDN is blocked; Lucide icons, GSAP parallax, Leaflet and confetti degrade gracefully.
 
 **SRI:** hashes cannot be baked in without downloading the files from the CDNs. Run `node tools/gen-sri.mjs` once on a machine with internet; it writes `js/core/sri.js` and the loader then adds `integrity` + `crossorigin` automatically. Until you do, libraries load without SRI.
 
 ## Security notes
-* The Firebase web config is public by design; **`firestore.rules` is the real protection** (50 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
+* The Firebase web config is public by design; **`firestore.rules` is the real protection** (57 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
 * All user text is rendered through `MT.html` (auto-escaping) or `textContent`; DOMPurify is loaded for rich text. No inline event handlers are used on user data.
 * Demo mode stores demo passwords in plain text *inside the browser only*; live mode never sees or stores passwords.
 * Optional hardening (API-key restriction, App Check via `MT_APPCHECK_SITE_KEY`) is described in `SETUP.md`.

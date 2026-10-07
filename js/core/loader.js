@@ -28,6 +28,7 @@
     exifr:       { global: 'exifr', js: [CF + 'exifr/7.1.3/lite.umd.js', JD + 'exifr@7.1.3/dist/lite.umd.js'] },
     qrcode:      { global: 'QRCodeStyling', js: [JD + 'qr-code-styling@1.8.4/lib/qr-code-styling.js', UP + 'qr-code-styling@1.8.4/lib/qr-code-styling.js'] },
     leafletdraw: { global: 'L.Draw', needs: ['leaflet'], css: [[CF + 'leaflet.draw/1.0.4/leaflet.draw.css', JD + 'leaflet-draw@1.0.4/dist/leaflet.draw.css']], js: [CF + 'leaflet.draw/1.0.4/leaflet.draw.js', JD + 'leaflet-draw@1.0.4/dist/leaflet.draw.js'] },
+    jspdf:       { global: 'jspdf', js: [CF + 'jspdf/2.5.1/jspdf.umd.min.js', JD + 'jspdf@2.5.1/dist/jspdf.umd.min.js'] },
     chart:       { global: 'Chart', js: [CF + 'Chart.js/4.4.3/chart.umd.min.js', JD + 'chart.js@4.4.3/dist/chart.umd.js'] },
     'firebase-app':       { global: 'firebase', js: [FB + 'firebase-app-compat.js'] },
     'firebase-auth':      { global: 'firebase.auth', needs: ['firebase-app'], js: [FB + 'firebase-auth-compat.js'] },

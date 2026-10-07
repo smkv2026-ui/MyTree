@@ -219,6 +219,11 @@
     /** Roll back a half-finished registration. */
     deleteCurrent: function () { var u = auth.uid(); if (u) { delete col('_auth')[u]; markDirty('_auth'); } return auth.signOut(); },
     signOut: function () { MT.storage.remove(SESSION_KEY); listeners.forEach(function (l) { l(null); }); return Promise.resolve(); },
+    changePassword: function (pw) {
+      var u = auth.uid(); if (!u || !col('_auth')[u]) return Promise.reject({ code: 'auth/requires-recent-login' });
+      if (String(pw).length < 6) return Promise.reject({ code: 'auth/weak-password' });
+      col('_auth')[u].pw = pw; markDirty('_auth'); return Promise.resolve();
+    },
     sendReset: function () { return Promise.resolve(); }
   };
   MT.authDemo = auth;
