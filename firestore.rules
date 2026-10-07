@@ -263,6 +263,16 @@ service cloud.firestore {
       allow delete: if isActive() && canSee(resource.data);
     }
 
+    // ---------- bulk import jobs (summary + row errors) ----------
+    match /importJobs/{id} {
+      allow read: if isActive() && (resource.data.createdBy == me().userId || manages(resource.data.ancestorOrgIds));
+      allow create: if isActive() && request.resource.data.createdBy == me().userId && request.resource.data.ancestorOrgIds == me().ancestorOrgIds
+        && request.resource.data.type in ['trees', 'students', 'orgs', 'updates'] && request.resource.data.errors is list && request.resource.data.errors.size() <= 200
+        && (!('treeCodes' in request.resource.data) || request.resource.data.treeCodes.size() <= 3000);
+      allow update: if false;
+      allow delete: if isActive() && resource.data.createdBy == me().userId;
+    }
+
     // ---------- audit log ----------
     match /auditLog/{id} {
       allow read: if isManager() && manages(resource.data.get('ancestorOrgIds', []));

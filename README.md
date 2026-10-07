@@ -14,8 +14,8 @@ A complete tree-plantation tracking portal that is **just static files**: HTML, 
 | 2 | Planting stepper, map picker, photo store, My Trees, tree page, map | ✅ done |
 | 3 | Growth updates, timeline, chart, before/after, journey, cadence & notifications, .ics | ✅ done |
 | 4 | Students, sub-accounts, post-on-behalf, credentials PDF/CSV, password re-issue, forced password change | ✅ done |
-| 5 | Bulk Excel/CSV import with validation | next |
-| 6 | Command centre, counters, maps, reports, green cover, audit viewer | |
+| 5 | Bulk Excel/CSV import with validation | ✅ done |
+| 6 | Command centre, counters, maps, reports, green cover, audit viewer | next |
 | 7 | Gamification, certificates, public pages, PWA/offline, tours, i18n | |
 | 8 | Polish, accessibility, performance, docs, QA | |
 
@@ -94,13 +94,19 @@ Routes registered later replace earlier ones (that is how "Soon" placeholders ar
 29. **`#/people`:** search/filter/page through everyone beneath you; per-person actions (view trees, plant for them, edit, re-issue, deactivate/reactivate) and bulk re-issue/deactivate. **`#/orgs`:** create sub-foundations, schools and institutions (approved immediately, with their admin account), suspend/reactivate children, see members/trees per organisation. Super admins can also create top-level organisations.
 30. Per-organisation counters are readable by any active user (needed for leaderboards later); user-level counters are limited to the owner and managers.
 
+### Phase 5 additions
+31. **Templates** are generated in the browser with ExcelJS: a protected *Instructions* sheet, a *Data* sheet (green = required header, frozen header, two grey example rows marked `EXAMPLE` that the importer ignores, real drop-down validation for 1,000 rows) and a *Lookup* sheet feeding the drop-downs. Types: Trees · Students/members · Sub-foundations & school admins · Growth updates (+ a CSV variant).
+32. **Validation is explained in plain language per row** (red = skipped, amber = imported with a warning, green = ready): species suggestions (“Did you mean Neem?”), dd/mm/yyyy and ISO dates, swapped latitude/longitude, outside-India and far-from-city warnings, in-file duplicates, owners that are not in your organisation, trees you may not update.
+33. **Import mechanics:** trees import one owner per batch of ≤300 trees (Firestore rules allow ≤20 document look-ups per batch, and each owner needs one), IDs are reserved with a single counter transaction per batch, counters are written in the same batch, failures of one batch never stop the others, and everything is retried on transient errors. Students and organisations are created one account per batch because each needs its own Auth account; the credentials sheet appears immediately. Each run stores an `importJobs` summary (counts, ≤200 row errors, tree codes) that powers the “Post updates for these trees” screen (`#/updates?job=…`) and the downloadable error report.
+34. Photos for imported trees are added afterwards by dropping files named `TREE-YYYY-NNNNNN.jpg` on `#/updates`.
+
 ## Libraries (all from CDNs, lazy-loaded)
 Pinned versions in `js/core/loader.js` with a primary (cdnjs / unpkg / gstatic) and a fallback (jsDelivr) URL each; a failed load shows a friendly message rather than a blank page. Landing hero art, counters, reveals and the carousel are pure CSS/JS and work even if every CDN is blocked; Lucide icons, GSAP parallax, Leaflet and confetti degrade gracefully.
 
 **SRI:** hashes cannot be baked in without downloading the files from the CDNs. Run `node tools/gen-sri.mjs` once on a machine with internet; it writes `js/core/sri.js` and the loader then adds `integrity` + `crossorigin` automatically. Until you do, libraries load without SRI.
 
 ## Security notes
-* The Firebase web config is public by design; **`firestore.rules` is the real protection** (57 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
+* The Firebase web config is public by design; **`firestore.rules` is the real protection** (60 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
 * All user text is rendered through `MT.html` (auto-escaping) or `textContent`; DOMPurify is loaded for rich text. No inline event handlers are used on user data.
 * Demo mode stores demo passwords in plain text *inside the browser only*; live mode never sees or stores passwords.
 * Optional hardening (API-key restriction, App Check via `MT_APPCHECK_SITE_KEY`) is described in `SETUP.md`.

@@ -26,6 +26,9 @@ Open a tree and tap **Post update** — add a photo, its height, how it looks (T
 * **Foundation → Organisations → Add organisation** creates a sub-foundation, school or institution together with its administrator account (you get the sign-in details once; the new admin picks their own password at first sign-in). Super admins can also create top-level organisations.
 * Anyone can change their own password from the account menu.
 
+## Bulk upload (everyone)
+Open **Bulk upload**, choose what to add, press **Download Excel template**, fill in the Data sheet (use the drop-downs; the grey example rows are ignored) and drop the file back in. You will see every problem explained in plain language — red rows are skipped, amber rows import with a warning. Choose **Import valid rows**, then **Post updates for these trees** to add first updates, or drop photos named with each tree ID. Student and organisation imports show the sign-in details (PDF/CSV) right away. Up to 5,000 rows per file.
+
 ## Individual
 1. *Get started → Individual*, fill in your details and tick the privacy box. You are active immediately and receive a user ID like `MT-IND-000123`.
 2. Plant trees, post growth updates and download certificates (coming soon).

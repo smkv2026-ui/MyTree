@@ -252,6 +252,19 @@ async function t(name, fn) { try { await fn(); pass++; console.log('  ✓ ' + na
     b.set(d.doc('loginAliases/MT-STU-SCH001-0009'), { authEmail: 'mt-stu-sch001-0009@mytree.app', active: true }); await assertSucceeds(b.commit());
   });
 
+  console.log('\nBulk import (phase 5)'); await seed();
+  const job = (o) => Object.assign({ type: 'trees', createdBy: 'MT-SCH-000001', ancestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'], createdAt: 1, total: 3, ok: 3, failed: 0, errors: [], treeCodes: ['TREE-2026-000001'] }, o || {});
+  await t('importJobs: creator writes own job; cannot forge creator/ancestors; manager above can read, stranger cannot', async () => {
+    await assertSucceeds(as('s1').doc('importJobs/j1').set(job())); await assertFails(as('s1').doc('importJobs/j2').set(job({ createdBy: 'MT-SCH-000002' }))); await assertFails(as('s1').doc('importJobs/j3').set(job({ ancestorOrgIds: ['MT-SCH-000002'] })));
+    await assertSucceeds(as('f1').doc('importJobs/j1').get()); await assertFails(as('s2').doc('importJobs/j1').get()); await assertFails(as('s1').doc('importJobs/j1').update({ ok: 99 }));
+  });
+  await t('importJobs: > 200 errors or unknown type refused', async () => {
+    await assertFails(as('s1').doc('importJobs/j4').set(job({ errors: new Array(201).fill({ row: 1, msg: 'x' }) }))); await assertFails(as('s1').doc('importJobs/j5').set(job({ type: 'hax' })));
+  });
+  await t('a 300-tree batch for ONE owner passes the document-lookup limit', async () => {
+    const d = as('s1'), b = d.batch(); for (let i = 0; i < 300; i++) { const code = 'TREE-2026-' + String(500 + i).padStart(6, '0'); b.set(d.doc('trees/' + code), stuTree({ code, postedBy: 'MT-SCH-000001', onBehalfOf: 'MT-STU-SCH001-0001' })); } await assertSucceeds(b.commit());
+  });
+
   console.log(`\n${pass} passed, ${fail} failed`);
   await env.cleanup(); process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(2); });

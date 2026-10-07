@@ -109,3 +109,9 @@ mt-compare { display: block; --x: 50%; } .cmp { position: relative; aspect-ratio
 .row-actions { text-align: right; white-space: nowrap; } .people-page .table td { vertical-align: middle; } .people-page .link-btn.mono { text-decoration: none; }
 .row-menu { z-index: 1500; padding: .35rem; gap: 0; } .row-menu .pop-item { width: 100%; }
 .pw-card { margin-inline: auto; }
+
+/* ===== Phase 5: bulk ===== */
+.bk-steps { grid-template-columns: repeat(4, 1fr); margin: var(--sp-2) 0; } .bk-steps li { display: grid; justify-items: center; gap: .35rem; color: var(--muted); font-weight: 700; font-size: var(--fs-xs); } .bk-steps li.current { color: var(--primary); } .bk-steps li.done .st-dot, .bk-steps li.current .st-dot { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+.bk-type { text-align: left; font: inherit; cursor: pointer; } .bk-cols { margin-top: var(--sp-1); } .check.inline { margin-left: auto; }
+.bk-table td, .bk-table th { white-space: nowrap; } .bk-table td:last-child { white-space: normal; min-width: 260px; } .bk-ok { background: color-mix(in srgb, var(--ok-soft) 50%, transparent); } .bk-warn { background: var(--warn-soft); } .bk-bad { background: var(--danger-soft); }
+.progress.big { height: 16px; margin: var(--sp-2) 0; } .result { text-align: center; display: grid; justify-items: center; gap: var(--sp-1); } .result .sum-row { width: 100%; } .pad { padding: var(--sp-1) var(--sp-2); }

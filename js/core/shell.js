@@ -18,7 +18,7 @@
     { id: 'updates', icon: 'clipboard-check', href: '/updates', roles: NOT_SUPER, group: 'main', badge: 'dueCount' },
     { id: 'people', icon: 'users', href: '/people', roles: ['school', 'institution', 'foundation'], group: 'manage' },
     { id: 'orgs', icon: 'building-2', href: '/orgs', roles: ['foundation', 'super_admin'], group: 'manage' },
-    { id: 'bulk', icon: 'file-spreadsheet', href: '/bulk', roles: NOT_SUPER, group: 'manage' },
+    { id: 'bulk', icon: 'file-spreadsheet', href: '/bulk', roles: ALL, group: 'manage' },
     { id: 'admin', icon: 'gauge', href: '/admin', roles: ['super_admin'], group: 'admin' },
     { id: 'approvals', icon: 'badge-check', href: '/admin/approvals', roles: ['super_admin'], group: 'admin', badge: 'pendingCount' },
     { id: 'reports', icon: 'bar-chart-3', href: '/admin/reports', roles: ['super_admin'], group: 'admin' },

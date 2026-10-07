@@ -58,8 +58,18 @@ Tick each box in **Demo mode** (`index.html`) and again in **Live mode**. Phase 
 - [ ] **Plant on behalf:** People → Actions → *Plant a tree for them* pre-selects the person; the tree belongs to them and its timeline/audit credit the admin ("Posted by … on behalf of …"). Posting an update on a student's tree does the same.
 - [ ] A foundation sees trees of schools beneath it (Trees → My organisation, Map); a sibling school never sees them.
 
+## Phase 5 — Bulk import
+- [ ] Download each template (Trees, Students, Organisations, Updates): opens in Excel/LibreOffice/Google Sheets; Instructions sheet is protected; drop-downs appear for species/health/org type/state; count and coordinates reject out-of-range numbers; example rows are ignored on upload.
+- [ ] Upload a file with a mix of good rows, typos (“Neemm”), future dates, swapped lat/lng, a non-numeric count, a missing owner and a duplicate: each is flagged red/amber with a clear reason; “Show all rows” toggles; the error-report CSV downloads.
+- [ ] **Import valid rows only** → progress bar → result; tree counters and Map/My Trees show the new trees; admin imports for a student land under that student.
+- [ ] 500+ trees import without errors (live: several batches); closing the tab mid-import leaves earlier batches saved and nothing half-written within a batch.
+- [ ] Students import → credentials dialog with PDF/CSV appears immediately; the students can sign in.
+- [ ] Organisations import (foundation) creates schools/sub-foundations with admin credentials.
+- [ ] Updates import posts updates in date order; unknown tree IDs are rejected.
+- [ ] After a trees import, **Post updates for these trees** lists exactly the imported trees; drop photos named by tree ID to attach them.
+- [ ] CSV (comma and semicolon-free) and .xlsx both work; a .xls or wrong sheet shows a friendly message.
+
 ## Later phases (to be filled in as they ship)
-- [ ] Bulk import (trees, students, updates) with error report
 - [ ] Admin dashboard counters, rebuild stats, reports export, impact report PDF
 - [ ] Green-cover swipe comparison, photo ExG estimate, simulated label in demo
 - [ ] PWA install, offline post then sync

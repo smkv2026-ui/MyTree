@@ -43,11 +43,22 @@
       <section class="card dropzone" id="drop" tabindex="0"><div class="dz-in">${ui.icon('images')}<div><strong>Drop photos here</strong><p class="fine">Name each file with its tree ID (for example <code>TREE-2026-000123.jpg</code>) and we will add it to that tree as a photo update.</p></div><label class="btn btn-soft">Choose photos<input type="file" id="drop-in" accept="image/*" multiple hidden></label></div><p class="fine" id="drop-msg" role="status"></p></section></div>`;
   }
 
-  function after(host) {
+  function after(host, ctx) {
     var p = MT.auth.profile(), isOrg = MT.auth.isOrgAdmin(), S = { scope: isOrg ? 'org' : 'mine', tab: 'needs', sel: {}, data: null, q: '' }, destroyed = false;
     var list = MT.$('#up-list', host);
+    function loadJob(id) {
+      return MT.db.get('importJobs', id).then(function (job) {
+        if (!job) throw MT.userError('That import could not be found.');
+        var codes = (job.treeCodes || []).slice(0, 300), trees = [], i = 0;
+        function worker() { if (i >= codes.length) return Promise.resolve(); var c = codes[i++]; return MT.db.get('trees', c).then(function (t) { if (t) trees.push(t); }, function () {}).then(worker); }
+        return Promise.all([worker(), worker(), worker(), worker(), worker(), worker()]).then(function () {
+          var now = Date.now(); return { items: trees.map(function (t) { return { tree: t, s: MT.cadence.status(t, now) }; }), trees: trees, capped: (job.treeCodes || []).length > 300, job: job };
+        });
+      });
+    }
     function load(force) {
       list.innerHTML = ui.skeleton(4, 'sk-line').s;
+      if (ctx && ctx.query && ctx.query.job) return loadJob(ctx.query.job).then(function (d) { if (destroyed) return; S.data = d; S.tab = 'all'; draw(); MT.$('#up-sub', host).textContent = 'Imported trees (' + d.trees.length + (d.capped ? ', first 300 shown' : '') + ') — post a first update or drop photos below.'; }).catch(function (e) { list.innerHTML = '<li class="empty"><h3>Could not load</h3><p>' + MT.esc(MT.friendlyError(e)) + '</p></li>'; });
       return MT.due.load(S.scope, force).then(function (d) { if (destroyed) return; S.data = d; draw(); }).catch(function (e) { list.innerHTML = '<li class="empty"><h3>Could not load</h3><p>' + MT.esc(MT.friendlyError(e)) + '</p></li>'; });
     }
     function shown() {
@@ -65,7 +76,7 @@
       var rows = shown();
       list.innerHTML = rows.length ? rows.slice(0, 100).map(function (i) { return row(i, S.sel, isOrg && S.scope === 'org'); }).join('') + (rows.length > 100 ? '<li class="fine center">Showing the first 100 of ' + rows.length + ' — use search to narrow down.</li>' : '') : '<li class="empty"><h3>' + (S.tab === 'needs' ? 'Nothing is due' : 'Nothing here') + '</h3><p>' + (S.tab === 'needs' ? 'Come back later or check “Coming up”.' : 'No trees match.') + '</p></li>';
       var n = Object.keys(S.sel).length; MT.$('#up-bulk', host).hidden = !n; MT.$('#up-n', host).textContent = n + ' selected';
-      if (d.capped) MT.$('#up-sub', host).textContent += ' (showing the 500 least recently updated trees)';
+      if (d.job) MT.$('#up-sub', host).textContent = 'Imported trees (' + d.trees.length + ') — post a first update or drop photos below.'; else if (d.capped) MT.$('#up-sub', host).textContent += ' (showing the 500 least recently updated trees)';
     }
     host.addEventListener('click', function (e) {
       var tab = e.target.closest('[data-tab]'); if (tab) { S.tab = tab.dataset.tab; draw(); return; }

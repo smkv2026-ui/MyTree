@@ -1,6 +1,6 @@
 # Firestore rules — manual test matrix
 
-Automated: `cd tests && npm install && npm test` (needs Node 18+ and Java for the emulator) runs `rules.test.js` (57 checks).
+Automated: `cd tests && npm install && npm test` (needs Node 18+ and Java for the emulator) runs `rules.test.js` (60 checks).
 Manual: in the Firebase console → Firestore → **Rules → Rules playground**, simulate the requests below. ✅ = allowed, ❌ = denied.
 Set up three profiles first (use the app itself): super admin, a school admin (approved) with one student, and a second school admin.
 
@@ -57,4 +57,7 @@ Set up three profiles first (use the app itself): super admin, a school admin (a
 | 46 | Super admin | create a top-level organisation ✅; foundation without a parent ❌ | as shown |
 | 47 | Foundation | add a student to a school beneath it ✅ | as shown |
 
-Later phases add rows for stats coupling and bulk imports.
+| 48 | Manager | create `importJobs` as self with own ancestors ✅; forged creator/ancestors, > 200 errors, unknown type ❌; update ❌; parent org can read ✅ | as shown |
+| 49 | School admin | 300-tree batch for one student (on behalf) ✅ | as shown |
+
+Later phases add rows for stats hardening, notifications, challenges and species edits.
