@@ -324,7 +324,7 @@
       var dt = lastT ? Math.min(60, now - lastT) : 16; lastT = now;
       // growth easing
       if (birth) { var bt = clamp((now - t0) / 3200, 0, 1); shown = lerp(0.02, target, ease(bt)); if (bt >= 1) { birth = false; sync(); } sync(); }
-      else if (playing) { shown = Math.min(1, shown + dt * 0.00013); if (shown >= 1) { playing = false; if (playBtn) playBtn.textContent = '▶ Watch it grow'; } sync(); }
+      else if (playing) { shown = Math.min(1, shown + dt * 0.00011); if (shown >= 1) { playing = false; if (playBtn) playBtn.textContent = '▶ Watch it grow'; } sync(); }
       else if (Math.abs(shown - target) > 0.0005) { shown += (target - shown) * Math.min(1, dt * 0.01); sync(); }
       if (!drag) { yaw += vyaw * dt * 0.06; vyaw *= 0.94; if (autorotate && Math.abs(vyaw) < 0.003) yaw += dt * 0.00022; }
       wind = still ? 0 : 0.55 + 0.35 * Math.sin(now * 0.0006);
@@ -360,7 +360,7 @@
     if (ui) {
       ui.addEventListener('click', function (e) {
         var b = e.target.closest('[data-a]'); if (!b) return;
-        if (b.dataset.a === 'play') { if (playing) { playing = false; b.textContent = '▶ Watch it grow'; } else { birth = false; shown = shown >= 0.995 ? 0.02 : shown; target = 1; playing = true; b.textContent = '❚❚ Pause'; } kick(); }
+        if (b.dataset.a === 'play') { if (playing) { playing = false; b.textContent = '▶ Watch it grow'; } else { birth = false; shown = 0.03; target = 1; playing = true; /* always replay from a tiny sapling to the full tree */ b.textContent = '❚❚ Pause'; } kick(); }
         else if (b.dataset.a === 'spin') { autorotate = !autorotate; b.setAttribute('aria-pressed', autorotate); kick(); }
         else resetView();
       });
