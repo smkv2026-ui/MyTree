@@ -89,7 +89,8 @@
 
   /* ---------- structure generation ---------- */
   /** A branch is a polyline; `lvl` is its order (0 = trunk). Returned nodes carry everything the renderer needs. */
-  function build(st, seed, healthKey) {
+  function build(st, seed, healthKey, detail) {
+    detail = detail || 1;
     var r = rng(seed + '|' + st.id), H = HEALTH[healthKey] || HEALTH.healthy, branches = [], leaves = [], fronds = [], blooms = [], height = 10 * st.tall;
     if (st.form === 'shrub') height = 5.2;
     if (st.form === 'bamboo') height = 11;
@@ -106,7 +107,7 @@
     }
     function crown(b, lvl) {
       // leaf clusters, flowers and fruit near the end of terminal branches
-      var n = lvl >= D ? 7 : 3, k, pts = b.pts;
+      var n = Math.round((lvl >= D ? 7 : 3) * detail), k, pts = b.pts;
       for (k = 0; k < n; k++) {
         var f = lvl >= D ? 0.35 + r() * 0.65 : 0.7 + r() * 0.3, i = Math.min(pts.length - 2, Math.floor(f * (pts.length - 1))), t = f * (pts.length - 1) - i;
         var P = [lerp(pts[i][0], pts[i + 1][0], t) + (r() - 0.5) * 1.1, lerp(pts[i][1], pts[i + 1][1], t) + (r() - 0.3) * 0.9, lerp(pts[i][2], pts[i + 1][2], t) + (r() - 0.5) * 1.1];
@@ -170,7 +171,7 @@
   function mount(el, o) {
     o = o || {};
     var sp = o.speciesId ? MT.species.get(o.speciesId) : null, st = styleFor(sp, o), healthKey = o.health === 'dead' || o.status === 'dead' ? 'dead' : (HEALTH[o.health] ? o.health : 'healthy');
-    var seed = String(o.seed || o.speciesId || 'tree'), model = build(st, seed, healthKey), H = HEALTH[healthKey], dead = healthKey === 'dead';
+    var seed = String(o.seed || o.speciesId || 'tree'), model = build(st, seed, healthKey, o.detail), H = HEALTH[healthKey], dead = healthKey === 'dead';
     var live = o.ageYears != null ? clamp(Math.pow(Math.max(0, o.ageYears) / st.maturity, 0.65), 0.1, 1) : (o.growth != null ? o.growth : 1), shown = live, target = live;
     var still = reduced(), autorotate = o.autorotate !== false && !still, yaw = 0.5, pitch = 0.2, dist = 1, vyaw = 0, drag = null, playing = false, birth = o.birth !== false && !still, t0 = performance.now(), dead3 = false;
     var rnd = rng(seed + 'fx'), parts = [], flies = [], lastT = 0, wind = 0;
@@ -182,8 +183,8 @@
     var hint = document.createElement('div'); hint.className = 't3d-hint'; hint.textContent = '↔ Drag to rotate · scroll to zoom'; el.appendChild(hint);
     var ui = null, slider, ageOut;
     if (o.controls) {
-      ui = document.createElement('div'); ui.className = 't3d-ctl';
-      ui.innerHTML = '<button type="button" class="btn btn-primary btn-sm" data-a="play">▶ Watch it grow</button><label class="t3d-age"><span class="sr-only">Tree age</span><input type="range" min="0" max="100" value="' + Math.round(live * 100) + '" aria-label="Tree age"><output></output></label>' +
+      ui = document.createElement('div'); ui.className = 't3d-ctl' + (o.controls === 'lite' ? ' lite' : '');
+      ui.innerHTML = '<button type="button" class="btn btn-primary btn-sm" data-a="play">▶ Watch it grow</button><label class="t3d-age"' + (o.controls === 'lite' ? ' hidden' : '') + '><span class="sr-only">Tree age</span><input type="range" min="0" max="100" value="' + Math.round(live * 100) + '" aria-label="Tree age"><output></output></label>' +
         '<button type="button" class="btn btn-soft btn-sm" data-a="spin" aria-pressed="' + autorotate + '">Auto-rotate</button><button type="button" class="btn btn-ghost btn-sm" data-a="reset">Reset view</button>';
       el.appendChild(ui); slider = ui.querySelector('input'); ageOut = ui.querySelector('output');
     }
@@ -197,7 +198,7 @@
     var cosY, sinY, cosP, sinP, F, CX, CY, TY, SC;
     function setCam() {
       cosY = Math.cos(yaw); sinY = Math.sin(yaw); cosP = Math.cos(pitch); sinP = Math.sin(pitch);
-      var fit = model.height * (0.2 + 0.8 * ease(shown)); F = Math.min(W, Hh) * 1.55; CX = W / 2; CY = Hh * 0.66; TY = fit * 0.42; SC = fit;
+      var fit = model.height * (0.2 + 0.8 * ease(shown)); F = Math.min(W, Hh) * 1.55; CX = W / 2; CY = Hh * (o.horizon || 0.66); TY = fit * 0.42; SC = fit;
     }
     var DZ = function () { return (SC * 3.0 + 6) / dist; };
     function proj(x, y, z, out) {
@@ -281,9 +282,13 @@
       });
     }
     function particles(dt) {
-      if (!still && healthKey !== 'dead' && shown > 0.45 && parts.length < 14 && rnd() < dt * 0.0016) parts.push({ x: (rnd() - 0.5) * 6, y: model.height * (0.55 + rnd() * 0.4), z: (rnd() - 0.5) * 6, vx: 0.4 + rnd() * 0.5, vy: -0.8 - rnd() * 0.6, ph: rnd() * 6, c: rnd() < 0.7 ? H.colors[0] : '#d6a03a', fl: st.flower && rnd() < 0.5 ? st.flower : null });
+      if (!still && healthKey !== 'dead' && shown > 0.45 && parts.length < (o.ambient ? 34 : 14) && rnd() < dt * (o.ambient ? 0.004 : 0.0016)) parts.push({ x: (rnd() - 0.5) * 6, y: model.height * (0.55 + rnd() * 0.4), z: (rnd() - 0.5) * 6, vx: 0.4 + rnd() * 0.5, vy: -0.8 - rnd() * 0.6, ph: rnd() * 6, c: rnd() < 0.7 ? H.colors[0] : '#d6a03a', fl: st.flower && rnd() < 0.5 ? st.flower : null });
       if (dead && !still && parts.length < 10 && rnd() < dt * 0.0006) parts.push({ x: (rnd() - 0.5) * 5, y: model.height * 0.7, z: (rnd() - 0.5) * 5, vx: 0.3, vy: -0.8, ph: rnd() * 6, c: '#9a6a2a' });
       for (var i = parts.length - 1; i >= 0; i--) { var p = parts[i]; p.x += p.vx * dt * 0.0016 + Math.sin(lastT * 0.002 + p.ph) * 0.004; p.y += p.vy * dt * 0.0016; p.z += Math.cos(lastT * 0.0015 + p.ph) * 0.004; if (p.y <= 0.03) { parts.splice(i, 1); continue; } var q = proj(p.x, p.y, p.z, tmp); prim.push({ z: q.z - 0.3, t: 6, x: q.x, y: q.y, s: q.s, c: p.fl || p.c, a: lastT * 0.004 + p.ph }); }
+      if (o.ambient && !still) {
+        for (var b = 0; b < 3; b++) { var bp = ((lastT * 0.000045 * (1 + b * 0.35) + b * 0.37) % 1.3) - 0.15; prim.push({ z: 1e9, t: 9, x: bp * W, y: Hh * (0.14 + b * 0.07) + Math.sin(lastT * 0.002 + b * 2) * 7, a: Math.sin(lastT * 0.016 + b), s: 5 + b * 1.5 }); }
+        if (isDark()) for (var ff = 0; ff < 16; ff++) { var fa = lastT * 0.00035 * (ff % 2 ? 1 : -1) + ff * 1.9, fq = proj(Math.cos(fa) * (3 + (ff % 5)), 0.7 + (ff % 6) * 0.9 + Math.sin(lastT * 0.0013 + ff) * 0.4, Math.sin(fa * 1.3) * (3 + (ff % 4)), tmp); prim.push({ z: fq.z - 0.4, t: 8, x: fq.x, y: fq.y, s: fq.s, g: 0.5 + 0.5 * Math.sin(lastT * 0.004 + ff * 1.7) }); }
+      }
       if (!still && !dead && (healthKey === 'thriving' || healthKey === 'healthy') && shown > 0.5) {
         for (var k = 0; k < 2; k++) { var th = lastT * 0.0007 * (k ? -1 : 1) + k * 3, rr = 3.4 + k, bx = Math.cos(th) * rr, bz = Math.sin(th) * rr, by = model.height * (0.35 + 0.2 * Math.sin(lastT * 0.0021 + k * 2)), q2 = proj(bx, by, bz, tmp); prim.push({ z: q2.z - 0.5, t: 7, x: q2.x, y: q2.y, s: q2.s, w: Math.abs(Math.sin(lastT * 0.02 + k)), col: k ? '#ff9a3c' : '#6aa8ff' }); }
       }
@@ -308,6 +313,8 @@
         case 4: { var fs = Math.max(1.5, p.s * 0.1); ctx.strokeStyle = '#3d8f46'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x, p.y - fs * 2); ctx.stroke(); ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y - fs * 2.2, fs * 1.1, 0, TAU); ctx.fill(); break; }
         case 5: { var rw = p.r * p.s * 2; ctx.fillStyle = isDark() ? '#5c6a66' : '#9aa39c'; ctx.beginPath(); ctx.ellipse(p.x, p.y, rw, rw * 0.6, 0, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.ellipse(p.x - rw * 0.2, p.y - rw * 0.2, rw * 0.5, rw * 0.28, 0, 0, TAU); ctx.fill(); break; }
         case 6: ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.scale(1, 0.55 + 0.45 * Math.abs(Math.sin(p.a * 1.7))); ctx.fillStyle = p.c; ctx.beginPath(); ctx.ellipse(0, 0, Math.max(2, p.s * 0.2), Math.max(1.2, p.s * 0.1), 0, 0, TAU); ctx.fill(); ctx.restore(); break;
+        case 8: { var gr = Math.max(4, p.s * 0.45) * (0.6 + p.g * 0.6), gg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, gr); gg.addColorStop(0, 'rgba(255,240,150,' + (0.9 * p.g) + ')'); gg.addColorStop(1, 'rgba(255,240,150,0)'); ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(p.x, p.y, gr, 0, TAU); ctx.fill(); break; }
+        case 9: { ctx.strokeStyle = isDark() ? 'rgba(230,240,235,.85)' : 'rgba(40,60,60,.7)'; ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(p.x - p.s, p.y - p.a * p.s * 0.8); ctx.quadraticCurveTo(p.x - p.s * 0.4, p.y + 1, p.x, p.y); ctx.quadraticCurveTo(p.x + p.s * 0.4, p.y + 1, p.x + p.s, p.y - p.a * p.s * 0.8); ctx.stroke(); break; }
         case 7: { var ws = Math.max(3, p.s * 0.26) * (0.25 + p.w); ctx.fillStyle = p.col; ctx.beginPath(); ctx.ellipse(p.x - ws * 0.7, p.y, ws, ws * 1.1, -0.5, 0, TAU); ctx.ellipse(p.x + ws * 0.7, p.y, ws, ws * 1.1, 0.5, 0, TAU); ctx.fill(); break; }
       }
     }
@@ -322,7 +329,7 @@
       if (!drag) { yaw += vyaw * dt * 0.06; vyaw *= 0.94; if (autorotate && Math.abs(vyaw) < 0.003) yaw += dt * 0.00022; }
       wind = still ? 0 : 0.55 + 0.35 * Math.sin(now * 0.0006);
       setCam(); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, Hh);
-      sky(); ground();
+      if (o.sky !== false) sky(); ground();
       prim.length = 0; addScenery(); branchPrims(); leafPrims(); particles(dt);
       prim.sort(function (a, b) { return b.z - a.z; });
       for (var i = 0; i < prim.length; i++) drawPrim(prim[i]);

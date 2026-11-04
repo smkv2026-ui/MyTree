@@ -92,7 +92,7 @@
             <div class="hero-cta"><a class="btn btn-primary btn-lg" href="#/register">${t('hero.cta')} ${ui.icon('arrow-right')}</a><a class="btn btn-glass btn-lg" href="#/" data-scroll="forest">${t('hero.cta2')}</a></div>
             <p class="hero-note">${ui.icon('shield-check')} Free to start · Works on any phone · Kids’ data stays private</p>
           </div>
-          <div class="hero-art">${raw(heroTree())}</div>
+          <div class="hero-art"><div class="hero-3d" id="hero-3d">${raw(heroTree())}</div></div>
         </div>
         <a class="scroll-cue" href="#/" data-scroll="impact" aria-label="Scroll to see our impact">${ui.icon('chevrons-down')}</a>
       </section>
@@ -162,6 +162,12 @@
 
   function after(host) {
     var cleanups = [];
+    // Hero: a living 3D tree you can turn with the mouse (falls back to the flat SVG if it cannot load).
+    MT.lazy.load('tree3d').then(function () {
+      var el = MT.$('#hero-3d', host); if (!el || !host.isConnected) return;
+      var v = MT.tree3d.mount(el, { speciesId: 'mango', health: 'thriving', growth: 1, seed: 'maitree', detail: 1.7, horizon: 0.6, ambient: true, sky: false, controls: 'lite', birth: true });
+      el.classList.add('is-3d'); cleanups.push(function () { v.destroy(); });
+    }).catch(function () {});
     // Lazy-load the map only when it scrolls near the viewport.
     var mapEl = MT.$('#forest-map', host);
     MT.db.list('stats', { where: [['kind', '==', 'city']] }).catch(function () { return []; }).then(function (cities) {
