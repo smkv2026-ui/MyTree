@@ -68,3 +68,16 @@ Your teacher gives you a **user ID** and **password** (for example `Maple-River-
 * **Install as an app**: Quick search → “Install the app”, or your browser's menu → Install / Add to Home Screen. Works offline for pages you have opened.
 * **Accessibility menu** (the sliders icon): text size, high contrast, dark / light theme and **Reduce motion**.
 * **Tree in 3D**: on every tree page, drag sideways to turn the tree, scroll or pinch to zoom, press **Watch it grow** or move the age slider to see it from sapling to maturity. Its look follows the species and its health. Keyboard: left/right arrow keys turn it, + / − zoom, 0 resets.
+
+## Workshops (everyone; admins organise)
+* **Join:** *Workshops* lists sessions you are invited to (also in the bell). Reply Yes / Maybe / No, **Add to calendar**, open the meeting link, and press **I am attending** while the session is live. Afterwards give **feedback** and download your **certificate**.
+* **Organise (admins):** *New workshop* → title, mode, one or more **sessions with your own meeting link** (Zoom, Meet, Teams…) or venue → choose who is invited: organisations (everything beneath them is included), specific people by user ID, and — Super Admin only — everyone or whole roles. Open the workshop to see RSVPs, **mark attendance** (Mark all present), read feedback, export CSV, edit, duplicate or cancel.
+
+## Saplings & bird-care shop
+* **Buy:** *Saplings shop* → **Buy** → place the order → pay the seller directly with the UPI ID / bank details shown → tap **I have paid** and enter the payment reference. When the seller confirms and delivers, open *My orders* → **Plant this**.
+* **Sell:** register as *Seller / Nursery* (approval needed). In *My listings* add your UPI / bank details and your saplings, nest boxes, feeders and water bowls. When a buyer says they paid, check your account and press **Payment received — confirm**; press **Mark delivered** when handed over.
+* MyTree never touches the money. Students cannot buy — ask your school admin.
+
+## Bird friends
+* *Bird friends* → **Add** a nest box, feeder or water bowl (pin it on the map), **Log care** when you refill or clean it, and **Log a bird sighting**. Overdue stations are highlighted; tips on the *How to help birds* tab.
+

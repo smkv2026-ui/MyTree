@@ -108,6 +108,7 @@
     foundation: function () { return MT.db.nextId('FND').then(function (n) { return 'MT-FND-' + MT.pad(n, 6); }); },
     school: function () { return MT.db.nextId('SCH').then(function (n) { return 'MT-SCH-' + MT.pad(n, 6); }); },
     institution: function () { return MT.db.nextId('INS').then(function (n) { return 'MT-INS-' + MT.pad(n, 6); }); },
+    seller: function () { return MT.db.nextId('SEL').then(function (n) { return 'MT-SEL-' + MT.pad(n, 6); }); },
     org: function (type) { return MT.ids[type](); },
     /** Student/user inside an org: MT-STU-SCH045-0012 */
     member: function (orgId) {

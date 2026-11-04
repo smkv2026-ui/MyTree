@@ -86,7 +86,7 @@ service cloud.firestore {
 
     // ---------- users ----------
     function validUserCommon(d) {
-      return d.role in ['super_admin', 'foundation', 'school', 'institution', 'student', 'individual']
+      return d.role in ['super_admin', 'foundation', 'school', 'institution', 'student', 'individual', 'seller']
         && str(d.userId, 40) && str(d.name, 120) && d.ancestorOrgIds is list && d.ancestorOrgIds.size() <= 8
         && d.active is bool && str(d.status, 20) && optStr(d, 'email', 120) && optStr(d, 'authEmail', 120)
         && optStr(d, 'phone', 30) && optStr(d, 'grade', 60) && optStr(d, 'roll', 30) && optStr(d, 'guardian', 120);
@@ -100,7 +100,7 @@ service cloud.firestore {
     }
     function selfOrgAdmin(d, uid) {
       let org = getAfter(/databases/$(database)/documents/orgs/$(d.orgId)).data;
-      return d.role in ['foundation', 'school', 'institution'] && d.active == false && d.status == 'pending'
+      return d.role in ['foundation', 'school', 'institution', 'seller'] && d.active == false && d.status == 'pending'
         && d.orgId == d.userId && d.ancestorOrgIds == [d.orgId]
         && org.status == 'pending' && org.type == d.role && org.createdBy == uid;
     }
@@ -136,20 +136,20 @@ service cloud.firestore {
 
     // ---------- orgs ----------
     function validOrgCommon(d) {
-      return d.type in ['foundation', 'school', 'institution'] && str(d.name, 160) && d.ancestorOrgIds is list && d.ancestorOrgIds.size() <= 8
+      return d.type in ['foundation', 'school', 'institution', 'seller'] && str(d.name, 160) && d.ancestorOrgIds is list && d.ancestorOrgIds.size() <= 8
         && optStr(d, 'regNo', 60) && optStr(d, 'address', 300) && optStr(d, 'city', 80) && optStr(d, 'state', 80) && optStr(d, 'country', 60)
         && optStr(d, 'contactName', 120) && optStr(d, 'phone', 30) && optStr(d, 'email', 120)
         && (!('logo' in d) || (d.logo is string && d.logo.size() <= 60000));
     }
-    function orgPrefix(type) { return type == 'foundation' ? 'FND' : (type == 'school' ? 'SCH' : 'INS'); }
+    function orgPrefix(type) { return type == 'foundation' ? 'FND' : (type == 'school' ? 'SCH' : (type == 'seller' ? 'SEL' : 'INS')); }
     function selfRegOrg(orgId, d) {
       return request.auth.uid == d.createdBy && d.status == 'pending' && d.parentOrgId == '' && d.ancestorOrgIds == [orgId]
-        && orgId.matches('MT-(FND|SCH|INS)-[0-9]{6}') && orgId[3:6] == orgPrefix(d.type) && idNumber(orgId) <= counterN(orgPrefix(d.type))
+        && orgId.matches('MT-(FND|SCH|INS|SEL)-[0-9]{6}') && orgId[3:6] == orgPrefix(d.type) && idNumber(orgId) <= counterN(orgPrefix(d.type))
         && existsAfter(/databases/$(database)/documents/users/$(request.auth.uid))
         && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId == orgId;
     }
     function managerCreatesOrg(orgId, d) {
-      return orgId.matches('MT-(FND|SCH|INS)-[0-9]{6}') && orgId[3:6] == orgPrefix(d.type) && idNumber(orgId) <= counterN(orgPrefix(d.type))
+      return orgId.matches('MT-(FND|SCH|INS|SEL)-[0-9]{6}') && orgId[3:6] == orgPrefix(d.type) && idNumber(orgId) <= counterN(orgPrefix(d.type))
         && d.status == 'approved' && d.ancestorOrgIds[d.ancestorOrgIds.size() - 1] == orgId
         && (isSuper() || (d.parentOrgId != '' && me().role == 'foundation' && me().orgId in d.ancestorOrgIds && d.parentOrgId in d.ancestorOrgIds));
     }
@@ -162,7 +162,7 @@ service cloud.firestore {
         // parent organisation can suspend / reactivate children (never itself)
         || (isManager() && me().orgId != orgId && manages(resource.data.ancestorOrgIds) && changedOnly(['status', 'statusAt', 'statusBy', 'statusReason']))
         // an organisation edits its own contact details
-        || (isActive() && inMyOrg(orgId) && me().role in ['foundation', 'school', 'institution']
+        || (isActive() && inMyOrg(orgId) && me().role in ['foundation', 'school', 'institution', 'seller']
             && changedOnly(['name', 'regNo', 'address', 'city', 'state', 'country', 'contactName', 'phone', 'email', 'logo']));
       allow delete: if isSuper();
     }
@@ -170,7 +170,7 @@ service cloud.firestore {
     // ---------- stats (denormalised counters) ----------
     function statsKeysOk() {
       // Only numeric counters and display fields; per-write change is bounded by statsDeltaOk().
-      return request.resource.data.keys().hasOnly(['users', 'individuals', 'students', 'orgsPending', 'orgsApproved', 'orgs_school', 'orgs_foundation', 'orgs_institution',
+      return request.resource.data.keys().hasOnly(['users', 'individuals', 'students', 'orgsPending', 'orgsApproved', 'orgs_school', 'orgs_foundation', 'orgs_institution', 'orgs_seller',
         'trees', 'treesAlive', 'treesDead', 'sumPlantedDayAlive', 'h_thriving', 'h_healthy', 'h_needs_care', 'h_struggling', 'h_dead', 'updatesThisMonth', 'updates',
         'members', 'kind', 'name', 'type', 'city', 'state', 'lat', 'lng', 'photos', 'photoBytes', 'bytes', 'orgId', 'label']);
     }
@@ -345,6 +345,102 @@ service cloud.firestore {
       allow create: if isManager() && request.resource.data.orgId == me().orgId && request.resource.data.ancestorOrgIds == me().ancestorOrgIds && request.resource.data.createdBy == me().userId
         && str(request.resource.data.title, 80) && request.resource.data.metric in ['trees', 'updates'] && request.resource.data.target is int && request.resource.data.target > 0 && request.resource.data.target <= 1000000;
       allow delete: if isManager() && (isSuper() || resource.data.orgId == me().orgId);
+    }
+
+    // ---------- workshops: organiser (an admin) invites an audience; sessions carry the meeting link ----------
+    // Audience fields are checked against the reader: everyone, a role, an organisation (expanded to everything beneath it by the client) or a named person.
+    // Only the Super Admin may invite "everyone" or whole roles; others pick organisations / people (the UI limits them to their own hierarchy).
+    function wsShape(d) {
+      return str(d.title, 100) && optStr(d, 'description', 600) && d.mode in ['online', 'offline', 'hybrid'] && d.sessions is list && d.sessions.size() >= 1 && d.sessions.size() <= 30
+        && d.audienceOrgIds is list && d.audienceOrgIds.size() <= 300 && d.audienceUserIds is list && d.audienceUserIds.size() <= 200 && d.audienceRoles is list && d.audienceRoles.size() <= 7
+        && d.audience in ['all', 'custom'] && ((d.audience == 'custom' && d.audienceRoles.size() == 0) || isSuper()) && str(d.audienceLabel, 200);
+    }
+    function wsOf(id) { return get(/databases/$(database)/documents/workshops/$(id)).data; }
+    match /workshops/{id} {
+      allow read: if isActive() && (resource.data.audience == 'all' || me().role in resource.data.audienceRoles || me().orgId in resource.data.audienceOrgIds
+        || me().userId in resource.data.audienceUserIds || resource.data.organiserId == me().userId || manages(resource.data.ancestorOrgIds));
+      allow create: if isManager() && wsShape(request.resource.data) && request.resource.data.organiserId == me().userId && request.resource.data.ancestorOrgIds == me().ancestorOrgIds
+        && request.resource.data.status == 'scheduled';
+      allow update: if isManager() && (resource.data.organiserId == me().userId || isSuper()) && wsShape(request.resource.data)
+        && request.resource.data.organiserId == resource.data.organiserId && request.resource.data.ancestorOrgIds == resource.data.ancestorOrgIds;
+      allow delete: if isManager() && (resource.data.organiserId == me().userId || isSuper());
+    }
+    function wsRecordOk(d, id) { return d.workshopId is string && wsOf(d.workshopId).organiserId == d.organiserId && d.ancestorOrgIds == wsOf(d.workshopId).ancestorOrgIds; }
+    match /workshopRsvps/{id} {
+      allow read: if isActive() && (resource.data.userId == me().userId || resource.data.organiserId == me().userId || manages(resource.data.ancestorOrgIds));
+      allow create, update: if isActive() && request.resource.data.userId == me().userId && id == request.resource.data.workshopId + '_' + me().userId
+        && request.resource.data.response in ['yes', 'no', 'maybe'] && str(request.resource.data.name, 120) && wsRecordOk(request.resource.data, id);
+      allow delete: if isActive() && resource.data.userId == me().userId;
+    }
+    match /workshopAttendance/{id} {
+      allow read: if isActive() && (resource.data.userId == me().userId || resource.data.organiserId == me().userId || manages(resource.data.ancestorOrgIds));
+      // the organiser marks anyone; a person may only check THEMSELVES in as present
+      allow create, update: if isActive() && request.resource.data.status in ['present', 'absent'] && str(request.resource.data.name, 120) && wsRecordOk(request.resource.data, id)
+        && id == request.resource.data.workshopId + '_' + request.resource.data.sessionId + '_' + request.resource.data.userId && (
+          (request.resource.data.userId == me().userId && request.resource.data.status == 'present' && request.resource.data.method == 'self')
+          || (request.resource.data.method == 'organiser' && request.resource.data.markedBy == me().userId && (isSuper() || wsOf(request.resource.data.workshopId).organiserId == me().userId)));
+      allow delete: if false;
+    }
+    match /workshopFeedback/{id} {
+      allow read: if isActive() && (resource.data.userId == me().userId || resource.data.organiserId == me().userId || manages(resource.data.ancestorOrgIds));
+      allow create: if isActive() && request.resource.data.userId == me().userId && id == request.resource.data.workshopId + '_' + request.resource.data.sessionId + '_' + me().userId
+        && request.resource.data.rating is int && request.resource.data.rating >= 1 && request.resource.data.rating <= 5 && optStr(request.resource.data, 'worked', 300)
+        && optStr(request.resource.data, 'improve', 300) && optStr(request.resource.data, 'comment', 300) && wsRecordOk(request.resource.data, id);
+      allow update, delete: if false;
+    }
+
+    // ---------- marketplace: sellers list saplings / bird-care items; buyers pay the seller directly and the seller confirms ----------
+    match /sellerProfiles/{sid} {
+      allow read: if isActive();
+      allow create, update: if isActive() && me().role == 'seller' && sid == me().userId && request.resource.data.keys().hasOnly(['name', 'city', 'state', 'upi', 'accountName', 'accountNo', 'ifsc', 'bank', 'phone', 'payNote', 'active', 'updatedAt'])
+        && str(request.resource.data.name, 160) && optStr(request.resource.data, 'upi', 80) && optStr(request.resource.data, 'accountNo', 30) && optStr(request.resource.data, 'payNote', 250);
+      allow delete: if isSuper();
+    }
+    function listingShape(d) {
+      return str(d.title, 90) && optStr(d, 'description', 300) && d.category in ['sapling', 'bird'] && d.price is number && d.price >= 0 && d.price <= 10000000 && d.stock is int && d.stock >= 0 && d.stock <= 100000
+        && d.active is bool && (!('photo' in d) || (d.photo is string && d.photo.size() <= 24000)) && str(d.sellerName, 160);
+    }
+    match /listings/{id} {
+      allow read: if isActive();
+      allow create: if isActive() && me().role == 'seller' && request.resource.data.sellerId == me().userId && listingShape(request.resource.data);
+      allow update: if isActive() && me().role == 'seller' && resource.data.sellerId == me().userId && request.resource.data.sellerId == me().userId && listingShape(request.resource.data);
+      allow delete: if isActive() && (isSuper() || (me().role == 'seller' && resource.data.sellerId == me().userId));
+    }
+    function orderStatusOk(from, to) { return (from == 'placed' && to in ['paid_claimed', 'cancelled', 'rejected']) || (from == 'paid_claimed' && to in ['confirmed', 'placed', 'rejected']) || (from == 'confirmed' && to == 'delivered'); }
+    match /orders/{id} {
+      allow read: if isActive() && (resource.data.buyerId == me().userId || resource.data.sellerId == me().userId || isSuper() || manages(resource.data.buyerAncestorOrgIds));
+      allow create: if isActive() && me().role in ['foundation', 'school', 'institution', 'individual'] && request.resource.data.buyerId == me().userId && request.resource.data.status == 'placed'
+        && request.resource.data.buyerAncestorOrgIds == me().ancestorOrgIds && request.resource.data.items is list && request.resource.data.items.size() >= 1 && request.resource.data.items.size() <= 10
+        && request.resource.data.total is number && request.resource.data.total >= 0 && request.resource.data.total <= 10000000 && optStr(request.resource.data, 'note', 200) && optStr(request.resource.data, 'address', 300)
+        && get(/databases/$(database)/documents/sellerProfiles/$(request.resource.data.sellerId)).data.active == true;
+      allow update: if isActive() && (
+        // buyer: say "I have paid" (with a reference), cancel, or record how many saplings were planted
+        (resource.data.buyerId == me().userId && (
+          (resource.data.status == 'placed' && request.resource.data.status in ['paid_claimed', 'cancelled'] && changedOnly(['status', 'payRef', 'updatedAt']))
+          || (resource.data.status == 'delivered' && changedOnly(['plantedQty', 'updatedAt']))))
+        // seller: confirm payment, send back, decline, hand over
+        || (resource.data.sellerId == me().userId && me().role == 'seller' && orderStatusOk(resource.data.status, request.resource.data.status) && request.resource.data.status != 'cancelled' && changedOnly(['status', 'sellerNote', 'updatedAt'])));
+      allow delete: if false;
+    }
+
+    // ---------- bird friends: stations (nest box / feeder / water), care logs and sightings, owned by the person who records them ----------
+    function birdShape(d) { return d.kind in ['nest', 'feeder', 'water'] && d.lat is number && d.lat >= -90 && d.lat <= 90 && d.lng is number && d.lng >= -180 && d.lng <= 180 && optStr(d, 'name', 60) && optStr(d, 'notes', 200) && d.ancestorOrgIds is list; }
+    match /birdStations/{code} {
+      allow read: if isActive() && canSee(resource.data);
+      allow create: if isActive() && birdShape(request.resource.data) && request.resource.data.code == code && ownedBySelf(request.resource.data) && request.resource.data.status == 'active';
+      allow update: if isActive() && canSee(resource.data) && changedOnly(['lastCareAt', 'lastAction', 'status', 'careCount', 'name', 'notes', 'treeCode']) && request.resource.data.status in ['active', 'needs_refill', 'damaged', 'removed'];
+      allow delete: if isActive() && canSee(resource.data);
+    }
+    match /birdCare/{id} {
+      allow read: if isActive() && canSee(resource.data);
+      allow create: if isActive() && str(request.resource.data.action, 60) && optStr(request.resource.data, 'notes', 200) && request.resource.data.ancestorOrgIds is list && request.resource.data.postedBy == me().userId && (ownedBySelf(request.resource.data) || ownedViaManager(request.resource.data));
+      allow update, delete: if false;
+    }
+    match /birdSightings/{id} {
+      allow read: if isActive() && canSee(resource.data);
+      allow create: if isActive() && str(request.resource.data.species, 80) && request.resource.data.count is int && request.resource.data.count >= 1 && request.resource.data.count <= 500 && optStr(request.resource.data, 'notes', 200) && ownedBySelf(request.resource.data);
+      allow delete: if isActive() && canSee(resource.data);
+      allow update: if false;
     }
 
     // ---------- announcements ----------

@@ -70,4 +70,10 @@ Set up three profiles first (use the app itself): super admin, a school admin (a
 | 56 | Member | `userBadges`: only own badge, id = `userId_badgeId`, own ancestors; managers above read | as shown |
 | 57 | Manager | `challenges`: create for own org (metric trees/updates, target 1…1 000 000); members read; other orgs ❌; students ❌ | as shown |
 
+| 58 | Seller | registers pending like an organisation; `sellerProfiles` own only; `listings` own only (price ≥ 0, valid category) | as shown |
+| 59 | Buyer / seller | `orders`: place as self; steps `placed → paid_claimed → confirmed → delivered` only by the right party; amount immutable; students & strangers ❌ | as shown |
+| 60 | Admin / invitee | `workshops`: managers create; “all” and role audiences Super Admin only; invitees' provable queries pass, other organisations ❌ | as shown |
+| 61 | Anyone | RSVP / attendance / feedback: own records only; self check-in = present; one feedback per session; organiser & managers above read | as shown |
+| 62 | Owner | `birdStations`, `birdCare`, `birdSightings`: own only; managers above read | as shown |
+
 Later phases add rows for stats hardening, notifications, challenges and species edits.

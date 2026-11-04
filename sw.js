@@ -2,7 +2,7 @@
  * Strategy: precache the files index.html references; same-origin static files = stale-while-revalidate; navigations = network-first with offline fallback;
  * CDN libraries = cache-first (they are versioned URLs). Firebase / Google API traffic is never touched (Firestore has its own offline persistence).
  * Bump VERSION to force clients to refresh their cache. */
-var VERSION = 'mytree-v2';
+var VERSION = 'mytree-v3';
 var SHELL = VERSION + '-shell', RUNTIME = VERSION + '-runtime';
 var NEVER = /(firestore|identitytoolkit|securetoken|firebaseinstallations|googleapis\.com\/(?!css)|gstatic\.com\/firebasejs\/.*\/firebase-.*\.map)/;
 

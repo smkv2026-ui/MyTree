@@ -6,6 +6,11 @@
   'use strict';
   window.MT.phrases = {
     hi: {
+      "Workshops": "कार्यशालाएँ",
+      "Saplings shop": "पौधों की दुकान",
+      "My orders": "मेरे ऑर्डर",
+      "My listings": "मेरी सूची",
+      "Bird friends": "पक्षी मित्र",
       "Dashboard": "डैशबोर्ड",
       "Plant a tree": "पेड़ लगाएँ",
       "My trees": "मेरे पेड़",
@@ -269,6 +274,11 @@
     "Account menu": "खाता मेनू"
     },
     mr: {
+      "Workshops": "कार्यशाळा",
+      "Saplings shop": "रोपांचे दुकान",
+      "My orders": "माझे ऑर्डर",
+      "My listings": "माझी यादी",
+      "Bird friends": "पक्षी मित्र",
       "Dashboard": "डॅशबोर्ड",
       "Plant a tree": "झाड लावा",
       "My trees": "माझी झाडे",

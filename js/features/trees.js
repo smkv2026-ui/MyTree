@@ -188,7 +188,7 @@
           <section class="card"><div class="card-head"><h3>QR code</h3></div><div id="detail-qr" class="qr-box"></div><p class="fine">Scan to open this tree's page. Print it on a tag next to the tree.</p></section>
         </div>
         <section class="card"><div class="card-head"><h3>About this tree</h3></div>
-          <dl class="kv kv-2"><dt>Planted on</dt><dd>${MT.fmt.date(t.plantedOn)}</dd><dt>Planted by</dt><dd>${t.ownerName}${t.onBehalfOf ? ' (posted by an admin on their behalf)' : ''}</dd><dt>City</dt><dd>${t.city || '—'}${t.state ? ', ' + t.state : ''}</dd><dt>Update cadence</dt><dd>${t.cadence}</dd>${t.girthCm ? h`<dt>Girth</dt><dd>${t.girthCm} cm</dd>` : ''}${t.plotId ? h`<dt>Plot</dt><dd class="mono">${t.plotId}</dd>` : ''}${t.notes ? h`<dt>Notes</dt><dd>${t.notes}</dd>` : ''}</dl>
+          <dl class="kv kv-2"><dt>Planted on</dt><dd>${MT.fmt.date(t.plantedOn)}</dd>${t.sellerName ? h`<dt>Sapling from</dt><dd>${t.sellerName}</dd>` : ''}<dt>Planted by</dt><dd>${t.ownerName}${t.onBehalfOf ? ' (posted by an admin on their behalf)' : ''}</dd><dt>City</dt><dd>${t.city || '—'}${t.state ? ', ' + t.state : ''}</dd><dt>Update cadence</dt><dd>${t.cadence}</dd>${t.girthCm ? h`<dt>Girth</dt><dd>${t.girthCm} cm</dd>` : ''}${t.plotId ? h`<dt>Plot</dt><dd class="mono">${t.plotId}</dd>` : ''}${t.notes ? h`<dt>Notes</dt><dd>${t.notes}</dd>` : ''}</dl>
           <h4>Care tip</h4><p>${sp.tip}</p></section>
         <div id="growth-host" class="growth-host"></div></div>`;
     });

@@ -167,6 +167,48 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "workshopRsvps",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ancestorOrgIds",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "workshopId",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "workshopAttendance",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ancestorOrgIds",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "workshopId",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "workshopFeedback",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ancestorOrgIds",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "workshopId",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

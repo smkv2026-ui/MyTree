@@ -16,6 +16,9 @@
     social: { files: ['js/features/gamify.js', 'js/features/certificates.js'], routes: ['/leaderboard', '/badges'], access: 'auth' },
     help: { files: ['js/data/help.js', 'js/features/help.js', 'js/features/tours.js'], routes: ['/help'], access: 'public' },
     indiamap: { files: ['js/data/india.js'], routes: [] },
+    workshops: { files: ['js/features/workshops.js'], routes: ['/workshops', '/workshops/:id'], access: 'auth' },
+    market: { files: ['js/features/market.js'], routes: ['/market', '/market/orders', '/market/sell'], access: 'auth' },
+    wings: { files: ['js/features/wings.js'], routes: ['/wings'], access: 'auth' },
     tree3d: { files: ['js/features/tree3d.js'], routes: [] },
     phrases: { files: ['js/data/phrases.js'], routes: [] }
   }, loading = {}, done = {};

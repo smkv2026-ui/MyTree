@@ -37,6 +37,7 @@
   function dashboard() {
     var s = MT.auth.session(), p = s.profile, role = p.role, isOrg = MT.ORG_TYPES.indexOf(role) > -1;
     if (role === 'super_admin') { MT.router.go('/admin', { replace: true }); return ''; }
+    if (role === 'seller') { MT.router.go('/market/sell', { replace: true }); return ''; }
     var own = MT.db.list('trees', { where: [['ownerId', '==', p.userId]] });
     var orgStats = isOrg ? MT.db.get('stats', 'org_' + p.orgId) : Promise.resolve(null);
     // Firestore rules can only prove list access when the query is constrained by ancestorOrgIds; filter direct children client-side.

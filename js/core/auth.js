@@ -8,14 +8,15 @@
 (function () {
   'use strict';
   var MT = window.MT;
-  var ROLES = ['super_admin', 'foundation', 'school', 'institution', 'student', 'individual'];
+  var ROLES = ['super_admin', 'foundation', 'school', 'institution', 'student', 'individual', 'seller'];
   var ORG_TYPES = ['foundation', 'school', 'institution'];
+  var ALL_ORG_TYPES = ORG_TYPES.concat(['seller']); /* a seller (nursery / shop) is an organisation too, but not a managing one */
   var registering = false;
 
   MT.ROLES = ROLES;
-  MT.ORG_TYPES = ORG_TYPES;
-  MT.ROLE_LABEL = { super_admin: 'Super Admin', foundation: 'Foundation', school: 'School', institution: 'Institution', student: 'Student', individual: 'Individual' };
-  MT.ORG_PREFIX = { foundation: 'FND', school: 'SCH', institution: 'INS' };
+  MT.ORG_TYPES = ORG_TYPES; MT.ALL_ORG_TYPES = ALL_ORG_TYPES;
+  MT.ROLE_LABEL = { super_admin: 'Super Admin', foundation: 'Foundation', school: 'School', institution: 'Institution', student: 'Student', individual: 'Individual', seller: 'Seller' };
+  MT.ORG_PREFIX = { foundation: 'FND', school: 'SCH', institution: 'INS', seller: 'SEL' };
 
   /* ---------- Audit log helper (records every admin / on-behalf action) ---------- */
   MT.audit = {
@@ -139,7 +140,7 @@
 
     /** Foundations, schools, institutions: created "pending" until a super admin approves. */
     registerOrg: function (type, f) {
-      if (ORG_TYPES.indexOf(type) < 0) return Promise.reject(MT.userError('Unknown organisation type.'));
+      if (ALL_ORG_TYPES.indexOf(type) < 0) return Promise.reject(MT.userError('Unknown organisation type.'));
       var email = String(f.email).trim().toLowerCase();
       registering = true;
       var uid, orgId;

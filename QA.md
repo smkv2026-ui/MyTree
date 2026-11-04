@@ -98,3 +98,12 @@ Tick each box in **Demo mode** (`index.html`) and again in **Live mode**. Phase 
 - [ ] Live: sign up → approve → plant → update → bulk import → *Rebuild statistics* reports **0** differences.
 - [ ] 3D tree: tree page, dashboard card, species preview in the planting step and the “planted” screen all render; drag rotates, wheel zooms, slider/“Watch it grow” changes age; dead trees are bare; Reduce motion stops sway and auto-rotate.
 - [ ] Demo data: login page lists 14 accounts incl. Satsang Foundation, TSF MyTree, Kendra admins, independent orgs, a pending and a suspended school.
+
+## Phase 9 — Community
+- [ ] **Seller:** register as *Seller / Nursery* → pending until the Super Admin approves → sign in lands on *My listings* → add payment details (UPI or bank) → add a sapling and a bird-care listing (photo optional).
+- [ ] **Buyer:** Saplings shop → Buy → order shows the seller's UPI / bank → **I have paid** (reference) → seller sees “payment to confirm” in the bell → **Payment received — confirm** (stock drops) → **Mark delivered** → buyer: **Plant this (N left)** opens planting with species and number pre-filled → the tree page says “Sapling from …”.
+- [ ] Order statuses cannot be skipped (try Cancel after paid; try confirming your own order).
+- [ ] **Workshops:** as an admin create a workshop (own meeting link, 2 sessions, pick organisations / people); as an invitee see it in Workshops + bell, RSVP, add to calendar, check in while live; as organiser mark attendance (Mark all present), see RSVPs, export CSV; after the session attendees get *Give feedback* and a certificate; organiser sees averages and comments. Super Admin can invite *Everyone* or whole roles.
+- [ ] **Bird friends:** add a nest box / feeder / water bowl with a map pin, log care, log a sighting; overdue stations are highlighted; shop → Bird care lists supplies.
+- [ ] axe-core: 0 violations on Workshops, Workshop detail, Shop, Orders, Bird friends, My listings (light + dark).
+

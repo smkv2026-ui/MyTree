@@ -54,9 +54,12 @@
       { type: 'institution', name: 'TSF Delhi Kendra', city: 'Delhi', parent: 'MT-FND-000002' },
       { type: 'institution', name: 'TSF Bengaluru Kendra', city: 'Bengaluru', parent: 'MT-FND-000002' },
       { type: 'institution', name: 'TSF Ahmedabad Kendra', city: 'Ahmedabad', parent: 'MT-FND-000002' },
-      { type: 'institution', name: 'Bengaluru Institute of Technology', city: 'Bengaluru', parent: '' }
+      { type: 'institution', name: 'Bengaluru Institute of Technology', city: 'Bengaluru', parent: '' },
+      { type: 'seller', name: 'Green Roots Nursery', city: 'Pune', parent: '' },
+      { type: 'seller', name: 'Hariyali Saplings', city: 'Nagpur', parent: '' },
+      { type: 'seller', name: 'Nature Nest Shop', city: 'Mumbai', parent: '' }
     ];
-    var typeCount = { foundation: 0, school: 0, institution: 0 };
+    var typeCount = { foundation: 0, school: 0, institution: 0, seller: 0 };
     var orgById = {};
     orgDefs.forEach(function (d) {
       var n = ++typeCount[d.type], id = 'MT-' + MT.ORG_PREFIX[d.type] + '-' + MT.pad(n, 6);
@@ -77,7 +80,7 @@
     });
     // Organisations that are not (yet) active: two waiting for approval, one suspended, one rejected — shows every status in the approval queue and lists.
     [{ type: 'school', name: 'Maple Grove Academy', city: 'Jaipur', status: 'pending' }, { type: 'foundation', name: 'Neer Van Foundation', city: 'Hyderabad', status: 'pending' },
-     { type: 'school', name: 'Lakeview Public School', city: 'Kolkata', status: 'suspended', parent: 'MT-FND-000004' }, { type: 'foundation', name: 'Sunshine Trust', city: 'Chennai', status: 'rejected' }].forEach(function (d) {
+     { type: 'school', name: 'Lakeview Public School', city: 'Kolkata', status: 'suspended', parent: 'MT-FND-000004' }, { type: 'foundation', name: 'Sunshine Trust', city: 'Chennai', status: 'rejected' }, { type: 'seller', name: 'Banyan Bazaar', city: 'Jaipur', status: 'pending' }].forEach(function (d) {
       var n = ++typeCount[d.type], id = 'MT-' + MT.ORG_PREFIX[d.type] + '-' + MT.pad(n, 6), parent = d.parent ? orgById[d.parent] : null, active = d.status === 'suspended';
       var o = {
         id: id, type: d.type, name: d.name, regNo: 'REG/2026/' + MT.pad(rnd.int(100, 9999), 4), address: '12, Station Road', city: d.city,
@@ -140,7 +143,7 @@
 
     /* --- Plots (one per active org, polygon around its planting site) --- */
     var siteByOrg = {};
-    orgs.filter(function (o) { return o.status === 'approved'; }).forEach(function (o) {
+    orgs.filter(function (o) { return o.status === 'approved' && o.type !== 'seller'; }).forEach(function (o) {
       var c = cityObj(o.city);
       var lat = c.lat + (rnd() - 0.5) * 0.12, lng = c.lng + (rnd() - 0.5) * 0.12;
       siteByOrg[o.id] = { lat: lat, lng: lng };
@@ -196,7 +199,7 @@
       for (var k = 0; k < n; k++) mkTree(s, o, { ageDays: Math.max(3, drive + rnd.int(-5, 30)), plot: rnd() < 0.5 });
     });
     // Org admins' own plantation drives
-    orgs.filter(function (o) { return o.status === 'approved'; }).forEach(function (o) {
+    orgs.filter(function (o) { return o.status === 'approved' && o.type !== 'seller'; }).forEach(function (o) {
       var owner = users.filter(function (u) { return u.userId === o.id; })[0], n = rnd.int(25, 60);
       for (var k = 0; k < n; k++) mkTree(owner, o, { ageDays: rnd.int(10, 420), plot: true });
     });
@@ -236,6 +239,8 @@
 
   /* Extra scenarios (appended so the first eight accounts keep their positions). */
   var EXTRA_ACCOUNTS = [
+    { role: 'seller', label: 'Seller (nursery)', login: 'sel1@mytree.demo', password: PW, note: 'Green Roots Nursery — lists saplings, confirms payments, delivers' },
+    { role: 'seller', label: 'Seller (bird-care shop)', login: 'sel3@mytree.demo', password: PW, note: 'Nature Nest Shop — nest boxes, feeders, water bowls' },
     { role: 'institution', label: 'Kendra admin (Pune)', login: 'ins2@mytree.demo', password: PW, note: 'TSF Pune Kendra — another organisation under TSF MyTree' },
     { role: 'foundation', label: 'Independent foundation', login: 'fnd3@mytree.demo', password: PW, note: 'Vanrai Trust — separate from TSF, with its own school' },
     { role: 'school', label: 'Independent school', login: 'sch6@mytree.demo', password: PW, note: 'Garden City International — no parent foundation' },

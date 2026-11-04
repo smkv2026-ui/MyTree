@@ -61,6 +61,18 @@
         MT.download('gift-' + t.code + '.pdf', doc.output('blob'), 'application/pdf');
       });
     },
+    /** Certificate of participation for a workshop. */
+    workshop: function (w, user) {
+      return MT.loader.load('jspdf').then(function () {
+        var doc = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }), W = 297, H = 210; frame(doc, W, H);
+        center(doc, 'CERTIFICATE OF PARTICIPATION', 62, 28, 'bold', [15, 61, 46]); center(doc, 'is proudly presented to', 74, 12, 'normal', [90, 100, 95]);
+        center(doc, user.name, 96, 32, 'bold', [35, 125, 73]); center(doc, 'for attending the workshop', 112, 13, 'normal', [90, 100, 95]);
+        center(doc, w.title, 128, 22, 'bold', [201, 162, 39]);
+        var first = (w.sessions || []).map(function (s) { return s.start; }).sort()[0]; center(doc, 'organised by ' + w.organiserName + (first ? ' · ' + MT.fmt.date(first.slice(0, 10)) : ''), 142, 12, 'normal');
+        center(doc, 'MyTree · Maitree — friendship with nature', 188, 11, 'normal', [90, 100, 95]);
+        MT.download('certificate-workshop-' + w.id + '.pdf', doc.output('blob'), 'application/pdf');
+      });
+    },
     /** Milestone certificate for an earned badge. */
     milestone: function (badge, earnedAt, metrics) {
       var p = MT.auth.profile();

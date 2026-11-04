@@ -28,7 +28,12 @@
     { id: 'map', icon: 'map', href: '/map', roles: ALL, group: 'explore' },
     { id: 'green', icon: 'satellite', href: '/green', roles: ALL, group: 'explore' },
     { id: 'leaderboard', icon: 'trophy', href: '/leaderboard', roles: NOT_SUPER, group: 'explore' },
-    { id: 'help', icon: 'life-buoy', href: '/help', roles: ALL, group: 'explore' }
+    { id: 'sell', icon: 'store', href: '/market/sell', roles: ['seller'], group: 'main' },
+    { id: 'wings', icon: 'bird', href: '/wings', roles: ['foundation', 'school', 'institution', 'student', 'individual'], group: 'explore' },
+    { id: 'orders', icon: 'package', href: '/market/orders', roles: ['foundation', 'school', 'institution', 'individual', 'seller', 'super_admin'], group: 'explore' },
+    { id: 'market', icon: 'shopping-basket', href: '/market', roles: ALL, group: 'explore' },
+    { id: 'workshops', icon: 'presentation', href: '/workshops', roles: ALL.concat(['seller']), group: 'explore' },
+    { id: 'help', icon: 'life-buoy', href: '/help', roles: ALL.concat(['seller']), group: 'explore' }
   ];
   var GROUPS = { main: '', manage: 'Manage', admin: 'Administration', explore: 'Explore' };
   MT.GROUP_ADMIN_FOR = function (role) { return role === 'super_admin'; };

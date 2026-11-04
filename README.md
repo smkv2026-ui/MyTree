@@ -18,6 +18,7 @@ A complete tree-plantation tracking portal that is **just static files**: HTML, 
 | 6 | Command centre, counters, maps, reports, green cover, audit viewer, health, species/settings, sample data | ✅ done |
 | 7 | Badges, leaderboards, challenges, certificates, gift cards, public tree pages, PWA/offline, tours, help centre, translations | ✅ done |
 | 8 | Polish: accessibility (axe-clean), lazy bundles, rules hardening, reduce-motion, final docs | ✅ done |
+| 9 | Community: **Workshops** (audience, sessions with your own meeting links, RSVP, attendance, feedback, certificates), **Saplings & bird-care shop** (sellers, orders, direct UPI/bank payment confirmed by the seller, “Plant this”), **Bird friends** (nest / feeder / water stations, care logs, sightings) | ✅ done |
 
 All planned features are built. (During development, unbuilt features showed a **Soon** pill; the placeholder mechanism remains in `dashboard.js` but no route uses it any more.)
 
@@ -111,6 +112,10 @@ Routes registered later replace earlier ones (that is how "Soon" placeholders ar
 42. **Translations are phrase-level** (`js/data/phrases.js`): exact UI strings are swapped in place by a MutationObserver; anything not listed stays English. Add phrases freely — no code change needed.
 43. **Demo organisations** model the whole hierarchy: *The Satsang Foundation* → sub-foundation *TSF MyTree* → Kendras (*TSF Mumbai / Pune / Nagpur / Delhi / Bengaluru / Ahmedabad Kendra*) and schools at every level, plus independent foundations, school and institution, and organisations that are pending, suspended or rejected. The demo Super Admin is "Sir". The login page lists 14 ready-made accounts.
 44. **3D tree** (`js/features/tree3d.js`, lazy): a self-contained software-3D engine on a 2D canvas — no WebGL or library, so it works offline and in sandboxed previews. Trees are generated from their code (same tree, same shape), grow trunk → branches → leaves → flowers/fruit, sway in wind and react to health and species. Drag / wheel / pinch / arrow keys to move; "Watch it grow" and the age slider show past and projected growth.
+45. **Marketplace without payments infrastructure.** A *seller* (nursery / shop) is an organisation type (`MT-SEL-…`) that must be approved by the Super Admin. Buyers pay the seller directly (UPI / bank details on the order); MyTree only records the order and its status: `placed → paid_claimed (buyer: “I have paid” + reference) → confirmed (seller, stock reduces) → delivered`, or cancelled / declined. Rules enforce who may move an order to which status. Students cannot buy (their school can).
+46. **Workshops use provable audience queries.** A workshop stores who is invited as `audience` (all), `audienceRoles`, `audienceOrgIds` (the chosen organisations *expanded to everything beneath them* when saved) and `audienceUserIds`; each user runs five small `array-contains` queries and the results are merged. “Everyone” and whole roles are Super Admin only; school/foundation admins pick organisations or people (the form only offers their own hierarchy — rules cannot verify each organisation, see Known limitations). Meeting links are pasted by the organiser; MyTree does not host video.
+47. **Attendance & feedback integrity.** The organiser marks anyone; a person can only check **themselves** in as present; feedback is one per person per session and cannot be edited. Records carry the organiser and their ancestors so managers above can read them.
+48. **Bird friends** records stations (`BIRD-2026-000001`), care logs and sightings with the same ownership rules as trees; care reminders are derived (water 2 days, feeder 7, nest box 30; overdue at twice that).
 
 ## Libraries (all from CDNs, lazy-loaded)
 Pinned versions in `js/core/loader.js` with a primary (cdnjs / unpkg / gstatic) and a fallback (jsDelivr) URL each; a failed load shows a friendly message rather than a blank page. Landing hero art, counters, reveals and the carousel are pure CSS/JS and work even if every CDN is blocked; Lucide icons, GSAP parallax, Leaflet and confetti degrade gracefully.
@@ -118,12 +123,13 @@ Pinned versions in `js/core/loader.js` with a primary (cdnjs / unpkg / gstatic) 
 **SRI:** hashes cannot be baked in without downloading the files from the CDNs. Run `node tools/gen-sri.mjs` once on a machine with internet; it writes `js/core/sri.js` and the loader then adds `integrity` + `crossorigin` automatically. Until you do, libraries load without SRI.
 
 ## Security notes
-* The Firebase web config is public by design; **`firestore.rules` is the real protection** (70 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
+* The Firebase web config is public by design; **`firestore.rules` is the real protection** (83 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
 * All user text is rendered through `MT.html` (auto-escaping) or `textContent`; DOMPurify is loaded for rich text. No inline event handlers are used on user data.
 * Demo mode stores demo passwords in plain text *inside the browser only*; live mode never sees or stores passwords.
 * Optional hardening (API-key restriction, App Check via `MT_APPCHECK_SITE_KEY`) is described in `SETUP.md`.
 
 ## Known limitations (Phase 1)
+* A school/foundation admin could, with a modified client, invite organisations outside their hierarchy to a workshop (spam only — invitees see a title and a meeting link). Orders are only recorded: MyTree cannot verify that money moved; the seller's confirmation is the source of truth.
 * Multi-chunk batches (> 400 operations) are atomic per chunk, not overall (Firestore limit).
 * Public tree pages are served from a sanitised copy (`publicTrees/{code}`: species, date, city, first name) — the `trees` document is never public. The copy is written right after the tree (best-effort), so a failed network call can leave a page stale until the next edit. Student trees can never be public.
 * `stats/*` write rules only restrict *which fields* can be written; phase 6 couples them to tree writes with `getAfter()` as specified.

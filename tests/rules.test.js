@@ -322,6 +322,87 @@ async function t(name, fn) { try { await fn(); pass++; console.log('  ✓ ' + na
     await assertFails(as('ind1').doc('stats/global').set({ trees: 'many' }, { merge: true })); await assertFails(as('ind1').doc('stats/global').set({ hacked: 1 }, { merge: true }));
   });
 
+  console.log('\nCommunity: marketplace, workshops, bird friends (phase 9)'); await seed();
+  await env.withSecurityRulesDisabled(async (c) => { const d = c.firestore();
+    await d.doc('users/sel1').set(prof({ userId: 'MT-SEL-000001', role: 'seller', orgId: 'MT-SEL-000001', ancestorOrgIds: ['MT-SEL-000001'], name: 'Nursery' }));
+    await d.doc('orgs/MT-SEL-000001').set({ type: 'seller', name: 'Nursery', ancestorOrgIds: ['MT-SEL-000001'], parentOrgId: '', status: 'approved', createdBy: 'x' });
+    await d.doc('users/sel2').set(prof({ userId: 'MT-SEL-000002', role: 'seller', orgId: 'MT-SEL-000002', ancestorOrgIds: ['MT-SEL-000002'], name: 'Other nursery' }));
+    await d.doc('userIds/MT-SEL-000001').set({ uid: 'sel1', orgId: 'MT-SEL-000001', ancestorOrgIds: ['MT-SEL-000001'] });
+    await d.doc('counters/SEL').set({ n: 2 });
+  });
+  const sp = { name: 'Nursery', city: 'Pune', state: 'Maharashtra', upi: 'n@upi', accountNo: '123', active: true, updatedAt: 1 };
+  await t('seller registers (pending) like an organisation', async () => {
+    await env.withSecurityRulesDisabled((c) => c.firestore().doc('counters/SEL').set({ n: 3 }));
+    const d = as('SEL3'), b = d.batch(); b.set(d.doc('users/SEL3'), prof({ userId: 'MT-SEL-000003', role: 'seller', orgId: 'MT-SEL-000003', ancestorOrgIds: ['MT-SEL-000003'], active: false, status: 'pending', name: 'New nursery' }));
+    b.set(d.doc('userIds/MT-SEL-000003'), { uid: 'SEL3', orgId: 'MT-SEL-000003', ancestorOrgIds: ['MT-SEL-000003'] }); b.set(d.doc('orgs/MT-SEL-000003'), { type: 'seller', name: 'New nursery', ancestorOrgIds: ['MT-SEL-000003'], parentOrgId: '', status: 'pending', createdBy: 'SEL3' });
+    await assertSucceeds(b.commit());
+  });
+  await t('sellerProfiles: owner writes, others cannot, extra fields refused, signed-in read', async () => {
+    await assertSucceeds(as('sel1').doc('sellerProfiles/MT-SEL-000001').set(sp)); await assertFails(as('sel2').doc('sellerProfiles/MT-SEL-000001').set(sp)); await assertFails(as('ind1').doc('sellerProfiles/MT-IND-000001').set(sp));
+    await assertFails(as('sel1').doc('sellerProfiles/MT-SEL-000001').set(Object.assign({}, sp, { evil: 1 }))); await assertSucceeds(as('ind1').doc('sellerProfiles/MT-SEL-000001').get()); await assertFails(anon().doc('sellerProfiles/MT-SEL-000001').get());
+  });
+  const lst = (o) => Object.assign({ sellerId: 'MT-SEL-000001', sellerName: 'Nursery', category: 'sapling', title: 'Neem', price: 45, stock: 10, active: true, speciesId: 'neem', createdAt: 1 }, o);
+  await t('listings: only the seller creates / edits own; buyers read; bad price / category refused', async () => {
+    await assertSucceeds(as('sel1').doc('listings/l1').set(lst())); await assertFails(as('ind1').doc('listings/l2').set(lst())); await assertFails(as('sel2').doc('listings/l3').set(lst())); await assertFails(as('sel1').doc('listings/l4').set(lst({ price: -1 })));
+    await assertFails(as('sel1').doc('listings/l5').set(lst({ category: 'weapons' }))); await assertSucceeds(as('ind1').doc('listings/l1').get()); await assertSucceeds(as('sel1').doc('listings/l1').update({ stock: 9 })); await assertFails(as('sel2').doc('listings/l1').update({ stock: 0 }));
+  });
+  const ord = (o) => Object.assign({ buyerId: 'MT-IND-000001', buyerName: 'Ind One', buyerRole: 'individual', buyerOrgId: '', buyerAncestorOrgIds: [], sellerId: 'MT-SEL-000001', sellerName: 'Nursery', items: [{ listingId: 'l1', title: 'Neem', qty: 2, price: 45, category: 'sapling' }], total: 90, delivery: 'pickup', address: '', phone: '1', note: '', status: 'placed', payRef: '', sellerNote: '', plantedQty: {}, createdAt: 1, updatedAt: 1 }, o);
+  await t('orders: buyers place; forged buyer / student / unknown seller refused; parties read, strangers do not', async () => {
+    await assertSucceeds(as('ind1').doc('orders/o1').set(ord())); await assertFails(as('ind1').doc('orders/o2').set(ord({ buyerId: 'MT-IND-000009' }))); await assertFails(as('st1').doc('orders/o3').set(ord({ buyerId: 'MT-STU-SCH001-0001', buyerRole: 'student', buyerOrgId: 'MT-SCH-000001', buyerAncestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'] })));
+    await assertFails(as('ind1').doc('orders/o4').set(ord({ sellerId: 'MT-SEL-000002' }))); await assertFails(as('ind1').doc('orders/o5').set(ord({ status: 'delivered' })));
+    await assertSucceeds(as('ind1').doc('orders/o1').get()); await assertSucceeds(as('sel1').doc('orders/o1').get()); await assertFails(as('st1').doc('orders/o1').get()); await assertFails(as('sel2').doc('orders/o1').get());
+    await assertSucceeds(as('ind1').collection('orders').where('buyerId', '==', 'MT-IND-000001').get()); await assertSucceeds(as('sel1').collection('orders').where('sellerId', '==', 'MT-SEL-000001').get()); await assertFails(as('ind1').collection('orders').get());
+  });
+  await t('orders: pay → confirm → deliver, in order; nobody skips steps or edits the amount', async () => {
+    await assertFails(as('ind1').doc('orders/o1').update({ status: 'confirmed', updatedAt: 2 })); await assertFails(as('sel1').doc('orders/o1').update({ status: 'delivered', updatedAt: 2 })); await assertFails(as('ind1').doc('orders/o1').update({ total: 1 }));
+    await assertSucceeds(as('ind1').doc('orders/o1').update({ status: 'paid_claimed', payRef: 'UTR1', updatedAt: 2 })); await assertFails(as('ind1').doc('orders/o1').update({ status: 'confirmed', updatedAt: 3 }));
+    await assertSucceeds(as('sel1').doc('orders/o1').update({ status: 'confirmed', updatedAt: 3 })); await assertFails(as('sel2').doc('orders/o1').update({ status: 'delivered', updatedAt: 4 })); await assertSucceeds(as('sel1').doc('orders/o1').update({ status: 'delivered', updatedAt: 4 }));
+    await assertSucceeds(as('ind1').doc('orders/o1').update({ plantedQty: { 0: 1 }, updatedAt: 5 })); await assertFails(as('ind1').doc('orders/o1').update({ status: 'placed', updatedAt: 6 }));
+  });
+  const aud = (o) => Object.assign({ title: 'Tree care', description: 'd', mode: 'online', audience: 'custom', audienceRoles: [], audienceOrgIds: ['MT-SCH-000001'], audienceUserIds: ['MT-IND-000001'], audienceLabel: 'School', sessions: [{ id: 's1', start: '2026-12-01T10:00', link: 'https://x.y' }], organiserId: 'MT-SCH-000001', organiserName: 'S1', orgId: 'MT-SCH-000001', ancestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'], status: 'scheduled', createdAt: 1 }, o);
+  await t('workshops: managers create; "everyone" / whole roles are Super Admin only; students cannot create', async () => {
+    await assertSucceeds(as('s1').doc('workshops/w1').set(aud())); await assertFails(as('s1').doc('workshops/w2').set(aud({ audience: 'all' }))); await assertFails(as('s1').doc('workshops/w3').set(aud({ audienceRoles: ['student'] })));
+    await assertFails(as('st1').doc('workshops/w4').set(aud({ organiserId: 'MT-STU-SCH001-0001' }))); await assertFails(as('s1').doc('workshops/w5').set(aud({ organiserId: 'MT-SCH-000002' }))); await assertFails(as('s1').doc('workshops/w6').set(aud({ sessions: [] })));
+    await assertSucceeds(as('sa').doc('workshops/w7').set(aud({ organiserId: 'MT-ADM-000001', ancestorOrgIds: [], orgId: '', audience: 'all', audienceOrgIds: [], audienceUserIds: [], audienceLabel: 'Everyone' })));
+  });
+  await t('workshops: invitees find theirs with provable queries; outsiders and other organisations do not', async () => {
+    await assertSucceeds(as('st1').collection('workshops').where('audienceOrgIds', 'array-contains', 'MT-SCH-000001').get()); await assertSucceeds(as('ind1').collection('workshops').where('audienceUserIds', 'array-contains', 'MT-IND-000001').get());
+    await assertSucceeds(as('ind1').collection('workshops').where('audience', '==', 'all').get()); await assertSucceeds(as('s1').collection('workshops').where('organiserId', '==', 'MT-SCH-000001').get()); await assertSucceeds(as('f1').collection('workshops').where('ancestorOrgIds', 'array-contains', 'MT-FND-000001').get());
+    await assertSucceeds(as('st1').doc('workshops/w1').get()); await assertFails(as('s2').doc('workshops/w1').get()); await assertFails(as('s2').collection('workshops').where('audienceOrgIds', 'array-contains', 'MT-SCH-000001').get()); await assertFails(as('sel1').doc('workshops/w1').get());
+    await assertSucceeds(as('sa').collection('workshops').get());
+  });
+  const rec = (o) => Object.assign({ workshopId: 'w1', sessionId: 's1', userId: 'MT-STU-SCH001-0001', name: 'Stu O.', role: 'student', organiserId: 'MT-SCH-000001', ancestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'], at: 1 }, o);
+  await t('RSVP: own reply only, tied to the real organiser', async () => {
+    await assertSucceeds(as('st1').doc('workshopRsvps/w1_MT-STU-SCH001-0001').set(rec({ response: 'yes' }))); await assertFails(as('st1').doc('workshopRsvps/w1_MT-STU-SCH001-0002').set(rec({ response: 'yes', userId: 'MT-STU-SCH001-0002' })));
+    await assertFails(as('st1').doc('workshopRsvps/w1_MT-STU-SCH001-0001').set(rec({ response: 'yes', organiserId: 'MT-SCH-000002' }))); await assertSucceeds(as('s1').collection('workshopRsvps').where('organiserId', '==', 'MT-SCH-000001').where('workshopId', '==', 'w1').get()); await assertFails(as('s2').collection('workshopRsvps').where('workshopId', '==', 'w1').get());
+  });
+  await t('attendance: organiser marks anyone; people only check THEMSELVES in; no forged organiser', async () => {
+    const id = (u) => 'w1_s1_' + u;
+    await assertSucceeds(as('s1').doc('workshopAttendance/' + id('MT-STU-SCH001-0002')).set(rec({ userId: 'MT-STU-SCH001-0002', status: 'absent', method: 'organiser', markedBy: 'MT-SCH-000001' })));
+    await assertSucceeds(as('st1').doc('workshopAttendance/' + id('MT-STU-SCH001-0001')).set(rec({ status: 'present', method: 'self', markedBy: 'MT-STU-SCH001-0001' })));
+    await assertFails(as('st1').doc('workshopAttendance/' + id('MT-STU-SCH001-0002')).set(rec({ userId: 'MT-STU-SCH001-0002', status: 'present', method: 'self', markedBy: 'MT-STU-SCH001-0001' })));
+    await assertFails(as('st1').doc('workshopAttendance/' + id('MT-STU-SCH001-0001')).set(rec({ status: 'present', method: 'organiser', markedBy: 'MT-STU-SCH001-0001' }))); await assertFails(as('s2').doc('workshopAttendance/' + id('MT-STU-SCH001-0002')).set(rec({ userId: 'MT-STU-SCH001-0002', status: 'present', method: 'organiser', markedBy: 'MT-SCH-000002' })));
+    await assertSucceeds(as('s1').collection('workshopAttendance').where('organiserId', '==', 'MT-SCH-000001').where('workshopId', '==', 'w1').get()); await assertSucceeds(as('st1').collection('workshopAttendance').where('userId', '==', 'MT-STU-SCH001-0001').get());
+  });
+  await t('feedback: attendee writes once (1–5 stars); organiser and managers above read; others cannot', async () => {
+    const id = 'w1_s1_MT-STU-SCH001-0001';
+    await assertSucceeds(as('st1').doc('workshopFeedback/' + id).set(rec({ rating: 4, worked: 'good', improve: '', comment: '' }))); await assertFails(as('st1').doc('workshopFeedback/' + id).set(rec({ rating: 5 })));
+    await assertFails(as('st1').doc('workshopFeedback/w1_s1_X').set(rec({ rating: 6, userId: 'X' }))); await assertFails(as('st1').doc('workshopFeedback/w1_s2_MT-STU-SCH001-0001').set(rec({ sessionId: 's2', rating: 0 })));
+    await assertSucceeds(as('s1').collection('workshopFeedback').where('organiserId', '==', 'MT-SCH-000001').where('workshopId', '==', 'w1').get()); await assertSucceeds(as('f1').collection('workshopFeedback').where('ancestorOrgIds', 'array-contains', 'MT-FND-000001').where('workshopId', '==', 'w1').get());
+    await assertFails(as('st2').doc('workshopFeedback/' + id).get()); await assertFails(as('st1').doc('workshopFeedback/' + id).update({ rating: 1 }));
+  });
+  const bird = (o) => Object.assign({ code: 'BIRD-2026-000001', kind: 'feeder', name: 'Feeder', ownerId: 'MT-IND-000001', ownerName: 'Ind One', orgId: '', ancestorOrgIds: [], lat: 18.5, lng: 73.8, city: 'Pune', state: 'MH', status: 'active', careCount: 0, lastCareAt: 1, createdAt: 1 }, o);
+  await t('bird stations: own only; read by owner / managers above; care & sightings follow the same ownership', async () => {
+    await assertSucceeds(as('ind1').doc('birdStations/BIRD-2026-000001').set(bird())); await assertFails(as('ind1').doc('birdStations/BIRD-2026-000002').set(bird({ code: 'BIRD-2026-000002', ownerId: 'MT-STU-SCH001-0001' }))); await assertFails(as('ind1').doc('birdStations/BIRD-2026-000003').set(bird({ code: 'BIRD-2026-000003', kind: 'cage' })));
+    await assertFails(as('ind1').doc('birdStations/BIRD-2026-000004').set(bird({ code: 'BIRD-2026-000004', lat: 999 }))); await assertSucceeds(as('ind1').doc('birdStations/BIRD-2026-000001').update({ lastCareAt: 2, careCount: 1, status: 'damaged' })); await assertFails(as('ind1').doc('birdStations/BIRD-2026-000001').update({ ownerId: 'MT-IND-000002' }));
+    await assertFails(as('st1').doc('birdStations/BIRD-2026-000001').get()); const sb = bird({ code: 'BIRD-2026-000010', ownerId: 'MT-STU-SCH001-0001', ownerName: 'Stu', orgId: 'MT-SCH-000001', ancestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'] });
+    await assertSucceeds(as('st1').doc('birdStations/BIRD-2026-000010').set(sb)); await assertSucceeds(as('s1').collection('birdStations').where('ancestorOrgIds', 'array-contains', 'MT-SCH-000001').get()); await assertFails(as('s2').doc('birdStations/BIRD-2026-000010').get());
+    const care = { stationCode: 'BIRD-2026-000001', ownerId: 'MT-IND-000001', orgId: '', ancestorOrgIds: [], action: 'Refilled water', date: '2026-11-01', postedBy: 'MT-IND-000001', createdAt: 1 };
+    await assertSucceeds(as('ind1').doc('birdCare/c1').set(care)); await assertFails(as('ind1').doc('birdCare/c2').set(Object.assign({}, care, { ownerId: 'MT-IND-000002' })));
+    const sg = { species: 'House Sparrow', count: 3, date: '2026-11-01', ownerId: 'MT-IND-000001', ownerName: 'Ind One', orgId: '', ancestorOrgIds: [], createdAt: 1 };
+    await assertSucceeds(as('ind1').doc('birdSightings/s1').set(sg)); await assertFails(as('ind1').doc('birdSightings/s2').set(Object.assign({}, sg, { count: 0 }))); await assertFails(as('st1').doc('birdSightings/s1').get());
+  });
+
   console.log(`\n${pass} passed, ${fail} failed`);
   await env.cleanup(); process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(2); });

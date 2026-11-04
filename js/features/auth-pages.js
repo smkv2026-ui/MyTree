@@ -9,7 +9,8 @@
     individual: { icon: 'user-round', title: 'Individual', blurb: 'Plant trees for yourself or your family. Instant activation.' },
     school: { icon: 'school', title: 'School', blurb: 'Add students, post for them and run class challenges. Needs approval.' },
     institution: { icon: 'graduation-cap', title: 'Institution', blurb: 'Colleges, companies and clubs. Needs approval.' },
-    foundation: { icon: 'heart-handshake', title: 'Foundation', blurb: 'Manage many schools and sub-foundations. Needs approval.' }
+    foundation: { icon: 'heart-handshake', title: 'Foundation', blurb: 'Manage many schools and sub-foundations. Needs approval.' },
+    seller: { icon: 'store', title: 'Seller / Nursery', blurb: 'List saplings, nest boxes and bird feeders for the community to buy. Needs approval.' }
   };
   var CONSENT = h`I agree to the <a href="#/help" target="_blank" rel="noopener">privacy notice</a>: my details are used only to run MyTree, photos of minors are never shown publicly by default, and I can ask for my data to be removed.`;
   var pwRule = function (v) { return MT.valid.password(v) ? '' : 'Use at least 8 characters.'; };
@@ -79,7 +80,7 @@
       <p class="auth-sub">${isOrg ? 'A MyTree super admin will review your details — usually within 1–2 working days. You can sign in meanwhile to check the status.' : 'It takes less than a minute. You can plant your first tree right after.'}</p>
       <form id="reg-form" class="form form-grid">
         ${isOrg ? h`
-          ${F({ id: 'name', label: type === 'school' ? 'School name' : type === 'institution' ? 'Institution name' : 'Foundation name', required: true, autocomplete: 'organization', wide: true })}
+          ${F({ id: 'name', label: type === 'school' ? 'School name' : type === 'institution' ? 'Institution name' : type === 'seller' ? 'Nursery / shop name' : 'Foundation name', required: true, autocomplete: 'organization', wide: true })}
           ${F({ id: 'regNo', label: 'Registration number', required: true, hint: 'As on your registration certificate, e.g. society / trust / UDISE no.' })}
           ${F({ id: 'address', label: 'Address', required: true, autocomplete: 'street-address' })}
           ${F({ id: 'city', label: 'City', required: true, autocomplete: 'address-level2', attrs: 'list="city-list"' })}

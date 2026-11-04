@@ -60,6 +60,7 @@
         if (photoId) { t.coverPhotoId = photoId; t.cover = o.photo.cover; t.photoSize = o.photo.size; }
         if (o.geoFlag) t.geoFlag = o.geoFlag;
         if (o.replaces && i === 0) t.replaces = o.replaces;
+        if (o.orderId) { t.orderId = o.orderId; t.sellerName = clip(o.sellerName, 120); }
         return t;
       });
       var plot = plotId ? { name: clip(o.plotName, 80) || (sp.common + ' plot'), ownerId: owner.userId, orgId: owner.orgId || '', ancestorOrgIds: owner.ancestorOrgIds || [], city: place.city, state: place.state, polygon: o.polygon || [], areaM2: Math.round(o.areaM2 || 0), center: { lat: round6(o.lat), lng: round6(o.lng) }, baselineOn: o.plantedOn, baselinePhotoIds: photoId ? [photoId] : [], treeCount: count, createdBy: me.userId, createdAt: now } : null;

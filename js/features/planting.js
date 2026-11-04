@@ -266,6 +266,7 @@
       if (done) return;
       var msg = validate(S.step); if (msg) { setErr(msg); return; }
       if (S.step < 3) { go(S.step + 1); return; }
+      if (S.orderId && S.count > S.orderLeft) { setErr('You only have ' + S.orderLeft + ' sapling' + (S.orderLeft === 1 ? '' : 's') + ' left from this order. Reduce the number to ' + S.orderLeft + ' or fewer.'); return; }
       nextBtn.disabled = true; nextBtn.classList.add('is-loading');
       duplicateCheck().then(function (dup) {
         if (!dup) return true;
@@ -273,8 +274,12 @@
       }).then(function (ok) {
         if (!ok) { nextBtn.disabled = false; nextBtn.classList.remove('is-loading'); return; }
         return MT.trees.plant({ owner: S.owner, speciesId: S.speciesId, customName: S.customName, count: S.count, lat: S.lat, lng: S.lng, address: S.address, geo: S.geo, polygon: S.polygon, areaM2: S.areaM2,
-          plantedOn: S.plantedOn, heightCm: S.heightCm, dedication: S.dedication, notes: S.notes, cadence: S.cadence, public: S.pub, photo: S.photo, plotName: S.plotName, geoFlag: S.geoFlag, replaces: S.replaces })
-          .then(function (res) { done = true; success(res); });
+          plantedOn: S.plantedOn, heightCm: S.heightCm, dedication: S.dedication, notes: S.notes, cadence: S.cadence, public: S.pub, photo: S.photo, plotName: S.plotName, geoFlag: S.geoFlag, replaces: S.replaces, orderId: S.orderId || '', sellerName: S.sellerName || '' })
+          .then(function (res) {
+            done = true;
+            if (!S.orderId) return success(res);
+            return MT.db.get('orders', S.orderId).then(function (o) { var q = Object.assign({}, o.plantedQty || {}); q[S.orderItem] = (+q[S.orderItem] || 0) + res.trees.length; return MT.db.update('orders', S.orderId, { plantedQty: q, updatedAt: Date.now() }); }).catch(function () {}).then(function () { success(res); });
+          });
       }).catch(function (e) { nextBtn.disabled = false; nextBtn.classList.remove('is-loading'); ui.error(e); setErr('We could not save your tree. Your details are still here — please try again.'); });
     });
     backBtn.addEventListener('click', function () { if (S.step > 0 && !done) go(S.step - 1); });
@@ -307,6 +312,11 @@
     S.replaces = (ctx && ctx.query && ctx.query.replaces) || '';
     function prefill() {
       var forId = ctx && ctx.query && ctx.query.for;
+      if (ctx && ctx.query && ctx.query.order) return MT.db.get('orders', ctx.query.order).then(function (o) {
+        var i = parseInt(ctx.query.item, 10) || 0, it = o && o.items && o.items[i]; if (!o || !it || o.buyerId !== me.userId) return;
+        var left = Math.max(0, it.qty - (+((o.plantedQty || {})[i]) || 0)); S.orderId = o.id; S.orderItem = i; S.orderLeft = left; S.sellerName = o.sellerName; S.count = Math.max(1, Math.min(left, 100)); if (it.speciesId) S.speciesId = it.speciesId;
+        ui.toast('Planting saplings you bought from ' + o.sellerName + ' — ' + left + ' left to plant.', { duration: 6000 });
+      }).catch(function () {});
       if (forId && MT.auth.isManager() && !S.replaces) return loadUsers().then(function (us) { var u = us.filter(function (x) { return x.userId === forId; })[0]; if (u) { S.owner = u; S.ownerLabel = u.name + ' — ' + u.userId; ui.toast('Planting for ' + u.name, { duration: 3000 }); } }).catch(function () {});
       if (!S.replaces) return Promise.resolve();
       return MT.db.get('trees', S.replaces).then(function (old) {
