@@ -54,6 +54,7 @@
           <div><p class="eyebrow">${MT.ROLE_LABEL[role]}${s.org ? ' · ' + s.org.name : ''}</p><h2>${greeting(p.name)} 🌿</h2>
             <p>${mine.length ? 'You have planted ' + MT.fmt.num(mine.length) + ' tree' + (mine.length > 1 ? 's' : '') + '. Keep nurturing them!' : 'Your forest starts with a single sapling. Ready when you are.'}</p></div>
           ${ui.ring(survival, survival + '%', 'survival')}
+          <div class="w-tree"><div class="t3d t3d-xs" id="dash-3d" data-sp="${(mine[0] || recent[0] || {}).speciesId || 'neem'}" data-seed="${(mine[0] || recent[0] || {}).code || 'welcome'}" data-health="${(mine[0] || recent[0] || {}).health || 'thriving'}"></div></div>
         </section>
         ${actions(role)}
         <section class="kpi-grid">
@@ -96,13 +97,14 @@
   });
 
   MT.router.add('/dashboard', { title: 'Dashboard', layout: 'app', access: 'auth', render: dashboard, after: function () {
-    var role = MT.auth.role(), dead = false;
+    var role = MT.auth.role(), dead = false, viewer = null;
+    MT.lazy.load('tree3d').then(function (){ var el = document.getElementById('dash-3d'); if (dead || !el) return; viewer = MT.tree3d.mount(el, { speciesId: el.dataset.sp, health: el.dataset.health, growth: 0.85, seed: el.dataset.seed, controls: false }); }).catch(function () {});
     setTimeout(function () { /* after first paint: badges + first-run tour load in the background */
       if (dead) return;
       if (role !== 'super_admin') MT.lazy.load('social').then(function () { MT.gamify.celebrate(); }).catch(function () {});
       if (!(MT.storage.get('tour.' + role, false) || MT.storage.get('tour.off', false))) MT.lazy.load('help').then(function () { if (!dead) MT.tour.start(); }).catch(function () {});
     }, 1500);
-    return function () { dead = true; };
+    return function () { dead = true; if (viewer) viewer.destroy(); };
   } });
   MT.router.add('/404', { title: 'Page not found', layout: 'public', access: 'public', render: function () {
     return h`<div class="wrap narrow notfound"><div class="empty">${raw('<svg viewBox="0 0 160 120" class="empty-art" aria-hidden="true"><path d="M80 100V70" stroke="#8b5e3c" stroke-width="5" stroke-linecap="round"/><circle cx="80" cy="58" r="22" fill="#c9d8cf"/></svg>')}<h1>This path has not grown yet</h1><p>We could not find that page.</p><a class="btn btn-primary" href="#/">Take me home</a></div></div>`;

@@ -28,25 +28,32 @@
     function cityObj(n) { return MT.geoData.city(n); }
 
     /* --- Super admin --- */
-    users.push(profile({ id: 'u_demo_admin', userId: 'MT-ADM-000001', role: 'super_admin', orgId: '', ancestorOrgIds: [], name: 'Asha Kulkarni', email: 'admin@mytree.demo', authEmail: 'admin@mytree.demo' }));
+    users.push(profile({ id: 'u_demo_admin', userId: 'MT-ADM-000001', role: 'super_admin', orgId: '', ancestorOrgIds: [], name: 'Sir', email: 'admin@mytree.demo', authEmail: 'admin@mytree.demo' }));
     addAuth('u_demo_admin', 'admin@mytree.demo');
     counters.ADM = { n: 1 };
     bump('global', 'users');
     demoAccounts.push({ role: 'super_admin', label: 'Super Admin', login: 'admin@mytree.demo', password: PW, note: 'Sees and manages everything' });
 
     /* --- Organisations --- */
+    // The Satsang Foundation (TSF) with its sub-foundation and a Kendra (centre) in each city, schools at every level,
+    // plus independent organisations — so every hierarchy and role can be explored.
     var orgDefs = [
-      { type: 'foundation', name: 'Green Earth Foundation', city: 'Pune', parent: '' },
+      { type: 'foundation', name: 'The Satsang Foundation', city: 'Mumbai', parent: '' },
+      { type: 'foundation', name: 'TSF MyTree', city: 'Pune', parent: 'MT-FND-000001' },
       { type: 'foundation', name: 'Vanrai Trust', city: 'Nagpur', parent: '' },
       { type: 'foundation', name: 'Hariyali Foundation', city: 'Delhi', parent: '' },
-      { type: 'foundation', name: 'Green Earth — Mumbai Chapter', city: 'Mumbai', parent: 'MT-FND-000001' },
-      { type: 'school', name: 'Sunrise Public School', city: 'Pune', parent: 'MT-FND-000001' },
-      { type: 'school', name: 'Lotus Valley High School', city: 'Pune', parent: 'MT-FND-000001' },
-      { type: 'school', name: 'Bayview Convent School', city: 'Mumbai', parent: 'MT-FND-000004' },
-      { type: 'school', name: 'Orange City Vidyalaya', city: 'Nagpur', parent: 'MT-FND-000002' },
-      { type: 'school', name: 'Yamuna Heritage School', city: 'Delhi', parent: 'MT-FND-000003' },
+      { type: 'school', name: 'Satsang Vidyalaya', city: 'Mumbai', parent: 'MT-FND-000001' },
+      { type: 'school', name: 'TSF Sunrise School', city: 'Pune', parent: 'MT-FND-000002' },
+      { type: 'school', name: 'TSF Lotus Valley School', city: 'Mumbai', parent: 'MT-FND-000002' },
+      { type: 'school', name: 'Orange City Vidyalaya', city: 'Nagpur', parent: 'MT-FND-000003' },
+      { type: 'school', name: 'Yamuna Heritage School', city: 'Delhi', parent: 'MT-FND-000004' },
       { type: 'school', name: 'Garden City International', city: 'Bengaluru', parent: '' },
-      { type: 'institution', name: 'College of Engineering, Pune', city: 'Pune', parent: 'MT-FND-000001' },
+      { type: 'institution', name: 'TSF Mumbai Kendra', city: 'Mumbai', parent: 'MT-FND-000002' },
+      { type: 'institution', name: 'TSF Pune Kendra', city: 'Pune', parent: 'MT-FND-000002' },
+      { type: 'institution', name: 'TSF Nagpur Kendra', city: 'Nagpur', parent: 'MT-FND-000002' },
+      { type: 'institution', name: 'TSF Delhi Kendra', city: 'Delhi', parent: 'MT-FND-000002' },
+      { type: 'institution', name: 'TSF Bengaluru Kendra', city: 'Bengaluru', parent: 'MT-FND-000002' },
+      { type: 'institution', name: 'TSF Ahmedabad Kendra', city: 'Ahmedabad', parent: 'MT-FND-000002' },
       { type: 'institution', name: 'Bengaluru Institute of Technology', city: 'Bengaluru', parent: '' }
     ];
     var typeCount = { foundation: 0, school: 0, institution: 0 };
@@ -68,19 +75,22 @@
       bump('global', 'orgsApproved'); bump('global', 'orgs_' + d.type); bump('global', 'users');
       counters[MT.ORG_PREFIX[d.type]] = { n: n };
     });
-    // Two organisations waiting for approval (shows the approval queue).
-    [{ type: 'school', name: 'Maple Grove Academy', city: 'Jaipur' }, { type: 'foundation', name: 'Neer Van Foundation', city: 'Hyderabad' }].forEach(function (d) {
-      var n = ++typeCount[d.type], id = 'MT-' + MT.ORG_PREFIX[d.type] + '-' + MT.pad(n, 6);
+    // Organisations that are not (yet) active: two waiting for approval, one suspended, one rejected — shows every status in the approval queue and lists.
+    [{ type: 'school', name: 'Maple Grove Academy', city: 'Jaipur', status: 'pending' }, { type: 'foundation', name: 'Neer Van Foundation', city: 'Hyderabad', status: 'pending' },
+     { type: 'school', name: 'Lakeview Public School', city: 'Kolkata', status: 'suspended', parent: 'MT-FND-000004' }, { type: 'foundation', name: 'Sunshine Trust', city: 'Chennai', status: 'rejected' }].forEach(function (d) {
+      var n = ++typeCount[d.type], id = 'MT-' + MT.ORG_PREFIX[d.type] + '-' + MT.pad(n, 6), parent = d.parent ? orgById[d.parent] : null, active = d.status === 'suspended';
       var o = {
         id: id, type: d.type, name: d.name, regNo: 'REG/2026/' + MT.pad(rnd.int(100, 9999), 4), address: '12, Station Road', city: d.city,
         state: cityObj(d.city).state, country: 'India', contactName: rnd.pick(FIRST) + ' ' + rnd.pick(LAST), phone: '+91 97' + rnd.int(10000000, 99999999),
-        email: 'pending' + n + '@mytree.demo', logo: '', status: 'pending', parentOrgId: '', ancestorOrgIds: [id], createdBy: 'seed', createdAt: now - 2 * DAY
+        email: (active ? MT.ORG_PREFIX[d.type].toLowerCase() + n : d.status + n) + '@mytree.demo', logo: '', status: d.status, parentOrgId: parent ? parent.id : '',
+        ancestorOrgIds: (parent ? parent.ancestorOrgIds : []).concat([id]), createdBy: 'seed', createdAt: now - (d.status === 'pending' ? 2 : 90) * DAY
       };
+      if (d.status !== 'pending') { o.statusAt = now - 10 * DAY; o.statusBy = 'MT-ADM-000001'; if (d.status === 'rejected') o.statusReason = 'Registration number could not be verified.'; if (active) o.statusReason = 'Suspended for demo.'; }
       orgs.push(o); orgById[id] = o;
       var uid = 'u_' + id.toLowerCase();
-      users.push(profile({ id: uid, userId: id, role: d.type, orgId: id, ancestorOrgIds: [id], active: false, status: 'pending', name: o.contactName, email: o.email, authEmail: o.email, createdAt: now - 2 * DAY }));
+      users.push(profile({ id: uid, userId: id, role: d.type, orgId: id, ancestorOrgIds: o.ancestorOrgIds, active: false, status: d.status, name: o.contactName, email: o.email, authEmail: o.email, createdAt: o.createdAt }));
       addAuth(uid, o.email);
-      bump('global', 'orgsPending'); bump('global', 'users');
+      if (d.status === 'pending') bump('global', 'orgsPending'); bump('global', 'users');
       counters[MT.ORG_PREFIX[d.type]] = { n: n };
     });
 
@@ -88,7 +98,7 @@
     var activeSchools = orgs.filter(function (o) { return (o.type === 'school' || o.type === 'institution') && o.status === 'approved'; });
     var students = [], perOrg = {};
     activeSchools.forEach(function (o, i) {
-      var cnt = o.type === 'institution' ? 12 : 16;
+      var cnt = o.type === 'institution' ? 8 : 14;
       if (i === 0) cnt = 20;
       for (var k = 1; k <= cnt; k++) {
         var nn = k, tag = MT.ORG_PREFIX[o.type] + MT.pad(+o.id.split('-')[2], 3);
@@ -107,13 +117,13 @@
         o.ancestorOrgIds.forEach(function (a) { if (a !== o.id) bump('org_' + a, 'members'); });
       }
     });
-    var sunriseStudent = students[0], lotusStudent = perOrg['MT-SCH-000002'][0];
-    demoAccounts.push({ role: 'foundation', label: 'Foundation', login: 'fnd1@mytree.demo', password: PW, note: 'Green Earth Foundation — sees its schools and the Mumbai chapter' });
-    demoAccounts.push({ role: 'foundation', label: 'Sub-foundation', login: 'fnd4@mytree.demo', password: PW, note: 'Mumbai chapter under Green Earth' });
-    demoAccounts.push({ role: 'school', label: 'School admin', login: 'sch1@mytree.demo', password: PW, note: 'Sunrise Public School' });
-    demoAccounts.push({ role: 'institution', label: 'Institution admin', login: 'ins1@mytree.demo', password: PW, note: 'College of Engineering, Pune' });
-    demoAccounts.push({ role: 'student', label: 'Student (user ID login)', login: sunriseStudent.userId, password: PW, note: sunriseStudent.name + ' · Sunrise Public School' });
-    demoAccounts.push({ role: 'student', label: 'Another student', login: lotusStudent.userId, password: PW, note: lotusStudent.name + ' · Lotus Valley' });
+    var firstStudent = students[0], secondStudent = perOrg['MT-SCH-000002'][0];
+    demoAccounts.push({ role: 'foundation', label: 'Foundation', login: 'fnd1@mytree.demo', password: PW, note: 'The Satsang Foundation — top of the TSF family (sees everything beneath)' });
+    demoAccounts.push({ role: 'foundation', label: 'Sub-foundation', login: 'fnd2@mytree.demo', password: PW, note: 'TSF MyTree — owns the Kendras and two schools' });
+    demoAccounts.push({ role: 'school', label: 'School admin', login: 'sch1@mytree.demo', password: PW, note: 'Satsang Vidyalaya (school directly under the Foundation)' });
+    demoAccounts.push({ role: 'institution', label: 'Organisation admin', login: 'ins1@mytree.demo', password: PW, note: 'TSF Mumbai Kendra (organisation under TSF MyTree)' });
+    demoAccounts.push({ role: 'student', label: 'Student (user ID login)', login: firstStudent.userId, password: PW, note: firstStudent.name + ' · Satsang Vidyalaya' });
+    demoAccounts.push({ role: 'student', label: 'Another student', login: secondStudent.userId, password: PW, note: secondStudent.name + ' · TSF Sunrise School' });
 
     /* --- Individuals --- */
     var inds = [];
@@ -126,6 +136,7 @@
     }
     counters.IND = { n: 8 };
     demoAccounts.push({ role: 'individual', label: 'Individual', login: 'ind1@mytree.demo', password: PW, note: inds[0].name });
+    EXTRA_ACCOUNTS.forEach(function (a) { demoAccounts.push(a); });
 
     /* --- Plots (one per active org, polygon around its planting site) --- */
     var siteByOrg = {};
@@ -223,18 +234,27 @@
     if (MT.seed.extend) MT.seed.extend.forEach(function (fn) { fn(db, { users: users, orgs: orgs, trees: trees, plots: plots, rnd: rnd, now: now }); });
   }
 
+  /* Extra scenarios (appended so the first eight accounts keep their positions). */
+  var EXTRA_ACCOUNTS = [
+    { role: 'institution', label: 'Kendra admin (Pune)', login: 'ins2@mytree.demo', password: PW, note: 'TSF Pune Kendra — another organisation under TSF MyTree' },
+    { role: 'foundation', label: 'Independent foundation', login: 'fnd3@mytree.demo', password: PW, note: 'Vanrai Trust — separate from TSF, with its own school' },
+    { role: 'school', label: 'Independent school', login: 'sch6@mytree.demo', password: PW, note: 'Garden City International — no parent foundation' },
+    { role: 'institution', label: 'Independent institution', login: 'ins7@mytree.demo', password: PW, note: 'Bengaluru Institute of Technology — no parent' },
+    { role: 'school', label: 'Awaiting approval', login: 'pending7@mytree.demo', password: PW, note: 'Maple Grove Academy — sees the “pending” screen until the Super Admin approves' },
+    { role: 'school', label: 'Suspended school', login: 'sch8@mytree.demo', password: PW, note: 'Lakeview Public School — cannot sign in (suspended)' }
+  ];
   MT.seed = { run: run, extend: [], demoAccounts: [], password: PW,
     /** Demo accounts are static; expose them even when the DB is loaded from IndexedDB. */
     accounts: function () {
       return [
-        { role: 'super_admin', label: 'Super Admin', login: 'admin@mytree.demo', password: PW, note: 'Sees and manages everything' },
-        { role: 'foundation', label: 'Foundation', login: 'fnd1@mytree.demo', password: PW, note: 'Green Earth Foundation — sees its schools' },
-        { role: 'foundation', label: 'Sub-foundation', login: 'fnd4@mytree.demo', password: PW, note: 'Mumbai chapter under Green Earth' },
-        { role: 'school', label: 'School admin', login: 'sch1@mytree.demo', password: PW, note: 'Sunrise Public School' },
-        { role: 'institution', label: 'Institution admin', login: 'ins1@mytree.demo', password: PW, note: 'College of Engineering, Pune' },
-        { role: 'student', label: 'Student (ID login)', login: 'MT-STU-SCH001-0001', password: PW, note: 'Sunrise Public School' },
-        { role: 'student', label: 'Another student', login: 'MT-STU-SCH002-0001', password: PW, note: 'Lotus Valley High School' },
+        { role: 'super_admin', label: 'Super Admin', login: 'admin@mytree.demo', password: PW, note: 'Sir — sees and manages everything' },
+        { role: 'foundation', label: 'Foundation', login: 'fnd1@mytree.demo', password: PW, note: 'The Satsang Foundation — top of the TSF family (sees everything beneath)' },
+        { role: 'foundation', label: 'Sub-foundation', login: 'fnd2@mytree.demo', password: PW, note: 'TSF MyTree — owns the Kendras and two schools' },
+        { role: 'school', label: 'School admin', login: 'sch1@mytree.demo', password: PW, note: 'Satsang Vidyalaya (school directly under the Foundation)' },
+        { role: 'institution', label: 'Organisation admin', login: 'ins1@mytree.demo', password: PW, note: 'TSF Mumbai Kendra (organisation under TSF MyTree)' },
+        { role: 'student', label: 'Student (ID login)', login: 'MT-STU-SCH001-0001', password: PW, note: 'Satsang Vidyalaya' },
+        { role: 'student', label: 'Another student', login: 'MT-STU-SCH002-0001', password: PW, note: 'TSF Sunrise School' },
         { role: 'individual', label: 'Individual', login: 'ind1@mytree.demo', password: PW, note: 'Plants on their own' }
-      ];
+      ].concat(EXTRA_ACCOUNTS);
     } };
 })();

@@ -58,7 +58,7 @@
   })();
 
   var data = {}, dirty = {}, ready = false;
-  var SEED_VERSION = 10;
+  var SEED_VERSION = 11;
 
   function col(name) { return data[name] || (data[name] = {}); }
   function withId(id, d) { var o = MT.clone(d); o.id = id; return o; }

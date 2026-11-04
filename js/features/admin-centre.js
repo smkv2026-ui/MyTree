@@ -68,6 +68,7 @@
     function drawMap() {
       var el = MT.$('#ac-map', host);
       function paint() {
+        if (destroyed || !map || !host.isConnected) return;
         if (layer) layer.clearLayers(); else layer = L.layerGroup().addTo(map);
         var items, byCity = F.state || F.org;
         if (!byCity) items = D.regions.map(function (r) { var c = MT.geoData.stateCentroids[r.name]; return c ? { name: r.name, lat: c[0], lng: c[1], d: r, onclick: function () { els.state.value = r.name; set(); } } : null; });
@@ -80,7 +81,7 @@
           var m = L.circleMarker([i.lat, i.lng], { radius: r, color: '#fff', weight: 2, fillColor: colorFor(smax > smin ? (surv - smin) / (smax - smin) : 0.6), fillOpacity: 0.9 }).addTo(layer);
           m.bindTooltip('<strong>' + MT.esc(i.name) + '</strong><br>' + MT.fmt.num(i.d.trees) + ' trees · ' + Math.round(surv * 100) + '% alive'); m.on('click', i.onclick); pts.push([i.lat, i.lng]);
         });
-        if (pts.length) map.fitBounds(pts, { padding: [40, 40], maxZoom: F.state ? 9 : 6 });
+        if (pts.length) { try { map.fitBounds(pts, { padding: [40, 40], maxZoom: F.state ? 9 : 6, animate: false }); } catch (e) { /* map removed */ } }
       }
       if (map) { paint(); return; }
       MT.maps.create(el, { center: [21.5, 79], zoom: 5, scrollWheelZoom: false }).then(function (m) { if (destroyed) { m.remove(); return; } map = m; paint(); }).catch(function (e) { el.innerHTML = '<div class="empty"><h3>Map unavailable</h3><p>' + MT.esc(MT.friendlyError(e)) + '</p></div>'; });

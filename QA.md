@@ -96,3 +96,5 @@ Tick each box in **Demo mode** (`index.html`) and again in **Live mode**. Phase 
 - [ ] Phone width (≈ 390 px): no horizontal scroll, bottom tabs, comfortable touch targets.
 - [ ] Rules: `cd tests && npm test` → all 72 checks pass.
 - [ ] Live: sign up → approve → plant → update → bulk import → *Rebuild statistics* reports **0** differences.
+- [ ] 3D tree: tree page, dashboard card, species preview in the planting step and the “planted” screen all render; drag rotates, wheel zooms, slider/“Watch it grow” changes age; dead trees are bare; Reduce motion stops sway and auto-rotate.
+- [ ] Demo data: login page lists 14 accounts incl. Satsang Foundation, TSF MyTree, Kendra admins, independent orgs, a pending and a suspended school.

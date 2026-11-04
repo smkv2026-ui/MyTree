@@ -155,3 +155,16 @@ mt-compare { display: block; --x: 50%; } .cmp { position: relative; aspect-ratio
 .map-fb-note { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 800; max-width: calc(100% - 24px); padding: .35rem .7rem; border-radius: 999px; background: rgba(255,255,255,.92); color: #35503f; font-size: .75rem; box-shadow: 0 2px 8px rgba(0,0,0,.15); text-align: center; }
 /* layers control icon as an inline SVG so it still shows when Leaflet's sprite images cannot load */
 .leaflet-control-layers-toggle { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2312261e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m12 2 10 5-10 5L2 7z'/><path d='m2 12 10 5 10-5'/><path d='m2 17 10 5 10-5'/></svg>") !important; background-size: 22px 22px !important; background-repeat: no-repeat; background-position: center; }
+
+/* ---------- interactive 3D tree ---------- */
+.t3d { position: relative; width: 100%; height: 360px; border-radius: var(--r-lg); overflow: hidden; background: #cfe8d8; isolation: isolate; }
+.t3d.t3d-tall { height: 440px; } .t3d.t3d-sm { height: 220px; } .t3d.t3d-xs { height: 190px; }
+.t3d-canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; outline-offset: -3px; } .t3d-canvas.grab { cursor: grabbing; }
+.t3d-hint { position: absolute; top: .6rem; left: 50%; transform: translateX(-50%); padding: .25rem .7rem; border-radius: 999px; background: rgba(15, 61, 46, .72); color: #fff; font-size: .74rem; letter-spacing: .02em; pointer-events: none; transition: opacity .5s; white-space: nowrap; }
+.t3d-hint.gone { opacity: 0; }
+.t3d-ctl { position: absolute; left: .6rem; right: .6rem; bottom: .6rem; display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; padding: .45rem .55rem; border-radius: 14px; background: color-mix(in srgb, var(--surface) 86%, transparent); backdrop-filter: blur(6px); box-shadow: 0 4px 16px rgba(0, 0, 0, .18); }
+.t3d-age { display: inline-flex; align-items: center; gap: .5rem; flex: 1 1 150px; min-width: 150px; } .t3d-age input { flex: 1; accent-color: var(--primary); } .t3d-age output { font-size: .78rem; font-weight: 600; color: var(--text-2); min-width: 7.5em; text-align: right; font-variant-numeric: tabular-nums; }
+.w-tree { width: clamp(150px, 22vw, 230px); flex: none; align-self: stretch; margin: -.4rem 0; } .w-tree .t3d { height: 100%; min-height: 150px; border-radius: 18px; }
+.welcome.has-3d { align-items: center; gap: 1.2rem; }
+@media (max-width: 640px) { .w-tree { width: 100%; order: 3; } .t3d { height: 300px; } .t3d.t3d-sm { height: 200px; } }
+@media (prefers-reduced-motion: reduce) { .t3d-hint { transition: none; } }

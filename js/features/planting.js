@@ -81,12 +81,16 @@
         if (!arr.length) list.insertAdjacentHTML('afterbegin', '<li class="sp-none">No match — try another spelling, or pick “Other”.</li>');
         detail();
       }
+      var spViewer = null;
       function detail() {
         var d = MT.$('#sp-detail', panel); if (!S.speciesId) { d.innerHTML = ''; return; }
         var s = MT.species.get(S.speciesId);
         d.innerHTML = '<div class="sp-card">' + (S.speciesId === 'other' ? '<label for="sp-custom">Name of the tree <span class="req">*</span></label><input id="sp-custom" maxlength="60" value="' + MT.esc(S.customName) + '" placeholder="e.g. Local name or your own"><p class="field-hint">Care tip: ' + MT.esc(s.tip) + '</p>' :
           '<strong>' + MT.esc(s.common) + '</strong> <em>' + MT.esc(s.scientific) + '</em><p>' + MT.esc(s.tip) + '</p><p class="fine">Grows up to ~' + s.maxH + ' m · absorbs an estimated ' + s.co2 + ' kg CO₂/year at maturity (estimate).</p>') + '</div>';
         var cu = MT.$('#sp-custom', d); if (cu) cu.addEventListener('input', function () { S.customName = cu.value; });
+        if (spViewer) { spViewer.destroy(); spViewer = null; }
+        if (S.speciesId !== 'other') { var box = document.createElement('div'); box.className = 't3d t3d-sm'; box.setAttribute('aria-live', 'polite'); d.querySelector('.sp-card').appendChild(box); var sid = S.speciesId;
+          MT.lazy.load('tree3d').then(function () { if (S.speciesId === sid && box.isConnected) spViewer = MT.tree3d.mount(box, { speciesId: sid, health: 'thriving', growth: 0.8, seed: 'preview-' + sid, controls: false }); }).catch(function () { box.remove(); }); }
       }
       var debounced = MT.debounce(draw, 120); q.addEventListener('input', debounced);
       MT.loader.load('fuse').then(function () { fuse = new Fuse(MT.species.list, { keys: ['common', 'scientific'], threshold: 0.35, ignoreLocation: true }); if (q.value) draw(); }).catch(function () {});
@@ -286,7 +290,8 @@
         '<div id="success-qr" class="qr-box"></div><button type="button" class="btn btn-ghost btn-sm" id="qr-dl">Download QR</button></div>' +
         '<div class="share-card"><img id="share-img" alt="Shareable card: I planted a tree" width="270" height="375"><div class="btn-row tight"><button type="button" class="btn btn-primary" id="sh-wa">' + ui.icon('message-circle').s + ' WhatsApp</button><button type="button" class="btn btn-soft" id="sh-share">' + ui.icon('share-2').s + ' Share / save image</button></div></div></div>' +
         '<div class="btn-row center-row"><a class="btn btn-primary" href="#/trees/' + encodeURIComponent(first.code) + '">View my tree</a><button type="button" class="btn btn-soft" id="plant-more">Plant another</button><a class="btn btn-ghost" href="#/trees">My trees</a></div></div>';
-      ui.icons(); ui.lottie(MT.$('#success-anim', panel), 'success'); ui.confetti(); window.scrollTo({ top: 0 });
+      ui.icons(); var sa = MT.$('#success-anim', panel); sa.style.cssText = 'width:min(420px,100%);height:260px'; sa.classList.add('t3d'); sa.removeAttribute('aria-hidden');
+      MT.lazy.load('tree3d').then(function () { if (sa.isConnected) MT.tree3d.mount(sa, { speciesId: first.speciesId, health: 'thriving', growth: 1, seed: first.code, birth: true, controls: false }); }).catch(function () { sa.classList.remove('t3d'); sa.style.cssText = 'width:140px;height:140px'; ui.lottie(sa, 'success'); }); ui.confetti(); window.scrollTo({ top: 0 });
       MT.shell.refreshBadges();
       MT.qr.render(MT.$('#success-qr', panel), MT.trees.url(first.code), 160).then(function (q) {
         var dl = MT.$('#qr-dl', panel); dl.addEventListener('click', function () { if (q) q.download({ name: first.code, extension: 'png' }); else ui.toast('QR not available offline.', { type: 'warn' }); });
