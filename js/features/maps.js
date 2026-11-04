@@ -60,6 +60,8 @@
       function show() {
         if (fb || !el.isConnected) return;
         fb = L.layerGroup(); el.classList.add('map-offline');
+        var land = function () { var O = MT.geoData && MT.geoData.outline; if (!O || !fb) return; O.others.forEach(function (r) { fb.addLayer(L.polygon(r, { color: '#b9c4b4', weight: 1, fillColor: '#e4e8dc', fillOpacity: 1, interactive: false })); }); O.india.forEach(function (r) { fb.addLayer(L.polygon(r, { color: '#3f8f57', weight: 1.4, fillColor: '#bfe3b4', fillOpacity: 1, interactive: false })); }); fb.eachLayer(function (l) { if (l.bringToBack) l.bringToBack(); }); };
+        if (MT.lazy) MT.lazy.load('indiamap').then(land, function () {}); else land();
         for (var lat = -80; lat <= 80; lat += 5) fb.addLayer(L.polyline([[lat, -180], [lat, 180]], { color: '#9fb5a8', weight: lat % 10 === 0 ? 1 : .5, opacity: .6, interactive: false }));
         for (var lng = -180; lng <= 180; lng += 5) fb.addLayer(L.polyline([[-85, lng], [85, lng]], { color: '#9fb5a8', weight: lng % 10 === 0 ? 1 : .5, opacity: .6, interactive: false }));
         var sc = (MT.geoData && MT.geoData.stateCentroids) || {};

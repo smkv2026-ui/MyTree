@@ -345,14 +345,14 @@
     cv.addEventListener('pointermove', function (e) {
       if (!pts[e.pointerId]) return; pts[e.pointerId] = [e.clientX, e.clientY]; var k = Object.keys(pts);
       if (k.length === 2) { var d = Math.hypot(pts[k[0]][0] - pts[k[1]][0], pts[k[0]][1] - pts[k[1]][1]); if (pinch) dist = clamp(dist * d / pinch, 0.6, 2.6); pinch = d; kick(); return; }
-      if (!drag) return; var dx = e.clientX - drag.x, dy = e.clientY - drag.y; var ny = drag.yaw + dx * 0.009; vyaw = (ny - yaw) * 0.6; yaw = ny; pitch = clamp(drag.pitch + dy * 0.006, -0.12, 1.1); kick();
+      if (!drag) return; var dx = e.clientX - drag.x, dy = e.clientY - drag.y; var ny = drag.yaw + dx * 0.009; vyaw = (ny - yaw) * 0.6; yaw = ny; pitch = clamp(drag.pitch + dy * 0.006, 0.04, 1.38); kick();
     });
     function up(e) { delete pts[e.pointerId]; if (!Object.keys(pts).length) { drag = null; pinch = 0; cv.classList.remove('grab'); } }
     cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
     cv.addEventListener('wheel', function (e) { e.preventDefault(); dist = clamp(dist * (e.deltaY > 0 ? 0.92 : 1.09), 0.6, 2.6); hint.classList.add('gone'); kick(); }, { passive: false });
     cv.addEventListener('dblclick', resetView);
     cv.addEventListener('keydown', function (e) {
-      var h = true; if (e.key === 'ArrowLeft') yaw -= 0.18; else if (e.key === 'ArrowRight') yaw += 0.18; else if (e.key === 'ArrowUp') pitch = clamp(pitch + 0.08, -0.12, 1.1); else if (e.key === 'ArrowDown') pitch = clamp(pitch - 0.08, -0.12, 1.1);
+      var h = true; if (e.key === 'ArrowLeft') yaw -= 0.18; else if (e.key === 'ArrowRight') yaw += 0.18; else if (e.key === 'ArrowUp') pitch = clamp(pitch + 0.08, 0.04, 1.38); else if (e.key === 'ArrowDown') pitch = clamp(pitch - 0.08, 0.04, 1.38);
       else if (e.key === '+' || e.key === '=') dist = clamp(dist * 1.1, 0.6, 2.6); else if (e.key === '-') dist = clamp(dist / 1.1, 0.6, 2.6); else if (e.key === '0') resetView(); else h = false;
       if (h) { e.preventDefault(); kick(); }
     });

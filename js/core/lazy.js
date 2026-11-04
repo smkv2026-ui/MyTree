@@ -15,6 +15,7 @@
     green: { files: ['js/data/imagery.js', 'js/features/greencover.js'], routes: ['/green', '/green/:id'], access: 'auth' },
     social: { files: ['js/features/gamify.js', 'js/features/certificates.js'], routes: ['/leaderboard', '/badges'], access: 'auth' },
     help: { files: ['js/data/help.js', 'js/features/help.js', 'js/features/tours.js'], routes: ['/help'], access: 'public' },
+    indiamap: { files: ['js/data/india.js'], routes: [] },
     tree3d: { files: ['js/features/tree3d.js'], routes: [] },
     phrases: { files: ['js/data/phrases.js'], routes: [] }
   }, loading = {}, done = {};

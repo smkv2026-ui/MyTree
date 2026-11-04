@@ -176,3 +176,6 @@ mt-compare { display: block; --x: 50%; } .cmp { position: relative; aspect-ratio
 .hero-3d .t3d-canvas { position: absolute; inset: 0; }
 .hero-3d .t3d-ctl { left: 50%; right: auto; bottom: -.2rem; transform: translateX(-50%); width: max-content; max-width: 100%; }
 @media (max-width: 860px) { .hero-3d { width: min(420px, 100%); } }
+
+.map-offline.leaflet-container { background: linear-gradient(180deg, #cfe6f2, #dcedf2); }
+:root[data-theme="dark"] .map-offline.leaflet-container { background: #0f2a3a; }
