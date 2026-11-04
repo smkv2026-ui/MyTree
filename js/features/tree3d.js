@@ -178,9 +178,9 @@
 
     el.classList.add('t3d'); el.innerHTML = '';
     var cv = document.createElement('canvas'); cv.className = 't3d-canvas'; cv.tabIndex = 0; cv.setAttribute('role', 'img');
-    var label = function () { return 'Interactive 3D model of ' + ((sp && sp.common) || 'a tree') + ', ' + (healthKey === 'dead' ? 'bare — the tree has died' : healthKey.replace('_', ' ')) + '. Drag or use the arrow keys to rotate, plus and minus to zoom.'; };
+    var label = function () { return 'Interactive 3D model of ' + ((sp && sp.common) || 'a tree') + ', ' + (healthKey === 'dead' ? 'bare — the tree has died' : healthKey.replace('_', ' ')) + '. Drag sideways or use the left and right arrow keys to turn it, plus and minus to zoom.'; };
     cv.setAttribute('aria-label', label()); el.appendChild(cv);
-    var hint = document.createElement('div'); hint.className = 't3d-hint'; hint.textContent = '↔ Drag to rotate · scroll to zoom'; el.appendChild(hint);
+    var hint = document.createElement('div'); hint.className = 't3d-hint'; hint.textContent = '↔ Drag sideways to turn · scroll to zoom'; el.appendChild(hint);
     var ui = null, slider, ageOut;
     if (o.controls) {
       ui = document.createElement('div'); ui.className = 't3d-ctl' + (o.controls === 'lite' ? ' lite' : '');
@@ -345,15 +345,14 @@
     cv.addEventListener('pointermove', function (e) {
       if (!pts[e.pointerId]) return; pts[e.pointerId] = [e.clientX, e.clientY]; var k = Object.keys(pts);
       if (k.length === 2) { var d = Math.hypot(pts[k[0]][0] - pts[k[1]][0], pts[k[0]][1] - pts[k[1]][1]); if (pinch) dist = clamp(dist * d / pinch, 0.6, 2.6); pinch = d; kick(); return; }
-      if (!drag) return; var dx = e.clientX - drag.x, dy = e.clientY - drag.y; var ny = drag.yaw + dx * 0.009; vyaw = (ny - yaw) * 0.6; yaw = ny; pitch = clamp(drag.pitch + dy * 0.006, 0.04, 1.38); kick();
+      if (!drag) return; var dx = e.clientX - drag.x, dy = e.clientY - drag.y; var ny = drag.yaw + dx * 0.009; vyaw = (ny - yaw) * 0.6; yaw = ny; kick(); /* sideways only: the view angle above the ground is fixed */
     });
     function up(e) { delete pts[e.pointerId]; if (!Object.keys(pts).length) { drag = null; pinch = 0; cv.classList.remove('grab'); } }
     cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
     cv.addEventListener('wheel', function (e) { e.preventDefault(); dist = clamp(dist * (e.deltaY > 0 ? 0.92 : 1.09), 0.6, 2.6); hint.classList.add('gone'); kick(); }, { passive: false });
     cv.addEventListener('dblclick', resetView);
     cv.addEventListener('keydown', function (e) {
-      var h = true; if (e.key === 'ArrowLeft') yaw -= 0.18; else if (e.key === 'ArrowRight') yaw += 0.18; else if (e.key === 'ArrowUp') pitch = clamp(pitch + 0.08, 0.04, 1.38); else if (e.key === 'ArrowDown') pitch = clamp(pitch - 0.08, 0.04, 1.38);
-      else if (e.key === '+' || e.key === '=') dist = clamp(dist * 1.1, 0.6, 2.6); else if (e.key === '-') dist = clamp(dist / 1.1, 0.6, 2.6); else if (e.key === '0') resetView(); else h = false;
+      var h = true; if (e.key === 'ArrowLeft') yaw -= 0.18; else if (e.key === 'ArrowRight') yaw += 0.18; else if (e.key === '+' || e.key === '=') dist = clamp(dist * 1.1, 0.6, 2.6); else if (e.key === '-') dist = clamp(dist / 1.1, 0.6, 2.6); else if (e.key === '0') resetView(); else h = false;
       if (h) { e.preventDefault(); kick(); }
     });
     function resetView() { yaw = 0.5; pitch = 0.2; dist = 1; vyaw = 0; kick(); }

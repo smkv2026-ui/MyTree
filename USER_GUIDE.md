@@ -67,4 +67,4 @@ Your teacher gives you a **user ID** and **password** (for example `Maple-River-
 * **Language**: English, हिन्दी, मराठी (navigation and common labels).
 * **Install as an app**: Quick search → “Install the app”, or your browser's menu → Install / Add to Home Screen. Works offline for pages you have opened.
 * **Accessibility menu** (the sliders icon): text size, high contrast, dark / light theme and **Reduce motion**.
-* **Tree in 3D**: on every tree page, drag to turn the tree, scroll or pinch to zoom, press **Watch it grow** or move the age slider to see it from sapling to maturity. Its look follows the species and its health. Keyboard: arrow keys rotate, + / − zoom, 0 resets.
+* **Tree in 3D**: on every tree page, drag sideways to turn the tree, scroll or pinch to zoom, press **Watch it grow** or move the age slider to see it from sapling to maturity. Its look follows the species and its health. Keyboard: left/right arrow keys turn it, + / − zoom, 0 resets.

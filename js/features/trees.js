@@ -182,7 +182,7 @@
             <div class="btn-row">${editable ? h`<button class="btn btn-primary" id="post-upd">${ui.icon('clipboard-check')} Post update</button><button class="btn btn-soft" id="mv-pin">${ui.icon('move')} Move pin</button><button class="btn btn-danger-soft" id="del-tree">${ui.icon('trash-2')} Delete</button>` : ''}<button class="btn btn-ghost" id="ics-tree">${ui.icon('calendar-plus')} Add reminders (.ics)</button><button class="btn btn-ghost" id="copy-link">${ui.icon('link')} Copy public link</button><button class="btn btn-ghost" id="cert-tree">${ui.icon('award')} Certificate</button><button class="btn btn-ghost" id="gift-tree">${ui.icon('gift')} Gift card</button></div>
           </div>
         </section>
-        <section class="card"><div class="card-head"><h3>Your tree in 3D</h3><span class="fine">Drag to turn it · slide the age to see it grow</span></div><div class="t3d t3d-tall" id="t3d-host" aria-live="polite"></div></section>
+        <section class="card"><div class="card-head"><h3>Your tree in 3D</h3><span class="fine">Drag sideways to turn it · slide the age to see it grow</span></div><div class="t3d t3d-tall" id="t3d-host" aria-live="polite"></div></section>
         <div class="two-col">
           <section class="card"><div class="card-head"><h3>Location</h3></div><div class="detail-map" id="detail-map"></div><p class="fine">${t.address || ''}</p><p class="mono fine">${t.lat.toFixed(6)}, ${t.lng.toFixed(6)}</p></section>
           <section class="card"><div class="card-head"><h3>QR code</h3></div><div id="detail-qr" class="qr-box"></div><p class="fine">Scan to open this tree's page. Print it on a tag next to the tree.</p></section>
