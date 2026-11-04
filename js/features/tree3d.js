@@ -103,7 +103,7 @@
         d = norm([d[0] + (r() - 0.5) * bend, d[1] + up + (r() - 0.5) * bend * 0.45, d[2] + (r() - 0.5) * bend]);
         p = [p[0] + d[0] * seg, p[1] + d[1] * seg, p[2] + d[2] * seg]; pts.push(p);
       }
-      var b = { pts: pts, r0: rad0, r1: rad0 * (lvl === 0 ? 0.42 : 0.3), lvl: lvl, len: len }; branches.push(b); return b;
+      var b = { parent: parent || null, at: 0, pts: pts, r0: rad0, r1: rad0 * (lvl === 0 ? 0.42 : 0.3), lvl: lvl, len: len }; branches.push(b); return b;
     }
     function crown(b, lvl) {
       // leaf clusters, flowers and fruit near the end of terminal branches
@@ -111,9 +111,9 @@
       for (k = 0; k < n; k++) {
         var f = lvl >= D ? 0.35 + r() * 0.65 : 0.7 + r() * 0.3, i = Math.min(pts.length - 2, Math.floor(f * (pts.length - 1))), t = f * (pts.length - 1) - i;
         var P = [lerp(pts[i][0], pts[i + 1][0], t) + (r() - 0.5) * 1.1, lerp(pts[i][1], pts[i + 1][1], t) + (r() - 0.3) * 0.9, lerp(pts[i][2], pts[i + 1][2], t) + (r() - 0.5) * 1.1];
-        leaves.push({ p: P, s: 0.8 + r() * 0.9, c: Math.floor(r() * 4), keep: r(), start: 0.1 + lvl * 0.1 + r() * 0.1, dry: r() });
-        if (st.flower && r() < 0.34) blooms.push({ p: [P[0] + (r() - 0.5) * 0.9, P[1] + 0.3, P[2] + (r() - 0.5) * 0.9], flower: true, s: 0.8 + r() * 0.5, keep: r(), start: 0.62 + r() * 0.3 });
-        else if (st.fruit && r() < 0.16) blooms.push({ p: [P[0] + (r() - 0.5) * 0.7, P[1] - 0.5, P[2] + (r() - 0.5) * 0.7], flower: false, s: 0.8 + r() * 0.4, keep: r(), start: 0.78 + r() * 0.18 });
+        leaves.push({ b: b, p: P, s: 0.8 + r() * 0.9, c: Math.floor(r() * 4), keep: r(), start: 0.1 + lvl * 0.1 + r() * 0.1, dry: r() });
+        if (st.flower && r() < 0.34) blooms.push({ b: b, p: [P[0] + (r() - 0.5) * 0.9, P[1] + 0.3, P[2] + (r() - 0.5) * 0.9], flower: true, s: 0.8 + r() * 0.5, keep: r(), start: 0.62 + r() * 0.3 });
+        else if (st.fruit && r() < 0.16) blooms.push({ b: b, p: [P[0] + (r() - 0.5) * 0.7, P[1] - 0.5, P[2] + (r() - 0.5) * 0.7], flower: false, s: 0.8 + r() * 0.4, keep: r(), start: 0.78 + r() * 0.18 });
       }
     }
     function grow(b, lvl) {
@@ -124,7 +124,7 @@
         var f = lvl === 0 ? 0.42 + (k / count) * 0.55 : 0.3 + r() * 0.65, i = Math.min(b.pts.length - 2, Math.floor(f * (b.pts.length - 1))), s = b.pts[i];
         var az = (lvl * 1.7 + k * 2.399 + r() * 0.9), el = lvl === 0 ? 0.55 + r() * 0.45 : 0.35 + r() * 0.5, sd = [Math.cos(az) * Math.cos(el), Math.sin(el) * (lvl === 0 ? 0.9 : 0.6), Math.sin(az) * Math.cos(el)];
         var len = b.len * (lvl === 0 ? 0.62 - f * 0.28 : 0.7) * st.wide * (0.85 + r() * 0.3);
-        var c = mkBranch(s, norm(sd), len, b.r0 * 0.5, lvl + 1, 0.28 + lvl * 0.06);
+        var c = mkBranch(s, norm(sd), len, b.r0 * 0.5, lvl + 1, 0.28 + lvl * 0.06, b); c.at = f;
         grow(c, lvl + 1);
       }
     }
@@ -198,9 +198,9 @@
     var cosY, sinY, cosP, sinP, F, CX, CY, TY, SC;
     function setCam() {
       cosY = Math.cos(yaw); sinY = Math.sin(yaw); cosP = Math.cos(pitch); sinP = Math.sin(pitch);
-      var fit = model.height * (0.2 + 0.8 * ease(shown)); F = Math.min(W, Hh) * 1.55; CX = W / 2; CY = Hh * (o.horizon || 0.66); TY = fit * 0.42; SC = fit;
+      var fit = model.height * (0.16 + 0.84 * ease(shown)); F = Math.min(W, Hh) * 1.55 * (1 + 0.8 * (1 - ease(shown))); CX = W / 2; CY = Hh * (o.horizon || 0.66); TY = fit * 0.42; SC = fit;
     }
-    var DZ = function () { return (SC * 3.0 + 6) / dist; };
+    var DZ = function () { return (SC * 3.0 + 9) / dist; };
     function proj(x, y, z, out) {
       var sway = wind ? wind * Math.pow(Math.max(0, y) / model.height, 2) : 0;
       x += sway * Math.sin(lastT * 0.0017 + y * 0.35 + z * 0.2) * 0.9; z += sway * Math.cos(lastT * 0.0013 + y * 0.3) * 0.5;
@@ -239,15 +239,34 @@
     }
     function addScenery() {
       var gr = rng('grass' + seed), k;
-      for (k = 0; k < 70; k++) { var a = gr() * TAU, d = 1.2 + gr() * 6.8, x = Math.cos(a) * d, z = Math.sin(a) * d, q = proj(x, 0, z, tmp); prim.push({ z: q.z, t: 3, x: q.x, y: q.y, s: q.s, h: 0.3 + gr() * 0.5, c: gr(), sway: gr() * 6 }); }
+      for (k = 0; k < 70; k++) { var a = gr() * TAU, d = 1.6 + gr() * 6.4, x = Math.cos(a) * d, z = Math.sin(a) * d, q = proj(x, 0, z, tmp); prim.push({ z: q.z, t: 3, x: q.x, y: q.y, s: q.s, h: 0.3 + gr() * 0.5, c: gr(), sway: gr() * 6 }); }
       for (k = 0; k < 12; k++) { var a2 = gr() * TAU, d2 = 2 + gr() * 6, q2 = proj(Math.cos(a2) * d2, 0.05, Math.sin(a2) * d2, tmp); prim.push({ z: q2.z, t: 4, x: q2.x, y: q2.y, s: q2.s, col: ['#fff', '#ffd966', '#ff9ab5', '#c9a3ff'][k % 4] }); }
-      for (k = 0; k < 4; k++) { var a3 = gr() * TAU, d3 = 3 + gr() * 4, q3 = proj(Math.cos(a3) * d3, 0.05, Math.sin(a3) * d3, tmp); prim.push({ z: q3.z, t: 5, x: q3.x, y: q3.y, s: q3.s, r: 0.25 + gr() * 0.3 }); }
+      for (k = 0; k < (shown < 0.25 ? 0 : 4); k++) { var a3 = gr() * TAU, d3 = 4 + gr() * 3, q3 = proj(Math.cos(a3) * d3, 0.05, Math.sin(a3) * d3, tmp); prim.push({ z: q3.z, t: 5, x: q3.x, y: q3.y, s: q3.s, r: 0.25 + gr() * 0.3 }); }
+    }
+    var tip = null, gFrame = 0;
+    /** Growth (0..1) of a branch; it only starts once its parent has reached the point it springs from. */
+    function G(b, g) {
+      if (b._f === gFrame) return b._g;
+      var own = clamp((g - (b.start || 0) - b.lvl * 0.13) / 0.42, 0, 1); if (b.root) own = clamp(g * 3, 0, 1);
+      if (b.parent && G(b.parent, g) < b.at) own = 0;
+      b._f = gFrame; b._g = own; return own;
+    }
+    function seedPrims() {
+      var q = proj(0, 0, 0, tmp), g = shown;
+      if (g < 0.5) prim.push({ z: q.z + 0.05, t: 10, x: q.x, y: q.y, s: q.s, a: clamp(1 - g / 0.5, 0, 1) });
+      if (g < 0.045) { var d = proj(0, 0.18, 0, tmp2); prim.push({ z: d.z - 0.1, t: 11, x: d.x, y: d.y, s: d.s, a: 1 - g / 0.045 }); }
+      if (g >= 0.02 && tip && !model.fronds.length && !dead) {
+        var k = clamp((g - 0.02) / 0.1, 0, 1), fade = g > 0.3 ? clamp(1 - (g - 0.3) / 0.2, 0, 1) : 1, side = [-0.32, 0.32], i;
+        for (i = 0; i < 2 && fade > 0.02; i++) { var c = proj(tip[0] + side[i], tip[1] + 0.06, tip[2], tmp2); prim.push({ z: c.z - 0.2, t: 1, x: c.x, y: c.y, sz: 2.4 * c.s * k * fade, img: leafSprite('#58c46e', 3, 1), a: 1 }); }
+      }
     }
     function branchPrims() {
       var g = Math.pow(shown, 0.72), sc = 0.62 + 0.38 * ease(shown), dk = mix(st.bark, 'k', dead ? 0.1 : 0.25), lt = mix(st.bark, 'w', dead ? 0.3 : 0.3);
       if (dead) { dk = '#5d5750'; lt = '#8b857a'; }
+      tip = null; gFrame++;
       model.branches.forEach(function (b) {
-        var gl = clamp((g - (b.start || 0) - b.lvl * 0.13) / 0.42, 0, 1); if (b.root) gl = clamp(g * 3, 0, 1); if (gl <= 0.005) return;
+        var gl = G(b, g); if (gl <= 0.005) return;
+        if (b.lvl === 0 && !tip && !b.bamboo) { var q0 = gl * (b.pts.length - 1), qi = Math.min(b.pts.length - 2, Math.floor(q0)), qt = q0 - qi; tip = [lerp(b.pts[qi][0], b.pts[qi + 1][0], qt) * sc, lerp(b.pts[qi][1], b.pts[qi + 1][1], qt) * sc, lerp(b.pts[qi][2], b.pts[qi + 1][2], qt) * sc]; }
         var n = b.pts.length - 1, upto = gl * n, i;
         for (i = 0; i < n; i++) {
           var f = clamp(upto - i, 0, 1); if (f <= 0) break;
@@ -261,7 +280,7 @@
     function leafPrims() {
       var g = Math.pow(shown, 0.72), sc = 0.62 + 0.38 * ease(shown), keepRate = H.leaves, i, l, p, lf, sh, dry, col;
       for (i = 0; i < model.leaves.length; i++) {
-        l = model.leaves[i]; if (l.keep > keepRate) continue; lf = clamp((g - l.start) / 0.4, 0, 1); if (lf <= 0.01) continue;
+        l = model.leaves[i]; if (l.keep > keepRate) continue; lf = clamp((g - l.start) / 0.4, 0, 1); if (l.b) lf = Math.min(lf, clamp((G(l.b, g) - 0.35) / 0.4, 0, 1)); if (lf <= 0.01) continue;
         p = proj(l.p[0] * sc, l.p[1] * sc, l.p[2] * sc, tmp);
         var n = [l.p[0], l.p[1] - model.height * 0.5, l.p[2]]; n = norm(n); sh = n[0] * SUN[0] + n[1] * SUN[1] + n[2] * SUN[2]; sh = sh < -0.25 ? 0 : sh < 0.15 ? 1 : sh < 0.55 ? 2 : 3;
         dry = l.dry < H.dry; col = dry ? H.colors[(l.c + 2) % H.colors.length] : H.colors[l.c % H.colors.length];
@@ -269,7 +288,7 @@
         prim.push({ z: p.z, t: 1, x: p.x, y: p.y, sz: l.s * p.s * 5.2 * lf * (st.form === 'conifer' ? 1.15 : 1) * (0.7 + 0.3 * sc), img: l.needle ? needleSprite(sh) : leafSprite(col, sh, l.kind), a: 1 });
       }
       model.blooms.forEach(function (b) {
-        var bl = clamp((g - b.start) / 0.25, 0, 1); if (bl <= 0.01 || b.keep > (b.flower ? H.bloom : Math.max(H.bloom, 0.0001))) return;
+        var bl = clamp((g - b.start) / 0.25, 0, 1); if (b.b) bl = Math.min(bl, clamp((G(b.b, g) - 0.6) / 0.4, 0, 1)); if (bl <= 0.01 || b.keep > (b.flower ? H.bloom : Math.max(H.bloom, 0.0001))) return;
         if (!b.flower && healthKey === 'struggling') return;
         var q = proj(b.p[0] * sc, b.p[1] * sc, b.p[2] * sc, tmp);
         prim.push({ z: q.z - 0.2, t: 1, x: q.x, y: q.y, sz: b.s * q.s * (b.flower ? 3.2 : 2.6) * bl, img: b.flower ? flowerSprite(st.flower) : fruitSprite(st.fruit), a: 1 });
@@ -313,6 +332,8 @@
         case 4: { var fs = Math.max(1.5, p.s * 0.1); ctx.strokeStyle = '#3d8f46'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x, p.y - fs * 2); ctx.stroke(); ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y - fs * 2.2, fs * 1.1, 0, TAU); ctx.fill(); break; }
         case 5: { var rw = p.r * p.s * 2; ctx.fillStyle = isDark() ? '#5c6a66' : '#9aa39c'; ctx.beginPath(); ctx.ellipse(p.x, p.y, rw, rw * 0.6, 0, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.ellipse(p.x - rw * 0.2, p.y - rw * 0.2, rw * 0.5, rw * 0.28, 0, 0, TAU); ctx.fill(); break; }
         case 6: ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.scale(1, 0.55 + 0.45 * Math.abs(Math.sin(p.a * 1.7))); ctx.fillStyle = p.c; ctx.beginPath(); ctx.ellipse(0, 0, Math.max(2, p.s * 0.2), Math.max(1.2, p.s * 0.1), 0, 0, TAU); ctx.fill(); ctx.restore(); break;
+        case 10: { var mw = p.s * 1.1, mg = ctx.createRadialGradient(p.x, p.y - mw * 0.1, 0, p.x, p.y, mw); mg.addColorStop(0, '#8a6444'); mg.addColorStop(1, '#5c4029'); ctx.globalAlpha = p.a; ctx.fillStyle = mg; ctx.beginPath(); ctx.ellipse(p.x, p.y, mw, mw * 0.4, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; break; }
+        case 11: { ctx.globalAlpha = p.a; ctx.fillStyle = '#e7c98e'; ctx.beginPath(); ctx.ellipse(p.x, p.y, p.s * 0.12, p.s * 0.08, 0.5, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; break; }
         case 8: { var gr = Math.max(4, p.s * 0.45) * (0.6 + p.g * 0.6), gg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, gr); gg.addColorStop(0, 'rgba(255,240,150,' + (0.9 * p.g) + ')'); gg.addColorStop(1, 'rgba(255,240,150,0)'); ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(p.x, p.y, gr, 0, TAU); ctx.fill(); break; }
         case 9: { ctx.strokeStyle = isDark() ? 'rgba(230,240,235,.85)' : 'rgba(40,60,60,.7)'; ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(p.x - p.s, p.y - p.a * p.s * 0.8); ctx.quadraticCurveTo(p.x - p.s * 0.4, p.y + 1, p.x, p.y); ctx.quadraticCurveTo(p.x + p.s * 0.4, p.y + 1, p.x + p.s, p.y - p.a * p.s * 0.8); ctx.stroke(); break; }
         case 7: { var ws = Math.max(3, p.s * 0.26) * (0.25 + p.w); ctx.fillStyle = p.col; ctx.beginPath(); ctx.ellipse(p.x - ws * 0.7, p.y, ws, ws * 1.1, -0.5, 0, TAU); ctx.ellipse(p.x + ws * 0.7, p.y, ws, ws * 1.1, 0.5, 0, TAU); ctx.fill(); break; }
@@ -330,7 +351,7 @@
       wind = still ? 0 : 0.55 + 0.35 * Math.sin(now * 0.0006);
       setCam(); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, Hh);
       if (o.sky !== false) sky(); ground();
-      prim.length = 0; addScenery(); branchPrims(); leafPrims(); particles(dt);
+      prim.length = 0; addScenery(); branchPrims(); seedPrims(); leafPrims(); particles(dt);
       prim.sort(function (a, b) { return b.z - a.z; });
       for (var i = 0; i < prim.length; i++) drawPrim(prim[i]);
       if (still && !drag && !birth && !playing) { raf = 0; return; }
@@ -360,7 +381,7 @@
     if (ui) {
       ui.addEventListener('click', function (e) {
         var b = e.target.closest('[data-a]'); if (!b) return;
-        if (b.dataset.a === 'play') { if (playing) { playing = false; b.textContent = '▶ Watch it grow'; } else { birth = false; shown = 0.03; target = 1; playing = true; /* always replay from a tiny sapling to the full tree */ b.textContent = '❚❚ Pause'; } kick(); }
+        if (b.dataset.a === 'play') { if (playing) { playing = false; b.textContent = '▶ Watch it grow'; } else { birth = false; shown = 0; target = 1; playing = true; /* always replay from a tiny sapling to the full tree */ b.textContent = '❚❚ Pause'; } kick(); }
         else if (b.dataset.a === 'spin') { autorotate = !autorotate; b.setAttribute('aria-pressed', autorotate); kick(); }
         else resetView();
       });
