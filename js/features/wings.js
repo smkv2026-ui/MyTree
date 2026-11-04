@@ -20,7 +20,7 @@
   function page() {
     return '<div class="page wg-page" data-reveal><div class="page-head"><h2>Bird friends</h2><p class="muted">Trees feed and shelter birds — add nest boxes, feeders and water so they can thrive. Set one up, keep it cared for, and log the visitors.</p></div>' +
       '<div class="btn-row"><button class="btn btn-primary" id="wg-add">' + ui.icon('plus').s + ' Add a nest, feeder or water bowl</button><button class="btn btn-soft" id="wg-see">' + ui.icon('eye').s + ' Log a bird sighting</button><a class="btn btn-ghost" href="#/market?cat=bird">' + ui.icon('shopping-basket').s + ' Buy bird-care items</a></div>' +
-      '<div class="tabs" id="wg-tabs"><a class="tab-link active" href="#/wings" data-t="stations">My stations</a><a class="tab-link" href="#/wings" data-t="sightings">Sightings</a><a class="tab-link" href="#/wings" data-t="learn">How to help birds</a></div><div id="wg-body">' + ui.skeleton(3, 'sk-line').s + '</div></div>';
+      '<div class="tabs" id="wg-tabs"><a class="tab-link active" href="#/wings" data-t="stations">My stations</a><a class="tab-link" href="#/wings" data-t="meet">Meet the birds (3D)</a><a class="tab-link" href="#/wings" data-t="sightings">Sightings</a><a class="tab-link" href="#/wings" data-t="learn">How to help birds</a></div><div id="wg-body">' + ui.skeleton(3, 'sk-line').s + '</div></div>';
   }
   function after(host, ctx) {
     var p = MT.auth.profile(), dead = false, tab = 'stations', stations = [], sightings = [], body = MT.$('#wg-body', host), map = null;
@@ -51,7 +51,14 @@
       body.innerHTML = '<div class="wg-grid">' + Object.keys(KINDS).map(function (k) { var x = KINDS[k]; return '<article class="card"><div class="wg-head"><span class="wg-ic" style="--c:' + x.color + '">' + ui.icon(x.icon).s + '</span><h3>' + x.label + '</h3></div><p>' + esc(x.tip) + '</p><p class="fine">Check every ' + x.every + ' day' + (x.every > 1 ? 's' : '') + '.</p></article>'; }).join('') +
         '<article class="card"><h3>Good to know</h3><ul class="plain-list"><li>Place feeders and water away from cats and busy roads.</li><li>Keep stations near a tree or shrub so birds can perch and hide.</li><li>Avoid bread, salty snacks and milk.</li><li>Tell us when something is damaged so it is not left unsafe.</li></ul></article></div>'; ui.icons();
     }
-    function paint() { if (dead) return; if (map) { map.remove(); map = null; } ({ stations: stationsTab, sightings: sightingsTab, learn: learnTab }[tab])(); }
+    var viewer = null, meetSp = 'House Sparrow';
+    function meetTab() {
+      MT.lazy.load('wings').then(function () {
+        body.innerHTML = '<div class="card"><div class="chips" id="bd-chips" role="group" aria-label="Choose a bird">' + MT.bird3d.species.map(function (n) { return '<button class="chip' + (n === meetSp ? ' on' : '') + '" data-bird="' + esc(n) + '" aria-pressed="' + (n === meetSp) + '">' + esc(n) + '</button>'; }).join('') + '</div><div class="t3d t3d-tall" id="bd-3d" style="margin-top:.8rem"></div><p id="bd-fact" class="wg-fact"></p><div class="btn-row"><button class="btn btn-primary btn-sm" id="bd-log">' + ui.icon('eye').s + ' I saw this bird</button><button class="btn btn-ghost btn-sm" id="bd-reset">Reset view</button></div></div>'; ui.icons();
+        var el = MT.$('#bd-3d', host); if (viewer) viewer.destroy(); viewer = MT.bird3d.mount(el, { species: meetSp }); MT.$('#bd-fact', host).textContent = viewer.fact();
+      }).catch(function () { body.innerHTML = '<p class="muted">The 3D bird could not be loaded.</p>'; });
+    }
+    function paint() { if (dead) return; if (map) { map.remove(); map = null; } if (viewer && tab !== 'meet') { viewer.destroy(); viewer = null; } ({ stations: stationsTab, meet: meetTab, sightings: sightingsTab, learn: learnTab }[tab])(); }
 
     /* ---- forms ---- */
     function addStation() {
@@ -79,19 +86,21 @@
       kit.form({ title: 'Care for ' + (st.name || KINDS[st.kind].label), submit: 'Save', html: '<div class="field field-wide"><label for="c-act">What did you do?</label><select id="c-act" name="action">' + ACTIONS.map(function (a) { return '<option>' + a + '</option>'; }).join('') + '</select></div><div class="field field-wide"><label for="c-st">Condition now</label><select id="c-st" name="status"><option value="active">Working well</option><option value="needs_refill">Needs refilling soon</option><option value="damaged">Damaged</option></select></div><div class="field field-wide"><label for="c-n">Notes (optional)</label><input id="c-n" name="notes" maxlength="200"></div>',
         onSubmit: function (v) { var now = Date.now(), b = MT.db.batch(); b.set('birdCare', MT.uid('bc'), { stationCode: code, ownerId: st.ownerId, orgId: st.orgId, ancestorOrgIds: st.ancestorOrgIds, date: MT.fmt.iso(new Date()), action: v.action, notes: v.notes, postedBy: p.userId, createdAt: now }); b.update('birdStations', code, { lastCareAt: now, lastAction: v.action, status: v.status, careCount: MT.db.inc(1) }); return b.commit().then(function () { ui.success('Thanks for caring for the birds! 🐦'); return load().then(paint); }); } });
     }
-    function logSighting(code) {
-      kit.form({ title: 'Log a bird sighting', submit: 'Save sighting', html: '<div class="field field-wide"><label for="s-sp">Which bird?</label><select id="s-sp" name="species">' + BIRDS.map(function (b) { return '<option>' + b + '</option>'; }).join('') + '</select></div><div class="field"><label for="s-n">How many?</label><input id="s-n" name="count" type="number" min="1" max="500" value="1" required></div><div class="field"><label for="s-d">Date</label><input id="s-d" name="date" type="date" value="' + MT.fmt.iso(new Date()) + '" required></div>' +
+    function logSighting(code, bird) {
+      kit.form({ title: 'Log a bird sighting', submit: 'Save sighting', html: '<div class="field field-wide"><label for="s-sp">Which bird?</label><select id="s-sp" name="species">' + BIRDS.map(function (b) { return '<option' + (b === bird ? ' selected' : '') + '>' + b + '</option>'; }).join('') + '</select></div><div class="field"><label for="s-n">How many?</label><input id="s-n" name="count" type="number" min="1" max="500" value="1" required></div><div class="field"><label for="s-d">Date</label><input id="s-d" name="date" type="date" value="' + MT.fmt.iso(new Date()) + '" required></div>' +
         '<div class="field field-wide"><label for="s-st">At which station? (optional)</label><select id="s-st" name="station"><option value="">Not at a station</option>' + stations.map(function (s) { return '<option value="' + esc(s.code) + '"' + (s.code === code ? ' selected' : '') + '>' + esc((s.name || KINDS[s.kind].label) + ' · ' + s.code) + '</option>'; }).join('') + '</select></div><div class="field field-wide"><label for="s-no">Notes (optional)</label><input id="s-no" name="notes" maxlength="200"></div>',
         onSubmit: function (v) { var n = parseInt(v.count, 10); if (!(n >= 1)) throw MT.userError('Enter how many birds you saw.'); return MT.db.set('birdSightings', MT.uid('bs'), { species: v.species, count: n, date: v.date, stationCode: v.station, notes: v.notes, ownerId: p.userId, ownerName: p.name, orgId: p.orgId || '', ancestorOrgIds: p.ancestorOrgIds || [], createdAt: Date.now() }).then(function () { ui.success('Sighting saved.'); return load().then(paint); }); } });
     }
     host.addEventListener('click', function (e) {
       var t;
-      if (e.target.closest('#wg-add')) addStation(); else if (e.target.closest('#wg-see')) logSighting('');
+      if ((t = e.target.closest('[data-bird]'))) { meetSp = t.dataset.bird; MT.$$('#bd-chips .chip', host).forEach(function (x) { var on = x === t; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); }); if (viewer) { viewer.setSpecies(meetSp); MT.$('#bd-fact', host).textContent = viewer.fact(); } }
+      else if (e.target.closest('#bd-log')) logSighting('', meetSp); else if (e.target.closest('#bd-reset')) { if (viewer) viewer.reset(); }
+      else if (e.target.closest('#wg-add')) addStation(); else if (e.target.closest('#wg-see')) logSighting('');
       else if ((t = e.target.closest('[data-care]'))) logCare(t.dataset.care); else if ((t = e.target.closest('[data-sight]'))) logSighting(t.dataset.sight);
       else if ((t = e.target.closest('#wg-tabs [data-t]'))) { e.preventDefault(); tab = t.dataset.t; MT.$$('#wg-tabs .tab-link', host).forEach(function (x) { x.classList.toggle('active', x === t); }); paint(); }
     });
     load().then(function () { paint(); if (ctx.query && ctx.query.add) addStation(); }).catch(function (e) { body.innerHTML = '<p class="muted">' + esc(MT.friendlyError(e)) + '</p>'; });
-    return function () { dead = true; if (map) map.remove(); };
+    return function () { dead = true; if (map) map.remove(); if (viewer) viewer.destroy(); };
   }
 
   MT.router.add('/wings', { title: 'Bird friends', layout: 'app', access: ROLES, render: page, after: after });

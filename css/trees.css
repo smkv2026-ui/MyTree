@@ -209,3 +209,7 @@ mt-compare { display: block; --x: 50%; } .cmp { position: relative; aspect-ratio
   .t3d-age { flex: 1 1 100%; order: 3; } .t3d-age output { min-width: 6.2em; }
   .hero-3d { aspect-ratio: auto; width: min(380px, 100%); } .hero-3d.t3d { height: 400px; } .hero-3d .t3d-canvas { position: relative; inset: auto; } .hero-3d .t3d-ctl { background: transparent; backdrop-filter: none; margin-top: .2rem; }
 }
+
+.wg-fact { margin: .7rem 0; max-width: 62ch; }
+
+@media (max-width: 640px) { #bd-chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: .3rem; } #bd-chips .chip { flex: none; } }
