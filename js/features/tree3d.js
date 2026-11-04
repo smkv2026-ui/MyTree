@@ -111,9 +111,9 @@
       for (k = 0; k < n; k++) {
         var f = lvl >= D ? 0.35 + r() * 0.65 : 0.7 + r() * 0.3, i = Math.min(pts.length - 2, Math.floor(f * (pts.length - 1))), t = f * (pts.length - 1) - i;
         var P = [lerp(pts[i][0], pts[i + 1][0], t) + (r() - 0.5) * 1.1, lerp(pts[i][1], pts[i + 1][1], t) + (r() - 0.3) * 0.9, lerp(pts[i][2], pts[i + 1][2], t) + (r() - 0.5) * 1.1];
-        leaves.push({ b: b, p: P, s: 0.8 + r() * 0.9, c: Math.floor(r() * 4), keep: r(), start: 0.1 + lvl * 0.1 + r() * 0.1, dry: r() });
-        if (st.flower && r() < 0.34) blooms.push({ b: b, p: [P[0] + (r() - 0.5) * 0.9, P[1] + 0.3, P[2] + (r() - 0.5) * 0.9], flower: true, s: 0.8 + r() * 0.5, keep: r(), start: 0.62 + r() * 0.3 });
-        else if (st.fruit && r() < 0.16) blooms.push({ b: b, p: [P[0] + (r() - 0.5) * 0.7, P[1] - 0.5, P[2] + (r() - 0.5) * 0.7], flower: false, s: 0.8 + r() * 0.4, keep: r(), start: 0.78 + r() * 0.18 });
+        leaves.push({ b: b, f: f, p: P, s: 0.8 + r() * 0.9, c: Math.floor(r() * 4), keep: r(), start: 0.1 + lvl * 0.1 + r() * 0.1, dry: r() });
+        if (st.flower && r() < 0.34) blooms.push({ b: b, f: f, p: [P[0] + (r() - 0.5) * 0.9, P[1] + 0.3, P[2] + (r() - 0.5) * 0.9], flower: true, s: 0.8 + r() * 0.5, keep: r(), start: 0.62 + r() * 0.3 });
+        else if (st.fruit && r() < 0.16) blooms.push({ b: b, f: f, p: [P[0] + (r() - 0.5) * 0.7, P[1] - 0.5, P[2] + (r() - 0.5) * 0.7], flower: false, s: 0.8 + r() * 0.4, keep: r(), start: 0.78 + r() * 0.18 });
       }
     }
     function grow(b, lvl) {
@@ -192,13 +192,13 @@
 
     function ageText() { var yrs = Math.pow(shown, 1 / 0.65) * st.maturity; return (yrs < 1 ? Math.max(1, Math.round(yrs * 12)) + ' mo' : yrs.toFixed(1) + ' yr') + (Math.abs(shown - live) < 0.012 ? ' · today' : shown > live ? ' · projected' : ' · past'); }
     function sync() { if (slider) { slider.value = Math.round(shown * 100); ageOut.textContent = ageText(); } }
-    function resize() { var r = el.getBoundingClientRect(); dpr = Math.min(2, window.devicePixelRatio || 1); W = Math.max(120, Math.round(r.width)); Hh = Math.max(140, Math.round(r.height)); cv.width = W * dpr; cv.height = Hh * dpr; cv.style.width = W + 'px'; cv.style.height = Hh + 'px'; }
+    function resize() { var r = el.getBoundingClientRect(); dpr = Math.min(2, window.devicePixelRatio || 1); var reserve = ui && getComputedStyle(ui).position === 'static' ? ui.offsetHeight + 4 : 0; W = Math.max(120, Math.round(r.width)); Hh = Math.max(140, Math.round(r.height - reserve)); cv.width = W * dpr; cv.height = Hh * dpr; cv.style.width = W + 'px'; cv.style.height = Hh + 'px'; }
 
     /* ----- projection ----- */
     var cosY, sinY, cosP, sinP, F, CX, CY, TY, SC;
     function setCam() {
       cosY = Math.cos(yaw); sinY = Math.sin(yaw); cosP = Math.cos(pitch); sinP = Math.sin(pitch);
-      var fit = model.height * (0.16 + 0.84 * ease(shown)); F = Math.min(W, Hh) * 1.55 * (1 + 0.8 * (1 - ease(shown))); CX = W / 2; CY = Hh * (o.horizon || 0.66); TY = fit * 0.42; SC = fit;
+      var fit = model.height * (0.16 + 0.84 * ease(shown)); F = Math.min(W, Hh) * 1.55 * clamp(Math.min(W, Hh) / 520, 0.92, 1) * (1 + 1.5 * (1 - ease(shown))); CX = W / 2; CY = Hh * (o.horizon || 0.66) * (Math.min(W, Hh) < 420 ? 1.04 : 1); TY = fit * 0.42; SC = fit;
     }
     var DZ = function () { return (SC * 3.0 + 9) / dist; };
     function proj(x, y, z, out) {
@@ -280,7 +280,7 @@
     function leafPrims() {
       var g = Math.pow(shown, 0.72), sc = 0.62 + 0.38 * ease(shown), keepRate = H.leaves, i, l, p, lf, sh, dry, col;
       for (i = 0; i < model.leaves.length; i++) {
-        l = model.leaves[i]; if (l.keep > keepRate) continue; lf = clamp((g - l.start) / 0.4, 0, 1); if (l.b) lf = Math.min(lf, clamp((G(l.b, g) - 0.35) / 0.4, 0, 1)); if (lf <= 0.01) continue;
+        l = model.leaves[i]; if (l.keep > keepRate) continue; lf = clamp((g - l.start) / 0.4, 0, 1); if (l.b) lf = Math.min(lf, clamp((G(l.b, g) - l.f + 0.3) / 0.3, 0, 1)); if (lf <= 0.01) continue;
         p = proj(l.p[0] * sc, l.p[1] * sc, l.p[2] * sc, tmp);
         var n = [l.p[0], l.p[1] - model.height * 0.5, l.p[2]]; n = norm(n); sh = n[0] * SUN[0] + n[1] * SUN[1] + n[2] * SUN[2]; sh = sh < -0.25 ? 0 : sh < 0.15 ? 1 : sh < 0.55 ? 2 : 3;
         dry = l.dry < H.dry; col = dry ? H.colors[(l.c + 2) % H.colors.length] : H.colors[l.c % H.colors.length];
@@ -288,7 +288,7 @@
         prim.push({ z: p.z, t: 1, x: p.x, y: p.y, sz: l.s * p.s * 5.2 * lf * (st.form === 'conifer' ? 1.15 : 1) * (0.7 + 0.3 * sc), img: l.needle ? needleSprite(sh) : leafSprite(col, sh, l.kind), a: 1 });
       }
       model.blooms.forEach(function (b) {
-        var bl = clamp((g - b.start) / 0.25, 0, 1); if (b.b) bl = Math.min(bl, clamp((G(b.b, g) - 0.6) / 0.4, 0, 1)); if (bl <= 0.01 || b.keep > (b.flower ? H.bloom : Math.max(H.bloom, 0.0001))) return;
+        var bl = clamp((g - b.start) / 0.25, 0, 1); if (b.b) bl = Math.min(bl, clamp((G(b.b, g) - b.f + 0.1) / 0.3, 0, 1)); if (bl <= 0.01 || b.keep > (b.flower ? H.bloom : Math.max(H.bloom, 0.0001))) return;
         if (!b.flower && healthKey === 'struggling') return;
         var q = proj(b.p[0] * sc, b.p[1] * sc, b.p[2] * sc, tmp);
         prim.push({ z: q.z - 0.2, t: 1, x: q.x, y: q.y, sz: b.s * q.s * (b.flower ? 3.2 : 2.6) * bl, img: b.flower ? flowerSprite(st.flower) : fruitSprite(st.fruit), a: 1 });
