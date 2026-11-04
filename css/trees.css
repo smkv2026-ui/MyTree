@@ -179,3 +179,6 @@ mt-compare { display: block; --x: 50%; } .cmp { position: relative; aspect-ratio
 
 .map-offline.leaflet-container { background: linear-gradient(180deg, #cfe6f2, #dcedf2); }
 :root[data-theme="dark"] .map-offline.leaflet-container { background: #0f2a3a; }
+
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .map-offline.leaflet-container { background: #0f2a3a; } }
+.leaflet-container .leaflet-tile { max-width: none !important; }

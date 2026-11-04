@@ -147,7 +147,8 @@
     MT.loader.load('leaflet').then(function () {
       if (!el.isConnected) return;
       map = L.map(el, { scrollWheelZoom: false, zoomControl: true, attributionControl: true }).setView([21.5, 79], 5);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap contributors' }).addTo(map);
+      var tl = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap contributors' }).addTo(map);
+      if (MT.maps && MT.maps.watchTiles) MT.maps.watchTiles(map, el, [tl]);
       var max = Math.max.apply(null, cities.map(function (c) { return c.trees; })), pts = [];
       cities.forEach(function (c) {
         var size = Math.round(30 + 34 * Math.sqrt(c.trees / max));
