@@ -220,3 +220,17 @@ mt-compare { display: block; --x: 50%; } .cmp { position: relative; aspect-ratio
 
 .wg-hero .t3d { background: transparent; }
 .wg-hero .t3d .t3d-hint { background: rgba(15, 61, 46, .6); }
+
+/* ---------- carbon ladder ---------- */
+.ld-me { display: grid; gap: .6rem; margin-bottom: 1rem; } .ld-me-main { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; } .ld-me h3 { margin: .3rem 0; }
+.ld-rank { text-align: center; padding: .6rem 1.2rem; border-radius: 16px; background: var(--primary-soft); color: var(--on-primary-soft); } .ld-rank strong { display: block; font-size: 2rem; font-family: var(--font-display); line-height: 1; } .ld-rank span { font-size: .78rem; }
+.ld-rung { display: inline-flex; align-items: center; gap: .3rem; padding: .15rem .6rem; border-radius: 999px; font-size: .78rem; font-weight: 700; background: color-mix(in srgb, var(--c) 16%, transparent); color: color-mix(in srgb, var(--c) 40%, var(--text)); white-space: nowrap; } .ld-rung svg { width: 14px; height: 14px; }
+.ld-h { margin: 1.4rem 0 .6rem; } .ld-podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; align-items: end; margin-bottom: .8rem; }
+.ld-pod { text-align: center; display: grid; gap: .25rem; justify-items: center; padding: 1rem .6rem; } .ld-pod.p1 { padding-block: 1.6rem; border-color: #c9a227; box-shadow: 0 8px 24px rgba(201, 162, 39, .25); } .ld-pod h4 { margin: .1rem 0; } .ld-medal { font-size: 1.8rem; } .ld-big { font-size: 1.7rem; font-family: var(--font-display); }
+.ld-pod.me, .ld-row.me { outline: 2px solid var(--primary); }
+.ld-list { list-style: none; margin: 0 0 .8rem; padding: 0; display: grid; gap: .45rem; } .ld-row { display: grid; grid-template-columns: 38px 1fr auto auto; gap: .7rem; align-items: center; padding: .6rem .8rem; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.ld-n { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: var(--surface-2); } .ld-n.r1 { background: #f3d36a; } .ld-n.r2 { background: #d6dadd; } .ld-n.r3 { background: #e0b08a; }
+.ld-who { display: grid; gap: .1rem; min-width: 0; } .ld-who .muted { font-size: .8rem; display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; } .ld-score { text-align: right; display: grid; } .ld-score strong { font-size: 1.1rem; } .ld-score span { font-size: .72rem; color: var(--muted); }
+.ld-ladder { position: relative; display: grid; gap: .6rem; padding-left: 1.2rem; border-left: 4px solid var(--border-strong); margin-left: .5rem; } .ld-rungblock { position: relative; } .ld-rungblock::before { content: ''; position: absolute; left: -1.2rem; top: .9rem; width: 1.2rem; height: 4px; background: var(--c); border-radius: 4px; }
+.ld-rh { margin: 0 0 .4rem; display: flex; align-items: center; gap: .4rem; color: color-mix(in srgb, var(--c) 45%, var(--text)); } .ld-rh small { color: var(--muted); font-weight: 500; } .ld-rh svg { width: 18px; height: 18px; }
+@media (max-width: 640px) { .ld-podium { grid-template-columns: 1fr; } .ld-pod.p1 { order: -1; } .ld-row { grid-template-columns: 34px 1fr auto; } .ld-row .ld-rung { grid-column: 2 / -1; justify-self: start; } .ld-big { font-size: 1.4rem; } }

@@ -403,6 +403,20 @@ async function t(name, fn) { try { await fn(); pass++; console.log('  ✓ ' + na
     await assertSucceeds(as('ind1').doc('birdSightings/s1').set(sg)); await assertFails(as('ind1').doc('birdSightings/s2').set(Object.assign({}, sg, { count: 0 }))); await assertFails(as('st1').doc('birdSightings/s1').get());
   });
 
+  console.log('\nCarbon ladder (phase 10)'); await seed();
+  const lrow = (o) => Object.assign({ userId: 'MT-IND-000001', label: 'Ind O.', role: 'individual', orgId: '', orgName: '', city: 'Pune', state: 'Maharashtra', trees: 5, treesAlive: 4, kgCo2: 40, aqi: 95, aqiSource: 'live', aqiMult: 1.15, score: 46, credits: 4.6, hidden: false, updatedAt: 1 }, o);
+  await t('ladder: every signed-in member reads; only you write your own row (or the Super Admin); numbers are bounded', async () => {
+    await assertSucceeds(as('ind1').doc('ladder/MT-IND-000001').set(lrow())); await assertSucceeds(as('st1').doc('ladder/MT-IND-000001').get()); await assertSucceeds(as('s2').collection('ladder').get()); await assertFails(anon().doc('ladder/MT-IND-000001').get());
+    await assertFails(as('st1').doc('ladder/MT-IND-000001').set(lrow())); await assertFails(as('ind1').doc('ladder/MT-IND-000001').set(lrow({ role: 'school' }))); await assertFails(as('ind1').doc('ladder/MT-IND-000001').set(lrow({ aqiMult: 3 })));
+    await assertFails(as('ind1').doc('ladder/MT-IND-000001').set(lrow({ treesAlive: 9 }))); await assertFails(as('ind1').doc('ladder/MT-IND-000001').set(lrow({ evil: 1 }))); await assertFails(as('ind1').doc('ladder/MT-IND-000001').set(lrow({ kgCo2: 1e12 })));
+    await assertSucceeds(as('ind1').doc('ladder/MT-IND-000001').update({ hidden: true })); await assertSucceeds(as('sa').doc('ladder/MT-STU-SCH001-0001').set(lrow({ userId: 'MT-STU-SCH001-0001', role: 'student', label: 'Stu O.' })));
+  });
+  await t('footprints: private to the owner', async () => {
+    const f = { userId: 'MT-IND-000001', kgPerYear: 1900, inputs: { kwh: 100 }, updatedAt: 1 };
+    await assertSucceeds(as('ind1').doc('footprints/MT-IND-000001').set(f)); await assertSucceeds(as('ind1').doc('footprints/MT-IND-000001').get()); await assertFails(as('st1').doc('footprints/MT-IND-000001').get()); await assertFails(as('sa').doc('footprints/MT-IND-000001').get());
+    await assertFails(as('ind1').doc('footprints/MT-IND-000001').set(Object.assign({}, f, { kgPerYear: -5 })));
+  });
+
   console.log(`\n${pass} passed, ${fail} failed`);
   await env.cleanup(); process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(2); });

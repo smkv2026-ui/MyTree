@@ -107,3 +107,9 @@ Tick each box in **Demo mode** (`index.html`) and again in **Live mode**. Phase 
 - [ ] **Bird friends:** add a nest box / feeder / water bowl with a map pin, log care, log a sighting; overdue stations are highlighted; shop → Bird care lists supplies.
 - [ ] axe-core: 0 violations on Workshops, Workshop detail, Shop, Orders, Bird friends, My listings (light + dark).
 
+## Phase 10 — Carbon ladder
+- [ ] `#/ladder` opens for every role (also Super Admin, sellers). A signed-in tree-planter gets a row automatically; shows rung, credits, rank “#n of N”, progress to the next rung.
+- [ ] Top 10 podium + list, then “everyone else” grouped by rung with *Show more*; *Find me* scrolls to you; Organisations tab ranks schools / organisations.
+- [ ] AQI chips show “AQI n” (live) or “AQI n*” (typical, with a note) per city; hovering gives the band and source.
+- [ ] Footprint calculator saves and shows “offsets X %”; *Hide me* removes the row for others; Super Admin → *Rebuild ladder from tree data*.
+- [ ] axe 0 violations (light + dark); no horizontal scroll at 390 px.

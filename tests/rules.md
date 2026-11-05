@@ -76,4 +76,6 @@ Set up three profiles first (use the app itself): super admin, a school admin (a
 | 61 | Anyone | RSVP / attendance / feedback: own records only; self check-in = present; one feedback per session; organiser & managers above read | as shown |
 | 62 | Owner | `birdStations`, `birdCare`, `birdSightings`: own only; managers above read | as shown |
 
+| 63 | Member | `ladder`: all signed-in read; write only your own row (role must match; numbers bounded; unknown fields ❌) or Super Admin; `footprints` owner-only | as shown |
+
 Later phases add rows for stats hardening, notifications, challenges and species edits.

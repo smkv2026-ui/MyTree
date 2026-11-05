@@ -29,6 +29,7 @@
     { id: 'green', icon: 'satellite', href: '/green', roles: ALL, group: 'explore' },
     { id: 'leaderboard', icon: 'trophy', href: '/leaderboard', roles: NOT_SUPER, group: 'explore' },
     { id: 'sell', icon: 'store', href: '/market/sell', roles: ['seller'], group: 'main' },
+    { id: 'ladder', icon: 'footprints', href: '/ladder', roles: ALL.concat(['seller']), group: 'explore' },
     { id: 'wings', icon: 'bird', href: '/wings', roles: ['foundation', 'school', 'institution', 'student', 'individual'], group: 'explore' },
     { id: 'orders', icon: 'package', href: '/market/orders', roles: ['foundation', 'school', 'institution', 'individual', 'seller', 'super_admin'], group: 'explore' },
     { id: 'market', icon: 'shopping-basket', href: '/market', roles: ALL, group: 'explore' },

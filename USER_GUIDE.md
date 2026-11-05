@@ -82,3 +82,7 @@ Your teacher gives you a **user ID** and **password** (for example `Maple-River-
 * A small 3D bird perches at the top of *Bird friends* (drag sideways to turn it, scroll to zoom).
 * *Bird friends* → **Add** a nest box, feeder or water bowl (pin it on the map), **Log care** when you refill or clean it, and **Log a bird sighting**. Overdue stations are highlighted; tips on the *How to help birds* tab.
 
+## Carbon ladder (everyone)
+* *Carbon ladder* ranks people by the CO₂ their trees have removed, nudged up where the air is dirtier (live AQI for your region). **1 credit = 10 kg** of weighted CO₂. You start on the *Seed* rung and climb to *Rainforest*; the **Top 10** is shown first, then everyone else rung by rung. Your position, rung and distance to the next rung are at the top.
+* **Add my carbon footprint** opens a quick calculator (electricity, travel, flights, LPG, diet). Your trees' share of it appears as “offsets X % of own footprint”.
+* You appear as first name + initial. **Hide me from the ladder** removes you at any time. Credits are for motivation only — not tradable or a certified offset.

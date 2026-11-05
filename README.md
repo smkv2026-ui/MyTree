@@ -18,6 +18,7 @@ A complete tree-plantation tracking portal that is **just static files**: HTML, 
 | 6 | Command centre, counters, maps, reports, green cover, audit viewer, health, species/settings, sample data | ✅ done |
 | 7 | Badges, leaderboards, challenges, certificates, gift cards, public tree pages, PWA/offline, tours, help centre, translations | ✅ done |
 | 8 | Polish: accessibility (axe-clean), lazy bundles, rules hardening, reduce-motion, final docs | ✅ done |
+| 10 | **Carbon ladder**: per-person CO₂ removed by their trees, weighted by regional air quality (free Open-Meteo AQI API), shown as educational carbon credits on a Top-10 + rung-by-rung ladder visible to every member; optional carbon-footprint calculator | ✅ done |
 | 9 | Community: **Workshops** (audience, sessions with your own meeting links, RSVP, attendance, feedback, certificates), **Saplings & bird-care shop** (sellers, orders, direct UPI/bank payment confirmed by the seller, “Plant this”), **Bird friends** (nest / feeder / water stations, care logs, sightings) | ✅ done |
 
 All planned features are built. (During development, unbuilt features showed a **Soon** pill; the placeholder mechanism remains in `dashboard.js` but no route uses it any more.)
@@ -116,6 +117,7 @@ Routes registered later replace earlier ones (that is how "Soon" placeholders ar
 46. **Workshops use provable audience queries.** A workshop stores who is invited as `audience` (all), `audienceRoles`, `audienceOrgIds` (the chosen organisations *expanded to everything beneath them* when saved) and `audienceUserIds`; each user runs five small `array-contains` queries and the results are merged. “Everyone” and whole roles are Super Admin only; school/foundation admins pick organisations or people (the form only offers their own hierarchy — rules cannot verify each organisation, see Known limitations). Meeting links are pasted by the organiser; MyTree does not host video.
 47. **Attendance & feedback integrity.** The organiser marks anyone; a person can only check **themselves** in as present; feedback is one per person per session and cannot be edited. Records carry the organiser and their ancestors so managers above can read them.
 48. **Bird friends** records stations (`BIRD-2026-000001`), care logs and sightings with the same ownership rules as trees; care reminders are derived (water 2 days, feeder 7, nest box 30; overdue at twice that).
+49. **Carbon ladder** (`js/features/ladder.js`, `aqi.js`). Score = kg CO₂ removed (species × age) × AQI weight, where weight = 1 + (AQI − 50) ÷ 300 clamped to 1.00–1.50; **1 credit = 10 kg** of weighted CO₂. Credits are an educational showcase, not tradable or certified. AQI comes from the free **Open-Meteo Air Quality API** (no key; one request for all cities; cached 1 h); when it cannot be reached a clearly-marked *typical* value per city is used. Rows (`ladder/{userId}`, first name + initial) are written by each person from their own trees and can be hidden by them; the Super Admin's *Rebuild* recomputes every row from tree data, which is the integrity backstop (a modified client could inflate its own row — rules only bound the numbers). Footprint inputs (`footprints/{userId}`) are private; only “offsets X %” is shown.
 
 ## Libraries (all from CDNs, lazy-loaded)
 Pinned versions in `js/core/loader.js` with a primary (cdnjs / unpkg / gstatic) and a fallback (jsDelivr) URL each; a failed load shows a friendly message rather than a blank page. Landing hero art, counters, reveals and the carousel are pure CSS/JS and work even if every CDN is blocked; Lucide icons, GSAP parallax, Leaflet and confetti degrade gracefully.
@@ -123,7 +125,7 @@ Pinned versions in `js/core/loader.js` with a primary (cdnjs / unpkg / gstatic) 
 **SRI:** hashes cannot be baked in without downloading the files from the CDNs. Run `node tools/gen-sri.mjs` once on a machine with internet; it writes `js/core/sri.js` and the loader then adds `integrity` + `crossorigin` automatically. Until you do, libraries load without SRI.
 
 ## Security notes
-* The Firebase web config is public by design; **`firestore.rules` is the real protection** (83 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
+* The Firebase web config is public by design; **`firestore.rules` is the real protection** (85 automated checks in `tests/rules.test.js`, run against the Firestore emulator).
 * All user text is rendered through `MT.html` (auto-escaping) or `textContent`; DOMPurify is loaded for rich text. No inline event handlers are used on user data.
 * Demo mode stores demo passwords in plain text *inside the browser only*; live mode never sees or stores passwords.
 * Optional hardening (API-key restriction, App Check via `MT_APPCHECK_SITE_KEY`) is described in `SETUP.md`.
