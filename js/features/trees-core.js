@@ -60,6 +60,7 @@
         if (photoId) { t.coverPhotoId = photoId; t.cover = o.photo.cover; t.photoSize = o.photo.size; }
         if (o.geoFlag) t.geoFlag = o.geoFlag;
         if (o.replaces && i === 0) t.replaces = o.replaces;
+        if (o.driveId) { t.driveId = o.driveId; t.driveTitle = clip(o.driveTitle, 100); }
         if (o.orderId) { t.orderId = o.orderId; t.sellerName = clip(o.sellerName, 120); }
         return t;
       });

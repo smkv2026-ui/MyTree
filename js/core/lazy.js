@@ -20,6 +20,7 @@
     market: { files: ['js/features/market.js'], routes: ['/market', '/market/orders', '/market/sell'], access: 'auth' },
     wings: { files: ['js/features/bird3d.js', 'js/features/wings.js'], routes: ['/wings'], access: 'auth' },
     ladder: { files: ['js/features/ladder.js'], routes: ['/ladder'], access: 'auth' },
+    drives: { files: ['js/features/drives.js'], routes: ['/drives', '/drives/:id'], access: 'auth' },
     tree3d: { files: ['js/features/tree3d.js'], routes: [] },
     phrases: { files: ['js/data/phrases.js'], routes: [] }
   }, loading = {}, done = {};

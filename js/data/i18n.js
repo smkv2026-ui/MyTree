@@ -9,7 +9,7 @@
   MT.dict = {
     en: {
       'nav.dashboard': 'Dashboard', 'nav.plant': 'Plant a tree', 'nav.trees': 'My trees', 'nav.map': 'Map', 'nav.updates': 'Updates',
-      'nav.people': 'People', 'nav.orgs': 'Organisations', 'nav.bulk': 'Bulk upload', 'nav.leaderboard': 'Leaderboard', 'nav.help': 'Help', 'nav.workshops': 'Workshops', 'nav.ladder': 'Carbon ladder', 'nav.market': 'Saplings shop', 'nav.orders': 'My orders', 'nav.sell': 'My listings', 'nav.wings': 'Bird friends',
+      'nav.people': 'People', 'nav.orgs': 'Organisations', 'nav.bulk': 'Bulk upload', 'nav.leaderboard': 'Leaderboard', 'nav.help': 'Help', 'nav.workshops': 'Workshops', 'nav.drives': 'Plantation drives', 'nav.ladder': 'Carbon ladder', 'nav.market': 'Saplings shop', 'nav.orders': 'My orders', 'nav.sell': 'My listings', 'nav.wings': 'Bird friends',
       'nav.admin': 'Command centre', 'nav.approvals': 'Approvals', 'nav.reports': 'Reports', 'nav.audit': 'Audit log', 'nav.badges': 'Badges',
       'nav.more': 'More', 'nav.home': 'Home', 'nav.health': 'Tree health', 'nav.settings': 'Settings', 'nav.green': 'Green cover',
       'common.signin': 'Sign in', 'common.signout': 'Sign out', 'common.register': 'Get started', 'common.search': 'Search or jump to…',

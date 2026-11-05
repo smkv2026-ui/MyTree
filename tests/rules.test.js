@@ -422,6 +422,30 @@ async function t(name, fn) { try { await fn(); pass++; console.log('  ✓ ' + na
     await assertFails(as('ind1').doc('footprints/MT-IND-000001').set(Object.assign({}, f, { kgPerYear: -5 })));
   });
 
+  console.log('\nPlantation drives (phase 11)'); await seed();
+  const dv = (o) => Object.assign({ title: 'Plant day', description: 'd', hostId: 'MT-IND-000001', hostName: 'Ind O.', hostRole: 'individual', orgId: '', ancestorOrgIds: [], date: '2026-12-01T08:00', durationH: 3, address: 'Site', city: 'Pune', state: 'MH', lat: 18.5, lng: 73.8, capacity: 3, registered: 0, saplings: 10, bring: '', phone: '', status: 'open', createdAt: 1 }, o);
+  const dreg = (u, d, o) => Object.assign({ driveId: d, userId: u, name: 'Vol', role: 'individual', orgId: '', party: 1, status: 'registered', hostId: 'MT-IND-000001', ancestorOrgIds: [], at: 1 }, o);
+  const regBatch = (uid, user, drive, party, total) => { const d = as(uid), b = d.batch(); b.set(d.doc('driveRegs/' + drive + '_' + user), dreg(user, drive, { party })); b.update(d.doc('drives/' + drive), { registered: total }); return b.commit(); };
+  await t('drives: anyone except students hosts; host / shape rules; everyone signed in reads', async () => {
+    await assertSucceeds(as('ind1').doc('drives/d1').set(dv())); await assertFails(as('st1').doc('drives/d2').set(dv({ hostId: 'MT-STU-SCH001-0001', ancestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'] }))); await assertFails(as('ind1').doc('drives/d3').set(dv({ hostId: 'MT-IND-000009' })));
+    await assertFails(as('ind1').doc('drives/d4').set(dv({ registered: 5 }))); await assertFails(as('ind1').doc('drives/d5').set(dv({ capacity: 0 }))); await assertFails(as('ind1').doc('drives/d6').set(dv({ date: 'tomorrow' }))); await assertSucceeds(as('s1').doc('drives/d7').set(dv({ hostId: 'MT-SCH-000001', hostRole: 'school', orgId: 'MT-SCH-000001', ancestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'] })));
+    await assertSucceeds(as('st1').doc('drives/d1').get()); await assertSucceeds(as('s2').collection('drives').get()); await assertFails(anon().doc('drives/d1').get());
+  });
+  await t('drives: registering moves only the counter and never above capacity; the last spot cannot be double-booked', async () => {
+    await assertSucceeds(regBatch('st1', 'MT-STU-SCH001-0001', 'd1', 2, 2)); await assertSucceeds(regBatch('st2', 'MT-STU-SCH001-0002', 'd1', 1, 3));
+    await assertFails(regBatch('ind1', 'MT-IND-000001', 'd1', 1, 4)); await assertFails(as('s2').doc('drives/d1').update({ registered: 0 })); await assertFails(as('s2').doc('drives/d1').update({ title: 'hacked' })); await assertFails(as('s2').doc('drives/d1').update({ capacity: 999 }));
+  });
+  await t('drives: cancelling frees the spots; one cannot register for another person or an already-closed drive', async () => {
+    const d = as('st1'), b = d.batch(); b.update(d.doc('driveRegs/d1_MT-STU-SCH001-0001'), { status: 'cancelled', at: 2 }); b.update(d.doc('drives/d1'), { registered: 1 }); await assertSucceeds(b.commit());
+    await assertFails(as('st1').doc('driveRegs/d1_MT-STU-SCH001-0002').set(dreg('MT-STU-SCH001-0002', 'd1'))); await assertFails(as('st1').doc('driveRegs/d1_MT-STU-SCH001-0001').set(dreg('MT-STU-SCH001-0001', 'd1', { party: 9 })));
+    await env.withSecurityRulesDisabled((c) => c.firestore().doc('drives/d1').update({ status: 'cancelled' })); await assertFails(as('s2').doc('driveRegs/d1_MT-SCH-000002').set(dreg('MT-SCH-000002', 'd1', { role: 'school' }))); await env.withSecurityRulesDisabled((c) => c.firestore().doc('drives/d1').update({ status: 'open' }));
+  });
+  await t('drives: only the host reads the volunteer list and checks people in; the host can edit but not below the registered count', async () => {
+    await assertSucceeds(as('ind1').collection('driveRegs').where('hostId', '==', 'MT-IND-000001').where('driveId', '==', 'd1').get()); await assertFails(as('s2').collection('driveRegs').where('driveId', '==', 'd1').get()); await assertSucceeds(as('st2').collection('driveRegs').where('userId', '==', 'MT-STU-SCH001-0002').get());
+    await assertSucceeds(as('ind1').doc('driveRegs/d1_MT-STU-SCH001-0002').update({ status: 'attended', checkedAt: 3 })); await assertFails(as('st2').doc('driveRegs/d1_MT-STU-SCH001-0002').update({ status: 'registered' })); await assertFails(as('st2').doc('driveRegs/d1_MT-STU-SCH001-0002').update({ party: 2 }));
+    await assertSucceeds(as('ind1').doc('drives/d1').update({ capacity: 5 })); await assertFails(as('ind1').doc('drives/d1').update({ capacity: 0 })); await assertSucceeds(as('ind1').doc('drives/d1').update({ status: 'done' }));
+  });
+
   console.log(`\n${pass} passed, ${fail} failed`);
   await env.cleanup(); process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(2); });

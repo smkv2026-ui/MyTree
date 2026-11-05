@@ -58,6 +58,7 @@
           <div class="w-tree"><div class="t3d t3d-xs" id="dash-3d" data-sp="${(mine[0] || recent[0] || {}).speciesId || 'neem'}" data-seed="${(mine[0] || recent[0] || {}).code || 'welcome'}" data-health="${(mine[0] || recent[0] || {}).health || 'thriving'}"></div></div>
         </section>
         ${actions(role)}
+        <section class="card dr-widget" id="dr-widget" data-reveal><div class="card-head"><h3>Plantation drives</h3></div>${ui.skeleton(2, 'sk-line')}</section>
         <section class="kpi-grid">
           ${stat('trees', 'My trees', mine.length)}${stat('heart-pulse', 'Alive & growing', alive.length)}
           ${stat('wind', 'CO₂ absorbed (est.)', co2, { suffix: ' kg' })}
@@ -97,8 +98,9 @@
     } });
   });
 
-  MT.router.add('/dashboard', { title: 'Dashboard', layout: 'app', access: 'auth', render: dashboard, after: function () {
+  MT.router.add('/dashboard', { title: 'Dashboard', layout: 'app', access: 'auth', render: dashboard, after: function (host) {
     var role = MT.auth.role(), dead = false, viewer = null;
+    if (MT.drives) MT.drives.widget(host);
     MT.lazy.load('tree3d').then(function (){ var el = document.getElementById('dash-3d'); if (dead || !el) return; viewer = MT.tree3d.mount(el, { speciesId: el.dataset.sp, health: el.dataset.health, growth: 0.85, seed: el.dataset.seed, controls: false }); }).catch(function () {});
     setTimeout(function () { /* after first paint: badges + first-run tour load in the background */
       if (dead) return; if (MT.ladder) MT.ladder.refreshMine();

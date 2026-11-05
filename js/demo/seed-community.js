@@ -108,6 +108,28 @@
     db._bulk('birdStations', stations); db._bulk('birdCare', care); db._bulk('birdSightings', sights);
     db._bulk('counters', [{ id: 'BIRD_' + year, n: n }]);
 
+
+    /* ---------- plantation drives (hosted by many kinds of users) with real registrations ---------- */
+    var nGoers = users.filter(function (u) { return u.role === 'individual' || u.role === 'student'; }), drives = [], dregs = [];
+    function drive(id, host, title, desc, daysFrom, hour, dur, city, address, cap, saplings, bring, joined, extra) {
+      var c = MT.geoData.city(city) || MT.geoData.city('Pune'), t = new Date(at(daysFrom, hour)), q = function (x) { return String(x).padStart(2, '0'); };
+      var d = Object.assign({ id: id, title: title, description: desc, hostId: host.userId, hostName: short(host.name), hostRole: host.role, orgId: host.orgId || '', ancestorOrgIds: host.ancestorOrgIds || [], date: t.getFullYear() + '-' + q(t.getMonth() + 1) + '-' + q(t.getDate()) + 'T' + q(t.getHours()) + ':00',
+        durationH: dur, address: address, city: c.name, state: c.state, lat: +(c.lat + (rnd() - 0.5) * 0.05).toFixed(6), lng: +(c.lng + (rnd() - 0.5) * 0.05).toFixed(6), capacity: cap, registered: 0, saplings: saplings, bring: bring, phone: host.phone || '+91 98765 43210', status: 'open', createdAt: now - 6 * DAY }, extra || {});
+      var left = joined, gi = drives.length * 3;
+      while (left > 0 && gi < nGoers.length + drives.length * 3) { var u = nGoers[gi % nGoers.length], party = Math.min(left, 1 + (gi % 3 === 0 ? 2 : 0)); gi++; if (u.userId === d.hostId || dregs.some(function (r) { return r.id === id + '_' + u.userId; })) continue;
+        dregs.push({ id: id + '_' + u.userId, driveId: id, userId: u.userId, name: short(u.name), role: u.role, orgId: u.orgId || '', party: party, status: d.status === 'done' ? (gi % 4 ? 'attended' : 'registered') : 'registered', hostId: d.hostId, ancestorOrgIds: d.ancestorOrgIds, at: now - (gi % 5 + 1) * DAY }); d.registered += party; left -= party; }
+      drives.push(d); return d;
+    }
+    drive('dr_demo1', foundAdmin, 'Satsang Foundation Mega Plantation · Vetal Tekdi', 'Our biggest drive of the year: 300 native saplings on the Vetal Tekdi slopes, followed by tea, a short talk on tree care and group photos. Families and first-timers very welcome.', 5, 7, 4, 'Pune', 'Gate 2, Vetal Tekdi, Paud Road, Pune', 120, 300, 'Water bottle, cap, gloves if you have them', 88);
+    drive('dr_demo2', schoolAdmin, 'Satsang Vidyalaya · Class 8 sapling day', 'Students plant and name a sapling each along the school boundary, then record it in MyTree.', 2, 9, 2, 'Mumbai', 'Satsang Vidyalaya, Link Road, Mumbai', 40, 40, 'School uniform and a water bottle', 33);
+    drive('dr_demo3', kendraAdmin, 'TSF Pune Kendra · Sunday Plantation', 'Weekly Kendra plantation. Bring the family; saplings and tools provided.', 9, 6, 3, 'Pune', 'TSF Pune Kendra grounds, Kothrud, Pune', 60, 80, 'Sun hat, water', 14);
+    drive('dr_demo4', ind, 'Neighbourhood tree walk & plant', 'A small friendly group: we walk the lane, pick gaps, and plant 12 saplings together. Chai after!', 3, 17, 2, 'Pune', 'Near Lakshya Garden, Baner, Pune', 12, 12, 'Gardening gloves', 10);
+    drive('dr_demo5', admin, 'Earth Day Mega Drive (everyone welcome)', 'City-wide Earth Day plantation across MyTree. Register now — you will receive the exact meeting point.', 20, 8, 5, 'Delhi', 'Sanjay Van, Mehrauli, New Delhi', 500, 1000, 'Water, cap, sturdy shoes', 142);
+    drive('dr_demo6', user(byOrg('TSF Nagpur Kendra').id), 'TSF Nagpur Kendra · Orange City Greening', 'Roadside plantation with the Nagpur Kendra. (Full — join the next one!)', 4, 7, 3, 'Nagpur', 'Ambazari Lake garden, Nagpur', 20, 60, 'Cap and water', 20);
+    drive('dr_demo7', kendraAdmin, 'Monsoon Plantation at Vetal Tekdi (finished)', 'Thank you to everyone who came — 140 saplings planted!', -12, 7, 3, 'Pune', 'Vetal Tekdi, Pune', 60, 140, '', 41, { status: 'done' });
+    drive('dr_demo8', ind, 'Society garden plantation (cancelled due to rain)', 'Postponed to the next dry weekend.', 6, 8, 2, 'Pune', 'Baner Society Garden, Pune', 15, 10, '', 3, { status: 'cancelled' });
+    db._bulk('drives', drives); db._bulk('driveRegs', dregs);
+
     /* ---------- carbon ladder rows (same maths as js/features/ladder.js) ---------- */
     var byOwner = {}; ctx.trees.forEach(function (t) { (byOwner[t.ownerId] = byOwner[t.ownerId] || []).push(t); });
     var ladder = [], fps = [], TR = ['individual', 'student', 'foundation', 'school', 'institution'];

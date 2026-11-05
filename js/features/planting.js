@@ -274,7 +274,7 @@
       }).then(function (ok) {
         if (!ok) { nextBtn.disabled = false; nextBtn.classList.remove('is-loading'); return; }
         return MT.trees.plant({ owner: S.owner, speciesId: S.speciesId, customName: S.customName, count: S.count, lat: S.lat, lng: S.lng, address: S.address, geo: S.geo, polygon: S.polygon, areaM2: S.areaM2,
-          plantedOn: S.plantedOn, heightCm: S.heightCm, dedication: S.dedication, notes: S.notes, cadence: S.cadence, public: S.pub, photo: S.photo, plotName: S.plotName, geoFlag: S.geoFlag, replaces: S.replaces, orderId: S.orderId || '', sellerName: S.sellerName || '' })
+          plantedOn: S.plantedOn, heightCm: S.heightCm, dedication: S.dedication, notes: S.notes, cadence: S.cadence, public: S.pub, photo: S.photo, plotName: S.plotName, geoFlag: S.geoFlag, replaces: S.replaces, orderId: S.orderId || '', sellerName: S.sellerName || '', driveId: S.driveId || '', driveTitle: S.driveTitle || '' })
           .then(function (res) {
             done = true;
             if (!S.orderId) return success(res);
@@ -312,6 +312,7 @@
     S.replaces = (ctx && ctx.query && ctx.query.replaces) || '';
     function prefill() {
       var forId = ctx && ctx.query && ctx.query.for;
+      if (ctx && ctx.query && ctx.query.drive) return MT.db.get('drives', ctx.query.drive).then(function (dv) { if (!dv) return; S.lat = dv.lat; S.lng = dv.lng; S.address = dv.address || ''; S.plotName = dv.title; S.driveId = dv.id; S.driveTitle = dv.title; ui.toast('Planting at “' + dv.title + '” — the site is pre-filled.', { duration: 5000 }); }).catch(function () {});
       if (ctx && ctx.query && ctx.query.order) return MT.db.get('orders', ctx.query.order).then(function (o) {
         var i = parseInt(ctx.query.item, 10) || 0, it = o && o.items && o.items[i]; if (!o || !it || o.buyerId !== me.userId) return;
         var left = Math.max(0, it.qty - (+((o.plantedQty || {})[i]) || 0)); S.orderId = o.id; S.orderItem = i; S.orderLeft = left; S.sellerName = o.sellerName; S.count = Math.max(1, Math.min(left, 100)); if (it.speciesId) S.speciesId = it.speciesId;

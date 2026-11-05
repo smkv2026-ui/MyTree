@@ -113,3 +113,12 @@ Tick each box in **Demo mode** (`index.html`) and again in **Live mode**. Phase 
 - [ ] AQI chips show “AQI n” (live) or “AQI n*” (typical, with a note) per city; hovering gives the band and source.
 - [ ] **Automatic:** plant trees → your row (trees, kg, credits) changes without opening the ladder; delete a tree or mark one dead → it drops; an admin plants / bulk-imports for a student → the student's row updates; *Hide me* removes the row for others; Super Admin → *Rebuild ladder from tree data*.
 - [ ] axe 0 violations (light + dark); no horizontal scroll at 390 px.
+
+## Phase 11 — Plantation drives
+- [ ] Dashboard shows a *Plantation drives* strip (up to 4 upcoming) with spot bars and Register buttons; *See all* opens `#/drives`.
+- [ ] Drives page: stats banner, filters (Upcoming / This week / My city / I'm going / Hosted by me / Past), search, Cards ↔ Map.
+- [ ] Host (not a student): *Host a drive* → address + pin (Find on map / GPS / tap) → capacity → published; appears for everyone at once.
+- [ ] Register 1–5 people; spots and the progress ring drop; ticket + QR shown; cancel returns spots; the last spots cannot be double-booked (second person sees *Full*).
+- [ ] Host → *Volunteers*: list, check in one / everyone, CSV; edit (capacity cannot go below registered), mark finished, cancel drive.
+- [ ] Attended volunteers see *Record the tree you planted* → planting opens with the site pre-filled.
+- [ ] axe 0 violations; no horizontal scroll at 390 px; Reduce motion stops the card animations.

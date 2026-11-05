@@ -78,4 +78,6 @@ Set up three profiles first (use the app itself): super admin, a school admin (a
 
 | 63 | Member | `ladder`: all signed-in read; write only your own row (role must match; numbers bounded; unknown fields ❌) or Super Admin; `footprints` owner-only | as shown |
 
+| 64 | Member | `drives`: non-students host; shape checked; registering moves only `registered` (±5, ≤ capacity) alongside the person's own `driveRegs`; host edits can't go below registered; `driveRegs` own + host read, host check-in | as shown |
+
 Later phases add rows for stats hardening, notifications, challenges and species edits.
