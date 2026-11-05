@@ -1,0 +1,27 @@
+Step 1 - Welcome: The home page: an interactive 3D tree you can drag sideways. Press “Watch it grow” to see a seed become a tree.
+Step 1 - Welcome: Scroll to see the live forest map, impact numbers and how the portal works.
+Step 2 - Sign in: Sign in with e-mail (or user ID for students). The demo panel lists accounts for every role — Super Admin, Foundation, School, Organisation, Student, Individual and Seller.
+Step 3 - Super Admin dashboard: Sir (Super Admin) sees everything: trees planted, survival, carbon, plantation drives, workshops and the 3D tree card.
+Step 3 - Admin Centre: Approvals, audit log, reports, health checks and settings live here.
+Step 3 - Approvals: New foundations, schools and organisations wait here until the Super Admin approves them.
+Step 4 - Hierarchy: The Satsang Foundation → TSF MyTree → Kendras (Mumbai, Pune…) and schools. Every level sees only what is beneath it.
+Step 4 - People: Add or import students and members, see their trees and activity.
+Step 5 - Foundation view: A foundation sees the combined numbers of every Kendra and school under it, with rankings between them.
+Step 6 - Individual dashboard: Your own trees, health, streaks, badges and a 3D tree. Celebrations appear when you hit milestones.
+Step 6 - Plant a tree: Planting steps: pick the species, drop a pin on the map (or use GPS), add a photo, and save. Carbon credits are calculated for you.
+Step 7 - My Trees: Every tree you planted, with health and the growth timeline.
+Step 7 - Tree page: Each tree has a QR code, photos over time and updates (height, health) — each one feeds your carbon ladder.
+Step 7 - Growth updates: Post a quick update: new photo, height and health. Updates are permanent records.
+Step 8 - Map: All trees on a map you can filter by city, species and health.
+Step 8 - Green cover: Estimate green cover from photos or ground measurements, and compare over time.
+Step 9 - Leaderboard: Friendly rankings across schools, organisations and people.
+Step 9 - Badges & challenges: Earn badges for planting, caring and showing up.
+Step 10 - Carbon ladder: Carbon credits are automatic from tree activity, weighted by local air quality (AQI). Top 10 plus a rung ladder visible to everyone.
+Step 11 - Plantation drives: Anyone (except students) can host a drive: date, site address, volunteers needed. Everyone can register while spots remain.
+Step 11 - Register: Pick how many people are coming, register, and get a ticket with a QR code. The host checks people in on the day.
+Step 12 - Workshops: Organisations and individuals schedule online or on-site sessions with a meeting link. Participants RSVP, attend and leave feedback.
+Step 13 - Marketplace: Buy saplings and bird-care items from approved sellers. Pay via the seller’s UPI or bank details; the seller confirms once payment arrives.
+Step 13 - My orders: Track orders from placed → paid → delivered, then plant the sapling in one tap.
+Step 14 - Seller login: Sellers list saplings, set payment details, confirm payments and mark orders delivered.
+Step 15 - Bird Friends: A little 3D bird in a nest with a feeder. Set up feeding stations, log care, and record bird sightings.
+Step 16 - Help: A built-in help centre with short guides for every role.

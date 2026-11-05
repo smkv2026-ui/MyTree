@@ -1,5 +1,5 @@
 {
   "firestore": { "rules": "firestore.rules", "indexes": "firestore.indexes.json" },
-  "hosting": { "public": ".", "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "tests/**", "tools/**", "*.md", "firestore.*"] },
+  "hosting": { "public": ".", "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "tests/**", "tools/**", "*.md", "firestore.*", "docs/**"] },
   "emulators": { "auth": { "port": 9099 }, "firestore": { "port": 8080 }, "ui": { "enabled": false }, "singleProjectMode": true }
 }
