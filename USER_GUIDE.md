@@ -67,7 +67,7 @@ Your teacher gives you a **user ID** and **password** (for example `Maple-River-
 * **Language**: English, हिन्दी, मराठी (navigation and common labels).
 * **Install as an app**: Quick search → “Install the app”, or your browser's menu → Install / Add to Home Screen. Works offline for pages you have opened.
 * **Accessibility menu** (the sliders icon): text size, high contrast, dark / light theme and **Reduce motion**.
-* **Tree in 3D**: on every tree page, drag sideways to turn the tree, scroll or pinch to zoom, press **Watch it grow** or move the age slider to see it from sapling to maturity. Its look follows the species and its health. Keyboard: left/right arrow keys turn it, + / − zoom, 0 resets.
+* **3D tree**: the landing page, your dashboard card and the planting screens show a living 3D tree — drag sideways to turn it, scroll or pinch to zoom, **Watch it grow** plays it from a seed to a full tree. Keyboard: left / right arrows turn it, + / − zoom, 0 resets.
 
 ## Workshops (everyone; admins organise)
 * **Join:** *Workshops* lists sessions you are invited to (also in the bell). Reply Yes / Maybe / No, **Add to calendar**, open the meeting link, and press **I am attending** while the session is live. Afterwards give **feedback** and download your **certificate**.
@@ -79,5 +79,6 @@ Your teacher gives you a **user ID** and **password** (for example `Maple-River-
 * MyTree never touches the money. Students cannot buy — ask your school admin.
 
 ## Bird friends
+* A small 3D bird perches at the top of *Bird friends* (drag sideways to turn it, scroll to zoom).
 * *Bird friends* → **Add** a nest box, feeder or water bowl (pin it on the map), **Log care** when you refill or clean it, and **Log a bird sighting**. Overdue stations are highlighted; tips on the *How to help birds* tab.
 

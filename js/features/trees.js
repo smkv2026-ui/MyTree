@@ -182,7 +182,6 @@
             <div class="btn-row">${editable ? h`<button class="btn btn-primary" id="post-upd">${ui.icon('clipboard-check')} Post update</button><button class="btn btn-soft" id="mv-pin">${ui.icon('move')} Move pin</button><button class="btn btn-danger-soft" id="del-tree">${ui.icon('trash-2')} Delete</button>` : ''}<button class="btn btn-ghost" id="ics-tree">${ui.icon('calendar-plus')} Add reminders (.ics)</button><button class="btn btn-ghost" id="copy-link">${ui.icon('link')} Copy public link</button><button class="btn btn-ghost" id="cert-tree">${ui.icon('award')} Certificate</button><button class="btn btn-ghost" id="gift-tree">${ui.icon('gift')} Gift card</button></div>
           </div>
         </section>
-        <section class="card"><div class="card-head"><h3>Your tree in 3D</h3><span class="fine">Drag sideways to turn it · slide the age to see it grow</span></div><div class="t3d t3d-tall" id="t3d-host" aria-live="polite"></div></section>
         <div class="two-col">
           <section class="card"><div class="card-head"><h3>Location</h3></div><div class="detail-map" id="detail-map"></div><p class="fine">${t.address || ''}</p><p class="mono fine">${t.lat.toFixed(6)}, ${t.lng.toFixed(6)}</p></section>
           <section class="card"><div class="card-head"><h3>QR code</h3></div><div id="detail-qr" class="qr-box"></div><p class="fine">Scan to open this tree's page. Print it on a tag next to the tree.</p></section>
@@ -194,10 +193,9 @@
     });
   }
   function detailAfter(host, ctx) {
-    var map = null, mapPromise, viewer = null, gone = false;
+    var map = null, mapPromise;
     return MT.db.get('trees', ctx.params.id).then(function (t) {
       if (!t) return;
-      MT.lazy.load('tree3d').then(function () { var h3 = MT.$('#t3d-host', host); if (gone || !h3) return; viewer = MT.tree3d.mount(h3, { speciesId: t.speciesId, health: t.status === 'dead' ? 'dead' : t.health, ageYears: MT.trees.ageYears(t), seed: t.code, controls: true }); }).catch(function () { var h3 = MT.$('#t3d-host', host); if (h3) h3.innerHTML = '<p class="muted" style="padding:1rem">The 3D view could not be loaded.</p>'; });
       // full-size photo on demand
       if (t.coverPhotoId) MT.photoStore.full(t.coverPhotoId).then(function (src) { var el = MT.$('#th-photo', host); if (src && el) el.innerHTML = '<img src="' + src + '" alt="Photo of ' + MT.esc(MT.trees.nameOf(t)) + '">'; }).catch(function () {});
       MT.qr.render(MT.$('#detail-qr', host), MT.trees.url(t.code), 200);
@@ -228,7 +226,7 @@
           ui.undoToast('Tree deleted.', function () { ui.toast('Restored.', { duration: 1500 }); }, function () { MT.trees.remove([t]).catch(ui.error); });
         });
       });
-    }).then(function () { return function () { gone = true; if (viewer) viewer.destroy(); if (host._stopGrowth) host._stopGrowth(); if (map) map.remove(); }; });
+    }).then(function () { return function () { if (host._stopGrowth) host._stopGrowth(); if (map) map.remove(); }; });
   }
 
   /* =================== Public tree page (#/t/CODE) =================== */

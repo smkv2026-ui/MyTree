@@ -213,3 +213,7 @@ mt-compare { display: block; --x: 50%; } .cmp { position: relative; aspect-ratio
 .wg-fact { margin: .7rem 0; max-width: 62ch; }
 
 @media (max-width: 640px) { #bd-chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: .3rem; } #bd-chips .chip { flex: none; } }
+
+.wg-hero { margin: 0 0 1rem; max-width: 560px; }
+.wg-hero .t3d { height: 260px; }
+@media (max-width: 640px) { .wg-hero .t3d { height: 240px; } }
