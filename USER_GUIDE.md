@@ -84,5 +84,5 @@ Your teacher gives you a **user ID** and **password** (for example `Maple-River-
 
 ## Carbon ladder (everyone)
 * *Carbon ladder* ranks people by the CO₂ their trees have removed, nudged up where the air is dirtier (live AQI for your region). **1 credit = 10 kg** of weighted CO₂. You start on the *Seed* rung and climb to *Rainforest*; the **Top 10** is shown first, then everyone else rung by rung. Your position, rung and distance to the next rung are at the top.
-* **Add my carbon footprint** opens a quick calculator (electricity, travel, flights, LPG, diet). Your trees' share of it appears as “offsets X % of own footprint”.
+* **It is all automatic.** Plant a tree (or have an admin plant or import it for you), update it, or lose one, and your credits change by themselves — you never type numbers in. A newly planted tree counts as one year of growth straight away. The page also shows what share of an average person's yearly footprint (about 2 t CO₂) your trees have removed.
 * You appear as first name + initial. **Hide me from the ladder** removes you at any time. Credits are for motivation only — not tradable or a certified offset.

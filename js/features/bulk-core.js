@@ -284,6 +284,7 @@
     return MT.db.set('importJobs', id, job).then(function () { return id; }, function () { return ''; });
   }
   function runTrees(ok, ctx, progress) {
+    var ownersTouched = {};
     var me = ctx.me, byOwner = {}; ok.forEach(function (r) { var ow = r.data.owner || me; (byOwner[ow.userId] = byOwner[ow.userId] || { owner: ow, rows: [] }).rows.push(r); });
     var groups = []; Object.keys(byOwner).forEach(function (k) { // split each owner into batches of ≤ 300 trees
       var g = byOwner[k], cur = [], n = 0; g.rows.forEach(function (r) { if (n + r.data.count > 300 && cur.length) { groups.push({ owner: g.owner, rows: cur }); cur = []; n = 0; } cur.push(r); n += r.data.count; }); if (cur.length) groups.push({ owner: g.owner, rows: cur });
@@ -297,7 +298,7 @@
           g.rows.forEach(function (r) {
             var cs = []; for (var i = 0; i < r.data.count; i++) cs.push('TREE-' + year + '-' + MT.pad(first + idx++, 6));
             var made = MT.trees.build({ owner: g.owner, speciesId: r.data.speciesId, customName: r.data.customName, lat: r.data.lat, lng: r.data.lng, plantedOn: r.data.plantedOn, notes: r.data.notes, plotName: r.data.plotName }, cs);
-            made.trees.forEach(function (t) { b.set('trees', t.code, MT.trees.stored(t)); entries.push({ tree: t, sign: 1 }); codes.push(t.code); }); if (made.plot) b.set('plots', made.plotId, made.plot);
+            made.trees.forEach(function (t) { b.set('trees', t.code, MT.trees.stored(t)); entries.push({ tree: t, sign: 1 }); codes.push(t.code); if (!ownersTouched[t.ownerId]) ownersTouched[t.ownerId] = t; }); if (made.plot) b.set('plots', made.plotId, made.plot);
           });
           MT.stats.apply(b, entries);
           if (onBehalf) MT.audit.add(b, { action: 'tree.bulk', targetType: 'tree', targetId: entries[0].tree.code, onBehalfOfId: g.owner.userId, onBehalfOfName: g.owner.name, detail: 'Bulk import: ' + count + ' trees', orgId: g.owner.orgId, ancestorOrgIds: g.owner.ancestorOrgIds });
@@ -305,7 +306,8 @@
         }).catch(function (e) { g.rows.forEach(function (r) { errors.push({ row: r.n, msg: MT.friendlyError(e) }); }); done += g.rows.length; progress(done, total); });
       });
     }, Promise.resolve()).then(function () {
-      MT.due.invalidate(); var sum = { total: total, ok: total - errors.length, failed: errors.length, errors: errors, trees: planted };
+      MT.due.invalidate(); if (MT.ladder) MT.ladder.touchTrees(Object.keys(ownersTouched).map(function (k) { return ownersTouched[k]; }));
+      var sum = { total: total, ok: total - errors.length, failed: errors.length, errors: errors, trees: planted };
       return saveJob('trees', sum, { treeCodes: codes.slice(0, 3000) }).then(function (id) { sum.jobId = id; return sum; });
     });
   }

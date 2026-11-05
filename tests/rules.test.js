@@ -404,12 +404,17 @@ async function t(name, fn) { try { await fn(); pass++; console.log('  ✓ ' + na
   });
 
   console.log('\nCarbon ladder (phase 10)'); await seed();
-  const lrow = (o) => Object.assign({ userId: 'MT-IND-000001', label: 'Ind O.', role: 'individual', orgId: '', orgName: '', city: 'Pune', state: 'Maharashtra', trees: 5, treesAlive: 4, kgCo2: 40, aqi: 95, aqiSource: 'live', aqiMult: 1.15, score: 46, credits: 4.6, hidden: false, updatedAt: 1 }, o);
+  const lrow = (o) => Object.assign({ userId: 'MT-IND-000001', label: 'Ind O.', role: 'individual', orgId: '', orgName: '', ancestorOrgIds: [], city: 'Pune', state: 'Maharashtra', trees: 5, treesAlive: 4, kgCo2: 40, aqi: 95, aqiSource: 'live', aqiMult: 1.15, score: 46, credits: 4.6, hidden: false, updatedAt: 1 }, o);
   await t('ladder: every signed-in member reads; only you write your own row (or the Super Admin); numbers are bounded', async () => {
     await assertSucceeds(as('ind1').doc('ladder/MT-IND-000001').set(lrow())); await assertSucceeds(as('st1').doc('ladder/MT-IND-000001').get()); await assertSucceeds(as('s2').collection('ladder').get()); await assertFails(anon().doc('ladder/MT-IND-000001').get());
     await assertFails(as('st1').doc('ladder/MT-IND-000001').set(lrow())); await assertFails(as('ind1').doc('ladder/MT-IND-000001').set(lrow({ role: 'school' }))); await assertFails(as('ind1').doc('ladder/MT-IND-000001').set(lrow({ aqiMult: 3 })));
     await assertFails(as('ind1').doc('ladder/MT-IND-000001').set(lrow({ treesAlive: 9 }))); await assertFails(as('ind1').doc('ladder/MT-IND-000001').set(lrow({ evil: 1 }))); await assertFails(as('ind1').doc('ladder/MT-IND-000001').set(lrow({ kgCo2: 1e12 })));
     await assertSucceeds(as('ind1').doc('ladder/MT-IND-000001').update({ hidden: true })); await assertSucceeds(as('sa').doc('ladder/MT-STU-SCH001-0001').set(lrow({ userId: 'MT-STU-SCH001-0001', role: 'student', label: 'Stu O.' })));
+  });
+  await t('ladder: a manager keeps the rows of people beneath them current; never of outsiders or forged ancestry', async () => {
+    const stu = (o) => lrow(Object.assign({ userId: 'MT-STU-SCH001-0001', role: 'student', label: 'Stu O.', orgId: 'MT-SCH-000001', orgName: 'S1', ancestorOrgIds: ['MT-FND-000001', 'MT-SCH-000001'] }, o));
+    await assertSucceeds(as('s1').doc('ladder/MT-STU-SCH001-0001').set(stu())); await assertSucceeds(as('f1').doc('ladder/MT-STU-SCH001-0001').set(stu()));
+    await assertFails(as('s2').doc('ladder/MT-STU-SCH001-0001').set(stu())); await assertFails(as('s2').doc('ladder/MT-STU-SCH001-0001').set(stu({ ancestorOrgIds: ['MT-SCH-000002'] }))); await assertFails(as('st2').doc('ladder/MT-STU-SCH001-0001').set(stu()));
   });
   await t('footprints: private to the owner', async () => {
     const f = { userId: 'MT-IND-000001', kgPerYear: 1900, inputs: { kwh: 100 }, updatedAt: 1 };

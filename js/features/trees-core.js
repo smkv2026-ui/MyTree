@@ -87,7 +87,7 @@
         if (made.plot) b.set('plots', plotId, made.plot);
         MT.stats.apply(b, trees.map(function (t) { return { tree: t, sign: 1 }; }));
         if (onBehalf) MT.audit.add(b, { action: 'tree.plant', targetType: 'tree', targetId: codes[0], onBehalfOfId: owner.userId, onBehalfOfName: owner.name, detail: count + ' × ' + (o.customName || sp.common), orgId: owner.orgId, ancestorOrgIds: owner.ancestorOrgIds });
-        return b.commit().then(function () { MT.due.invalidate(); return T.syncPublic(trees.map(function (t) { return { after: t }; })); }).then(function () { return { trees: trees.map(function (t) { return Object.assign({ id: t.code }, t); }), photoId: photoId, plotId: plotId }; });
+        return b.commit().then(function () { MT.due.invalidate(); if (MT.ladder) MT.ladder.touchTrees(trees); return T.syncPublic(trees.map(function (t) { return { after: t }; })); }).then(function () { return { trees: trees.map(function (t) { return Object.assign({ id: t.code }, t); }), photoId: photoId, plotId: plotId }; });
       });
     },
     /** Delete trees (and their counters). Photos are removed when this was the only tree they belonged to. */
@@ -101,13 +101,13 @@
       MT.stats.apply(b, trees.map(function (t) { return { tree: t, sign: -1 }; }));
       var other = trees.filter(function (t) { return t.ownerId !== me.userId; })[0];
       if (other) MT.audit.add(b, { action: 'tree.delete', targetType: 'tree', targetId: other.code, onBehalfOfId: other.ownerId, onBehalfOfName: other.ownerName, detail: trees.length + ' tree(s) deleted', orgId: other.orgId, ancestorOrgIds: other.ancestorOrgIds });
-      return b.commit().then(function () { MT.due.invalidate(); });
+      return b.commit().then(function () { MT.due.invalidate(); if (MT.ladder) MT.ladder.touchTrees(trees); });
     },
     update: function (tree, patch) {
       var me = MT.auth.profile(), b = MT.db.batch();
       b.update('trees', tree.id || tree.code, patch);
       if (tree.ownerId !== me.userId) MT.audit.add(b, { action: 'tree.edit', targetType: 'tree', targetId: tree.code, onBehalfOfId: tree.ownerId, onBehalfOfName: tree.ownerName, detail: Object.keys(patch).join(', '), orgId: tree.orgId, ancestorOrgIds: tree.ancestorOrgIds });
-      return b.commit().then(function () { return T.syncPublic([{ before: tree, after: Object.assign({}, tree, patch) }]); });
+      return b.commit().then(function () { if (MT.ladder && ('status' in patch || 'health' in patch)) MT.ladder.touchTrees([tree]); return T.syncPublic([{ before: tree, after: Object.assign({}, tree, patch) }]); });
     },
     /** The only fields a public tree page may expose: no owner ID, no organisation, no exact coordinates (city-level only). */
     publicDoc: function (t) {

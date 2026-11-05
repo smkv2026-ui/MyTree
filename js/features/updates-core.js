@@ -93,9 +93,10 @@
       MT.stats.updates(b, t, o.date);
       if (onBehalf) MT.audit.add(b, { action: 'tree.update', targetType: 'tree', targetId: t.code, onBehalfOfId: t.ownerId, onBehalfOfName: t.ownerName, detail: ui_health(o.health) + (photos.length ? ' · ' + photos.length + ' photo(s)' : ''), orgId: t.orgId, ancestorOrgIds: t.ancestorOrgIds });
       return b.commit().then(function () {
-        MT.due.invalidate();
+        MT.due.invalidate(); var wasDead = t.status === 'dead';
         Object.assign(t, { health: patch.health, status: patch.status, lastUpdateAt: patch.lastUpdateAt, updatesCount: (t.updatesCount || 0) + 1 });
         if (patch.heightCm != null) t.heightCm = patch.heightCm; if (patch.coverPhotoId) { t.coverPhotoId = patch.coverPhotoId; t.cover = patch.cover; }
+        if (MT.ladder && wasDead !== (t.status === 'dead')) MT.ladder.touchTrees([t]);
         return (t.public && MT.trees.syncPublic ? MT.trees.syncPublic([{ after: t }]) : Promise.resolve()).then(function () { return Object.assign({ id: id }, upd); });
       });
     },

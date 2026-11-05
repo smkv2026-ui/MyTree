@@ -113,10 +113,10 @@
     var ladder = [], fps = [], TR = ['individual', 'student', 'foundation', 'school', 'institution'];
     users.forEach(function (u, ui) {
       if (TR.indexOf(u.role) < 0 || u.active === false) return;
-      var ts = byOwner[u.userId] || [], alive = ts.filter(function (t) { return t.status !== 'dead'; }), kg = alive.reduce(function (a, t) { return a + MT.species.co2Total(t.speciesId, MT.species.ageYears(t.plantedOn, now)); }, 0);
+      var ts = byOwner[u.userId] || [], alive = ts.filter(function (t) { return t.status !== 'dead'; }), kg = alive.reduce(function (a, t) { return a + MT.species.co2Total(t.speciesId, Math.max(1, MT.species.ageYears(t.plantedOn, now))); }, 0);
       var m = {}, city = '', best = 0; ts.forEach(function (t) { if (t.city) { m[t.city] = (m[t.city] || 0) + 1; if (m[t.city] > best) { best = m[t.city]; city = t.city; } } });
       var org = orgs.filter(function (o) { return o.id === u.orgId; })[0]; city = city || u.city || (org && org.city) || 'Pune';
-      var aqi = MT.aqi.typical(city), mult = MT.aqi.multiplier(aqi), score = kg * mult, row = { id: u.userId, userId: u.userId, label: short(u.name), role: u.role, orgId: u.orgId || '', orgName: (org && org.name) || '', city: city, state: (MT.geoData.city(city) || {}).state || '', trees: ts.length, treesAlive: alive.length,
+      var aqi = MT.aqi.typical(city), mult = MT.aqi.multiplier(aqi), score = kg * mult, row = { id: u.userId, userId: u.userId, label: short(u.name), role: u.role, orgId: u.orgId || '', orgName: (org && org.name) || '', ancestorOrgIds: u.ancestorOrgIds || [], city: city, state: (MT.geoData.city(city) || {}).state || '', trees: ts.length, treesAlive: alive.length,
         kgCo2: Math.round(kg * 10) / 10, aqi: aqi, aqiSource: 'typical', aqiMult: Math.round(mult * 100) / 100, score: Math.round(score * 10) / 10, credits: Math.round(score / 10 * 100) / 100, hidden: false, updatedAt: now };
       if (ts.length && ui % 3 === 0) { row.footprintKg = 1400 + Math.floor(rnd() * 1800); fps.push({ id: u.userId, userId: u.userId, kgPerYear: row.footprintKg, inputs: { kwh: 150, car: 0, bike: 40, bus: 30, flights: 1, lpg: 6, diet: 'mixed' }, updatedAt: now }); }
       if (u.userId === 'MT-IND-000004') row.hidden = true;

@@ -446,15 +446,16 @@ service cloud.firestore {
     // ---------- carbon ladder: one public-to-members row per person (first name + initial), written by the person themselves (or rebuilt by the Super Admin) ----------
     // The numbers are an educational estimate computed in the browser from the person's own trees; the Super Admin's rebuild recomputes every row from the real tree data.
     function ladderShape(d) {
-      return d.keys().hasOnly(['userId', 'label', 'role', 'orgId', 'orgName', 'city', 'state', 'trees', 'treesAlive', 'kgCo2', 'aqi', 'aqiSource', 'aqiMult', 'score', 'credits', 'footprintKg', 'hidden', 'updatedAt'])
+      return d.keys().hasOnly(['userId', 'label', 'role', 'orgId', 'orgName', 'ancestorOrgIds', 'city', 'state', 'trees', 'treesAlive', 'kgCo2', 'aqi', 'aqiSource', 'aqiMult', 'score', 'credits', 'footprintKg', 'hidden', 'updatedAt'])
         && str(d.label, 60) && d.role in ['individual', 'student', 'foundation', 'school', 'institution'] && optStr(d, 'orgName', 160) && optStr(d, 'city', 80)
         && d.trees is int && d.trees >= 0 && d.trees <= 100000 && d.treesAlive is int && d.treesAlive <= d.trees && d.kgCo2 is number && d.kgCo2 >= 0 && d.kgCo2 <= 100000000
         && d.aqi is number && d.aqi >= 0 && d.aqi <= 1000 && d.aqiMult is number && d.aqiMult >= 1 && d.aqiMult <= 1.5 && d.score is number && d.score >= 0 && d.score <= 150000000 && d.credits is number && d.credits >= 0
-        && d.hidden is bool;
+        && d.hidden is bool && d.ancestorOrgIds is list && d.ancestorOrgIds.size() <= 8;
     }
     match /ladder/{uid} {
       allow read: if isActive();
-      allow create, update: if isActive() && ladderShape(request.resource.data) && request.resource.data.userId == uid && (isSuper() || (uid == me().userId && request.resource.data.role == me().role));
+      allow create, update: if isActive() && ladderShape(request.resource.data) && request.resource.data.userId == uid && (isSuper() || (uid == me().userId && request.resource.data.role == me().role)
+        || (isManager() && uid != me().userId && manages(request.resource.data.ancestorOrgIds) && get(/databases/$(database)/documents/userIds/$(uid)).data.ancestorOrgIds == request.resource.data.ancestorOrgIds));
       allow delete: if isActive() && (isSuper() || uid == me().userId);
     }
     match /footprints/{uid} {

@@ -111,5 +111,5 @@ Tick each box in **Demo mode** (`index.html`) and again in **Live mode**. Phase 
 - [ ] `#/ladder` opens for every role (also Super Admin, sellers). A signed-in tree-planter gets a row automatically; shows rung, credits, rank “#n of N”, progress to the next rung.
 - [ ] Top 10 podium + list, then “everyone else” grouped by rung with *Show more*; *Find me* scrolls to you; Organisations tab ranks schools / organisations.
 - [ ] AQI chips show “AQI n” (live) or “AQI n*” (typical, with a note) per city; hovering gives the band and source.
-- [ ] Footprint calculator saves and shows “offsets X %”; *Hide me* removes the row for others; Super Admin → *Rebuild ladder from tree data*.
+- [ ] **Automatic:** plant trees → your row (trees, kg, credits) changes without opening the ladder; delete a tree or mark one dead → it drops; an admin plants / bulk-imports for a student → the student's row updates; *Hide me* removes the row for others; Super Admin → *Rebuild ladder from tree data*.
 - [ ] axe 0 violations (light + dark); no horizontal scroll at 390 px.

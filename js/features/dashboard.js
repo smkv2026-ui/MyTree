@@ -101,7 +101,7 @@
     var role = MT.auth.role(), dead = false, viewer = null;
     MT.lazy.load('tree3d').then(function (){ var el = document.getElementById('dash-3d'); if (dead || !el) return; viewer = MT.tree3d.mount(el, { speciesId: el.dataset.sp, health: el.dataset.health, growth: 0.85, seed: el.dataset.seed, controls: false }); }).catch(function () {});
     setTimeout(function () { /* after first paint: badges + first-run tour load in the background */
-      if (dead) return;
+      if (dead) return; if (MT.ladder) MT.ladder.refreshMine();
       if (role !== 'super_admin') MT.lazy.load('social').then(function () { MT.gamify.celebrate(); }).catch(function () {});
       if (!(MT.storage.get('tour.' + role, false) || MT.storage.get('tour.off', false))) MT.lazy.load('help').then(function () { if (!dead) MT.tour.start(); }).catch(function () {});
     }, 1500);
