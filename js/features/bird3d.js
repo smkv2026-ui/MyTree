@@ -36,9 +36,9 @@
     label();
     function resize() { var r = el.getBoundingClientRect(); dpr = Math.min(2, window.devicePixelRatio || 1); W = Math.max(120, Math.round(r.width)); Hh = Math.max(140, Math.round(r.height)); cv.width = W * dpr; cv.height = Hh * dpr; cv.style.width = W + 'px'; cv.style.height = Hh + 'px'; }
 
-    var cy, sy, cp, sp_, F, CX, CY, DZ;
-    function setCam() { cy = Math.cos(yaw); sy = Math.sin(yaw); cp = Math.cos(pitch); sp_ = Math.sin(pitch); F = Math.min(W, Hh) * 1.5; CX = W / 2; CY = Hh * 0.6; DZ = 7.4 / dist; }
-    function P(x, y, z, out) { var rx = x * cy + z * sy, rz = -x * sy + z * cy, ry = y - 0.85, py = ry * cp - rz * sp_, pz = ry * sp_ + rz * cp + DZ, s = F / pz; out.x = CX + rx * s; out.y = CY - py * s; out.z = pz; out.s = s; return out; }
+    var cy, sy, cp, sp_, F, CX, CY, DZ, NX = 0;
+    function setCam() { cy = Math.cos(yaw); sy = Math.sin(yaw); cp = Math.cos(pitch); sp_ = Math.sin(pitch); F = Math.min(W, Hh) * 2.0; CX = W / 2; CY = Hh * 0.62; DZ = 7.4 / dist; }
+    function P(x, y, z, out) { x -= 0.55; var rx = x * cy + z * sy, rz = -x * sy + z * cy, ry = y - 0.85, py = ry * cp - rz * sp_, pz = ry * sp_ + rz * cp + DZ, s = F / pz; out.x = CX + rx * s; out.y = CY - py * s; out.z = pz; out.s = s; return out; }
 
     var prim = [];
     function ball(x, y, z, r, col, hl) { var q = P(x, y, z, { x: 0, y: 0, z: 0, s: 1 }); prim.push({ z: q.z, t: 0, x: q.x, y: q.y, r: r * q.s, c: col, hl: hl == null ? 0.35 : hl }); }
@@ -49,11 +49,22 @@
       var flap = 0; if (!still) { if (now > flapAt && now > flapUntil) { flapUntil = now + 1100; flapAt = now + 5500 + Math.random() * 3000; } if (now < flapUntil) flap = Math.sin((now - (flapUntil - 1100)) * 0.03) * 0.9 * Math.sin(((flapUntil - now) / 1100) * Math.PI); }
       var headTurn = still ? 0 : Math.sin(t * 0.0009) * 0.45 + (Math.sin(t * 0.0023) > 0.93 ? 0.5 : 0), tailBob = still ? 0 : Math.sin(t * 0.003) * 0.07 + (sp.perk ? 0.55 : 0), hop = still ? 0 : Math.max(0, Math.sin(t * 0.0007)) > 0.985 ? 0.12 : 0;
       prim.length = 0;
-      /* branch + leaves (sways a little) */
-      var by = -0.5 + sway * 0.2; stick([-3.2, by - 0.1, sway], [3.4, by + 0.1, -sway], 0.22, dark ? '#4a3524' : '#7a5636', 0);
-      stick([1.6, by + 0.05, 0], [2.6, by + 0.65, 0.5], 0.1, dark ? '#4a3524' : '#7a5636', 1);
-      for (var i = 0; i < 16; i++) { var a = i * 2.399, lx = -3 + (i % 8) * 0.85, lz = Math.cos(a) * 0.7, ly = by + 0.15 + Math.sin(a) * 0.35 + Math.sin(t * 0.002 + i) * (still ? 0 : 0.04); var q = P(lx, ly, lz, { x: 0, y: 0, z: 0, s: 1 }); prim.push({ z: q.z, t: 2, x: q.x, y: q.y, r: 0.34 * q.s, a: a + sway * 3, c: dark ? '#2a6a45' : (i % 3 ? '#3fae5b' : '#5cc873') }); }
-      var feetY = by + 0.16 + hop, bodyC = sp.body, belly = sp.belly, n = 10, j;
+      /* a short branch carrying a woven nest (the bird sits inside) and a seed feeder beside it */
+      var by = -0.5 + sway * 0.1, wood = dark ? '#6a4a30' : '#7a5636', twig = dark ? '#8a6a44' : '#a47c4a', twig2 = dark ? '#6f5535' : '#8a6238', k2, a2, i;
+      stick([-2.0, by - 0.05, 0], [3.1, by + 0.05, 0], 0.26, wood, 5);
+      stick([-1.4, by, 0.05], [-2.3, by + 0.7, 0.4], 0.1, wood, 6);
+      var nl = P(-2.3, by + 0.72, 0.4, { x: 0, y: 0, z: 0, s: 1 }); prim.push({ z: nl.z, t: 2, x: nl.x, y: nl.y, r: 0.34 * nl.s, a: 0.6, c: dark ? '#2a6a45' : '#3fae5b' }); prim.push({ z: nl.z + 0.1, t: 2, x: nl.x + 0.3 * nl.s, y: nl.y + 0.1 * nl.s, r: 0.3 * nl.s, a: -0.5, c: dark ? '#2f7a50' : '#5cc873' });
+      /* nest: a bowl of twigs around a floor of straw */
+      for (i = 0; i < 20; i++) { a2 = i / 20 * TAU; var r1 = 0.95, r2 = 0.95 + 0.18 * Math.sin(i * 2.3), x1 = NX + Math.cos(a2) * r1, z1 = Math.sin(a2) * r1 * 0.9, x2 = NX + Math.cos(a2 + 0.5) * r2, z2 = Math.sin(a2 + 0.5) * r2 * 0.9;
+        stick([x1, by + 0.18, z1], [x2, by + 0.52 + 0.08 * Math.sin(i), z2], 0.11, i % 2 ? twig : twig2); stick([x1 * 0.97 + NX * 0.03, by + 0.45, z1], [x2, by + 0.3, z2], 0.08, i % 3 ? twig2 : twig); }
+      for (i = 0; i < 14; i++) { a2 = i * 2.399; ball(NX + Math.cos(a2) * 0.5 * Math.sqrt((i + 1) / 14) * 1.5, by + 0.3, Math.sin(a2) * 0.55 * Math.sqrt((i + 1) / 14) * 1.4, 0.2, i % 2 ? '#c9a26a' : '#b88a52', 0.3); }
+      /* seed feeder: a small clay bowl heaped with seed, with a few seeds spilled on the branch */
+      var FX = 1.85;
+      for (i = 0; i < 14; i++) { a2 = i / 14 * TAU; ball(FX + Math.cos(a2) * 0.55, by + 0.34 + 0.06 * Math.sin(i * 3), Math.sin(a2) * 0.55, 0.16, i % 2 ? '#c8744a' : '#b8643c', 0.3); }
+      ball(FX, by + 0.2, 0, 0.38, '#b8643c', 0.2); ball(FX, by + 0.28, 0, 0.44, '#c8744a', 0.25);
+      for (i = 0; i < 18; i++) { a2 = i * 2.399; var rr = 0.4 * Math.sqrt((i + 1) / 18); ball(FX + Math.cos(a2) * rr, by + 0.42 + 0.14 * (1 - rr / 0.4), Math.sin(a2) * rr, 0.075, ['#e8c15a', '#d9a940', '#f2dd8a', '#b98a3a'][i % 4], 0.5); }
+      for (i = 0; i < 5; i++) ball(FX + 0.8 + i * 0.12, by + 0.2, ((i % 2) ? 0.15 : -0.12), 0.05, i % 2 ? '#e8c15a' : '#d9a940', 0.5);
+      var feetY = by + 0.26 + hop, bodyC = sp.body, belly = sp.belly, n = 10, j;
       /* legs and toes gripping the branch */
       [1, -1].forEach(function (sd) { stick([0.05 * k, feetY + 0.62 * k, sd * 0.17 * k], [0.08 * k, feetY, sd * 0.19 * k], 0.07 * k, '#8a5a3a'); stick([0.08 * k, feetY, sd * 0.19 * k], [0.34 * k, feetY, sd * 0.21 * k], 0.055 * k, '#8a5a3a'); stick([0.08 * k, feetY, sd * 0.19 * k], [-0.12 * k, feetY, sd * 0.2 * k], 0.045 * k, '#8a5a3a'); });
       /* body: a tilted chain of shaded spheres (tail-base low at the back, chest high at the front) with a lighter belly */
@@ -88,10 +99,7 @@
     }
 
     function draw() {
-      var dark = isDark(), g = ctx.createLinearGradient(0, 0, 0, Hh);
-      if (dark) { g.addColorStop(0, '#0b1c33'); g.addColorStop(1, '#16402f'); } else { g.addColorStop(0, '#a6d8f2'); g.addColorStop(0.7, '#dcf0e4'); g.addColorStop(1, '#e9f3cf'); }
-      ctx.fillStyle = g; ctx.fillRect(0, 0, W, Hh);
-      var sg = ctx.createRadialGradient(W * 0.18, Hh * 0.14, 0, W * 0.18, Hh * 0.14, Math.min(W, Hh) * 0.6); sg.addColorStop(0, dark ? 'rgba(220,230,255,.35)' : 'rgba(255,244,180,.9)'); sg.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = sg; ctx.fillRect(0, 0, W, Hh);
+      ctx.clearRect(0, 0, W, Hh);
       prim.sort(function (a, b) { return b.z - a.z; });
       for (var i = 0; i < prim.length; i++) {
         var p = prim[i];
